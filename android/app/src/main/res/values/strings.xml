@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">loop</string>
+    <string name="expo_system_ui_user_interface_style" translatable="false">automatic</string>
+    <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
+    <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+    <string name="appwidget_text">Loop Habit Tracker</string>
+    <string name="configure">Configure</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
+</resources>

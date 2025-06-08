@@ -21,11 +21,6 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
-AppData/
-**/User Data/
-*.log
-*.json
-*.lock
 
 
 .DS_Store

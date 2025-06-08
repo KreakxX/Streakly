@@ -1,0 +1,62 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@drawable/background_drawable"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:theme="@style/AppTheme.AppWidgetContainer">
+
+    <TextView
+        android:id="@+id/appwidget_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Habit"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:textSize="22sp"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="30dp" />
+
+    <TextView
+        android:id="@+id/appwidget_streak"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Streak"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:background="@drawable/streak_background"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="30dp" />
+
+    <GridView
+        android:id="@+id/days_grid"
+        android:layout_width="215dp"
+        android:layout_height="140dp"
+        android:numColumns="10"
+        android:verticalSpacing="4dp"
+        android:horizontalSpacing="2dp"
+        android:stretchMode="columnWidth"
+        android:layout_below="@id/appwidget_text"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="30dp"
+        android:gravity="center" />
+
+    <Button
+        android:id="@+id/round_button"
+        android:layout_width="63dp"
+        android:layout_height="63dp"
+        android:text="✓"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:background="@drawable/round_button_background"
+        android:clickable="true"
+        android:layout_marginTop="30dp"
+        android:layout_alignTop="@id/days_grid"
+        android:layout_alignStart="@id/appwidget_streak"
+        android:visibility="visible" />
+</RelativeLayout>

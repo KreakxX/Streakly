@@ -17,11 +17,9 @@ interface StreakProps {
   startDate1: Date;
   addDays: (days: number) => void;
   archivated: boolean;
-  days: number;
-  textColor: string;
 }
 
-const Streak = ({
+const StreakV2 = ({
   color,
   checkedDays,
   bgcolor,
@@ -29,16 +27,15 @@ const Streak = ({
   addDays,
   startDate1,
   archivated,
-  days,
-  textColor,
 }: StreakProps) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const weekdays = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"];
-
+  const [selectedDay, setSelectedDay] = useState<Date>();
   const [periodOffset, setPeriodOffset] = useState(0);
   const [i, setI] = useState<number>(10);
+  const days = 280;
 
   const handlePrevPeriod = () => {
     if (periodOffset > 0) {
@@ -98,8 +95,9 @@ const Streak = ({
   });
 
   const totalDays = days;
-  const weeks = Array.from({ length: Math.ceil(totalDays / 7) }, (_, weekIdx) =>
-    filteredDays.slice(weekIdx * 7, (weekIdx + 1) * 7)
+  const weeks = Array.from(
+    { length: Math.ceil(totalDays / 14) },
+    (_, weekIdx) => filteredDays.slice(weekIdx * 14, (weekIdx + 1) * 14)
   );
 
   const formatDate = (date: Date) => {
@@ -146,12 +144,7 @@ const Streak = ({
             color={color}
             style={{ marginRight: 4 }}
           />
-          <Text
-            style={{
-              color: textColor,
-            }}
-            className=" font-bold text-center"
-          >
+          <Text className="text-white font-bold text-center">
             {formatDate(startDate)} - {formatDate(endDate)}
           </Text>
         </View>
@@ -159,7 +152,7 @@ const Streak = ({
         <TouchableOpacity
           onPress={() => {
             handleNextPeriod();
-            addDays(105);
+            addDays(280);
           }}
           disabled={periodOffset > 10}
           className="h-8 w-8 rounded-full items-center justify-center mr-7"
@@ -172,20 +165,29 @@ const Streak = ({
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row gap-1">
-        <View className="flex-col gap-1 mr-2">
-          {weekdays.map((day, idx) => (
-            <Text
-              key={idx}
-              style={{ color: color, fontSize: 10, fontWeight: "600" }}
-            >
-              {day}
-            </Text>
-          ))}
+      <View className="flex-col gap-1 justify-center items-center">
+        <View className="flex-row gap-1 ">
+          {Array.from({ length: 2 }).map((_, repeatIdx) =>
+            weekdays.map((day, idx) => (
+              <Text
+                className="mr-0.5"
+                key={`${repeatIdx}-${idx}`}
+                style={{
+                  color,
+                  fontSize: 10,
+                  fontWeight: "600",
+                  width: 16.3,
+                  textAlign: "center",
+                }}
+              >
+                {day}
+              </Text>
+            ))
+          )}
         </View>
 
         {weeks.map((week, weekIdx) => (
-          <View key={weekIdx} className="flex-col gap-1 ">
+          <View key={weekIdx} className="flex-row gap-3 ">
             {week.map((dayObj, dayIdx) => (
               <View
                 key={dayIdx}
@@ -203,4 +205,4 @@ const Streak = ({
   );
 };
 
-export default Streak;
+export default StreakV2;
