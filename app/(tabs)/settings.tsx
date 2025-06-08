@@ -1,3 +1,4 @@
+import PaywallModal from "@/components/ui/paywall";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
@@ -25,7 +26,7 @@ export default function Tab() {
   const [gitc, setgitc] = useState<number>(-1);
   const [radarDataall, setRadarDataall] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-
+  const [paywallvisible, setPaywallvisible] = useState<boolean>(false);
   const handleSelectionChange = async (index: number) => {
     setSelectedIndex(index);
     try {
@@ -126,10 +127,6 @@ export default function Tab() {
           if (loaded1 !== null) {
             setIsEnabled(JSON.parse(loaded1));
           }
-          const isEnabledarchivated = await AsyncStorage.getItem("archivated");
-          if (isEnabledarchivated !== null) {
-            setIsEnableArchive(JSON.parse(isEnabledarchivated));
-          }
         } catch {}
       };
       load();
@@ -151,6 +148,10 @@ export default function Tab() {
     }, [])
   );
 
+  const saveGithub = async (username: string) => {
+    await AsyncStorage.setItem("github", username);
+  };
+
   useFocusEffect(
     useCallback(() => {
       const getcolor = async () => {
@@ -165,8 +166,10 @@ export default function Tab() {
     }, [])
   );
 
-  const toggleSwitch = () => {
-    setIsEnabled(!isEnabled);
+  const toggleSwitch = async () => {
+    const newValue = !isEnabled;
+    setIsEnabled(newValue);
+    await AsyncStorage.setItem("notifications", JSON.stringify(newValue));
   };
 
   const toggleSwitch2 = async () => {
@@ -199,6 +202,7 @@ export default function Tab() {
     } catch {}
   };
   const exportData = async () => {
+    setPaywallvisible(true);
     const categories = await AsyncStorage.getItem("categories");
     const routines = await AsyncStorage.getItem("routines");
     const notifications = await AsyncStorage.getItem("notifications");
@@ -230,7 +234,7 @@ export default function Tab() {
     if (!data) {
       return;
     }
-    const SECRETKEY = "";
+    const SECRETKEY = "QUICKAUFDIE1";
     const decrypted = CryptoJS.AES.decrypt(data, SECRETKEY).toString(
       CryptoJS.enc.Utf8
     );
@@ -276,56 +280,6 @@ export default function Tab() {
     }
   };
 
-  const save = async () => {
-    try {
-      await AsyncStorage.setItem("github", githubUsername);
-      await AsyncStorage.setItem("notifications", JSON.stringify(isEnabled));
-      await AsyncStorage.setItem(
-        "archivated",
-        JSON.stringify(isEnabledArchive)
-      );
-      if (isEnabledArchive) {
-        const updatedCategories = await AsyncStorage.getItem("categories");
-        if (updatedCategories) {
-          const categories = JSON.parse(updatedCategories);
-          categories.forEach((category: any) => {
-            category.archivated = true;
-          });
-          await AsyncStorage.setItem("categories", JSON.stringify(categories));
-        }
-      } else {
-        const updatedCategories = await AsyncStorage.getItem("categories");
-        if (updatedCategories) {
-          const categories = JSON.parse(updatedCategories);
-          categories.forEach((category: any) => {
-            category.archivated = false;
-          });
-          await AsyncStorage.setItem("categories", JSON.stringify(categories));
-        }
-      }
-
-      if (isEnabledArchive2) {
-        const updatedRoutines = await AsyncStorage.getItem("routines");
-        if (updatedRoutines) {
-          const routines = JSON.parse(updatedRoutines);
-          routines.forEach((routine: any) => {
-            routine.archivated = true;
-          });
-          await AsyncStorage.setItem("routines", JSON.stringify(routines));
-        }
-      } else {
-        const updatedRoutines = await AsyncStorage.getItem("routines");
-        if (updatedRoutines) {
-          const routines = JSON.parse(updatedRoutines);
-          routines.forEach((routine: any) => {
-            routine.archivated = false;
-          });
-          await AsyncStorage.setItem("routines", JSON.stringify(routines));
-        }
-      }
-    } catch {}
-  };
-
   const isDark = colorScheme === "dark";
   const bgColor = isDark ? "bg-gray-950" : "bg-gray-50";
   const cardBgColor = isDark ? "bg-gray-900" : "bg-white";
@@ -341,7 +295,6 @@ export default function Tab() {
   return (
     <ScrollView className={`flex-1 ${bgColor}`}>
       <View className={`flex-1 ${bgColor} py-8 px-5`}>
-        {/* Header */}
         <View className="mt-12 mb-6">
           <Text className={`${textColor} text-4xl font-bold mb-1`}>
             Settings
@@ -350,10 +303,13 @@ export default function Tab() {
             Manage your app preferences
           </Text>
         </View>
-
-        {/* Settings Card */}
+        {paywallvisible ? (
+          <PaywallModal
+            visible={paywallvisible}
+            onClose={() => setPaywallvisible(false)}
+          />
+        ) : null}
         <View className={`${cardBgColor} rounded-2xl p-5 shadow-md mb-6`}>
-          {/* Profile Section */}
           <View className="mb-6">
             <Text
               className={`${textMutedColor} text-xs font-medium uppercase tracking-wider mb-4`}
@@ -374,8 +330,11 @@ export default function Tab() {
                 className={`flex-1 ${textColor} text-base ${inputBgColor} px-3 py-2.5 rounded-lg`}
                 placeholder="Enter username"
                 placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
-                value={githubUsername}
-                onChangeText={setGithubUsername}
+                value={githubUsername} // Füge diese Zeile hinzu
+                onChangeText={(text) => {
+                  setGithubUsername(text); // State aktualisieren
+                  saveGithub(text); // In AsyncStorage speichern
+                }}
               />
             </View>
 
@@ -543,14 +502,6 @@ export default function Tab() {
             </View>
           </View>
         </View>
-
-        <TouchableOpacity
-          onPress={save}
-          className={`mt-4 mb-20 h-14 ${primaryBgColor} rounded-xl flex-row items-center justify-center shadow-lg`}
-          activeOpacity={0.8}
-        >
-          <Text className="font-bold text-lg text-white">Save Changes</Text>
-        </TouchableOpacity>
       </View>
     </ScrollView>
   );

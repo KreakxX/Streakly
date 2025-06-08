@@ -340,7 +340,11 @@ export default function HomeScreen() {
               ? currentCategory.streak + 1
               : currentCategory.streak - 1,
             checkedToday: widgetDayStatus ? currentCategory.amount : 0,
-            buttonColor: widgetDayStatus ? currentCategory.color : "#1e293b",
+            buttonColor: widgetDayStatus
+              ? currentCategory.color
+              : colorScheme === "dark"
+              ? "#1e293b"
+              : "#71717a",
             lastCheckDate: widgetDayStatus
               ? today.toLocaleDateString("de-DE")
               : "",
@@ -1986,7 +1990,7 @@ export default function HomeScreen() {
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => {
-                                toggleCameraFacing;
+                                toggleCameraFacing();
                               }}
                               className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
                             >
@@ -2982,12 +2986,24 @@ export default function HomeScreen() {
           contentContainerClassName="px-4 py-8 pb-20"
         >
           <View className="flex-row justify-between w-full">
-            <TouchableOpacity
-              onPress={() => updateColor("dark")}
-              className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-            >
-              <Text className="font-bold text-xl">☀</Text>
-            </TouchableOpacity>
+            <View className="flex-col">
+              <TouchableOpacity
+                onPress={() => updateColor("dark")}
+                className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              >
+                <Text className="font-bold text-xl">☀</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setQuestView(!questview)}
+                className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              >
+                <MaterialCommunityIcons
+                  name="script-text"
+                  size={20}
+                  color={"white"}
+                ></MaterialCommunityIcons>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               onPress={() => setQuickView(!quickView)}
               className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
@@ -3013,7 +3029,7 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          <View className="flex-row mb-6 bg-gray-100 rounded-lg p-1">
+          <View className="flex-row mb-10 bg-gray-100 rounded-lg p-1">
             <TouchableOpacity
               className={`flex-1 py-2 px-4 rounded-md ${
                 activeTab === "habits" ? "bg-violet-600" : ""
