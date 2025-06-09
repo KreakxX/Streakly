@@ -266,6 +266,8 @@ export default function Tab() {
   };
 
   const pickJsonFile = async () => {
+    setPaywallvisible(true);
+
     try {
       const res = await DocumentPicker.getDocumentAsync({
         type: "application/json",
@@ -450,14 +452,14 @@ export default function Tab() {
             </View>
           </View>
 
-          <View className="mb-2">
+          <View>
             <Text
               className={`${textMutedColor} text-xs font-medium uppercase tracking-wider mb-4`}
             >
               Data Management
             </Text>
 
-            <View className="flex-row gap-3 mb-4 z-50">
+            <View className="flex-row gap-3  z-50">
               <TouchableOpacity
                 onPress={() => {
                   exportData();

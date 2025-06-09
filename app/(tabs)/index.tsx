@@ -32,6 +32,7 @@ import {
   View,
 } from "react-native";
 import { AnimatedCircularProgress } from "react-native-circular-progress";
+import { FlatList } from "react-native-gesture-handler";
 import ImageViewing from "react-native-image-viewing";
 interface Category {
   name: string;
@@ -53,6 +54,7 @@ interface Category {
   camerashow: boolean;
   imagePaths: string[];
   galleryVisible: boolean;
+  category?: string;
 }
 
 interface Routine {
@@ -190,6 +192,77 @@ export default function HomeScreen() {
     color: string;
     date?: string;
   };
+  const isDarkMode = colorScheme === "dark";
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const GroupCategories = [
+    { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
+    { id: "productivity", name: "Productivity", icon: "lightning-bolt" },
+    { id: "mindfulness", name: "Mindfulness", icon: "meditation" },
+    { id: "learning", name: "Learning", icon: "book-open-variant" },
+    { id: "creativity", name: "Creativity", icon: "palette" },
+    { id: "social", name: "Social", icon: "account-group" },
+    { id: "finance", name: "Finance", icon: "finance" },
+    { id: "nutrition", name: "Nutrition", icon: "nutrition" },
+    { id: "sleep", name: "Sleep", icon: "sleep" },
+    { id: "family", name: "Family", icon: "family-tree" },
+  ];
+  const renderCategoryItem = ({
+    item,
+  }: {
+    item: (typeof GroupCategories)[0];
+  }) => {
+    const isSelected = selectedCategory === item.name;
+
+    return (
+      <TouchableOpacity
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
+          isSelected
+            ? isDarkMode
+              ? "bg-violet-600"
+              : "bg-violet-600"
+            : isDarkMode
+            ? "bg-gray-900"
+            : "bg-white"
+        } border ${
+          isSelected
+            ? isDarkMode
+              ? "border-violet-800"
+              : "border-violet-800"
+            : isDarkMode
+            ? "border-slate-700"
+            : "border-gray-200"
+        }`}
+        onPress={() => setSelectedCategory(item.name)}
+      >
+        <MaterialCommunityIcons
+          name={item.icon as any}
+          size={18}
+          color={
+            isSelected
+              ? isDarkMode
+                ? "white"
+                : "white"
+              : isDarkMode
+              ? "#94a3b8"
+              : "#64748b"
+          }
+        />
+        <Text
+          className={`ml-2 font-medium ${
+            isSelected
+              ? isDarkMode
+                ? "text-white"
+                : "text-white"
+              : isDarkMode
+              ? "text-gray-300"
+              : "text-gray-700"
+          }`}
+        >
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   useEffect(() => {
     const checkAndClearWidgetCache = async () => {
@@ -209,7 +282,6 @@ export default function HomeScreen() {
         setCategories([]);
 
         await AsyncStorage.setItem("widget_cache_cleared", "true");
-        console.log("✅ Widget cache cleared successfully");
       } catch (e) {
         console.error("❌ Failed to clear widget cache:", e);
       } finally {
@@ -239,10 +311,6 @@ export default function HomeScreen() {
         "widget_habit_checkedDays",
         JSON.stringify(localCheckedDays)
       );
-
-      console.log("startDate:", category.startDate);
-      console.log("instanceof Date:", category.startDate instanceof Date);
-      console.log("typeof startDate:", typeof category.startDate);
 
       // Fix: Convert string to Date if necessary
       const startDate =
@@ -278,7 +346,6 @@ export default function HomeScreen() {
       );
 
       await CategoryDatamodule.updateWidget();
-      console.log("✅ Widget successfully updated");
     } catch (e) {
       console.error("❌ Widget update failed:", e);
     }
@@ -753,7 +820,6 @@ export default function HomeScreen() {
             }
           );
           const count = response.data["total_count"];
-          console.log(count);
           updatedCategories.forEach((category, index) => {
             if (count) {
               handleCheckIn(index, true);
@@ -863,6 +929,7 @@ export default function HomeScreen() {
       camerashow: false,
       imagePaths: [],
       galleryVisible: false,
+      category: selectedCategory,
     };
 
     setSelectedIcon("");
@@ -976,6 +1043,7 @@ export default function HomeScreen() {
       todos: routineItem,
       selectedDays: selectedDays,
       modelOpen: false,
+      category: selectedCategory,
     };
     setRoutines((prev) => [...prev, newRoutine]);
     setExpandRoutine(false);
@@ -1082,6 +1150,7 @@ export default function HomeScreen() {
       console.log(error);
     }
   };
+
   const GetRandomUncheckedHabbit = () => {
     const uncheckedCategories = categories.filter(
       (category) =>
@@ -2294,7 +2363,7 @@ export default function HomeScreen() {
                   {routine.archivated && (
                     <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
                   )}
-                  <View className={`bg-[#101923] p-4 rounded-t-2xl`}>
+                  <View className={`bg-[#101923] p-4`}>
                     <View className="flex-row justify-between items-center mb-3">
                       <View className="flex-row justify-between gap-3">
                         <TouchableOpacity
@@ -2348,13 +2417,13 @@ export default function HomeScreen() {
                           <FlameAnimation
                             flames={routine.streak}
                             color="white"
-                          ></FlameAnimation>
+                          />
                         </View>
                       </View>
                     </View>
                   </View>
-                  <View className="w-full ml-7 mb-3 mt-2 ">
-                    <Text className="text-white font-semibold text-base mb-2 ">
+                  <View className="px-4 mb-4 mt-2">
+                    <Text className="text-white font-semibold text-base mb-3">
                       Todos:
                     </Text>
                     {routine.todos && routine.todos.length > 0 ? (
@@ -2364,85 +2433,86 @@ export default function HomeScreen() {
                           todoItem.lastCheckedDate === today;
 
                         return (
-                          <View key={todoIndex} className="flex-col">
-                            <View className="flex-row items-center justify-between p-2 mb-2 rounded-lg mr-12 bg-slate-800">
-                              <Text className="text-white flex-1">
+                          <View key={todoIndex} className="mb-3">
+                            <View className="flex-row items-center justify-between p-3 rounded-xl bg-slate-800">
+                              <Text className="text-white flex-1 mr-3">
                                 {todoItem.name}
                               </Text>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  deleteTodo(index, todoIndex);
-                                }}
-                                className="h-8 w-8 rounded-full bg-slate-700 items-center justify-center mr-2"
-                              >
-                                <Text className="text-white font-bold">✕</Text>
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                style={{ marginRight: 8 }}
-                                onPress={() => {
-                                  setRoutines((prevRoutines) => {
-                                    const updatedRoutines = [...prevRoutines];
-
-                                    const updatedTodos = [
-                                      ...updatedRoutines[index].todos,
-                                    ];
-                                    updatedTodos[todoIndex].edited =
-                                      !updatedTodos[todoIndex].edited;
-
-                                    updatedRoutines[index] = {
-                                      ...updatedRoutines[index],
-                                      todos: updatedTodos,
-                                    };
-
-                                    return updatedRoutines;
-                                  });
-                                }}
-                                className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
-                              >
-                                <MaterialCommunityIcons
-                                  name="pencil"
-                                  size={20}
-                                  color="white"
-                                />
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  handleCheckInRoutine(todoIndex, index);
-                                }}
-                                className="h-8 w-8 rounded-full items-center justify-center"
-                                style={{
-                                  backgroundColor: isCheckedToday
-                                    ? routine.color
-                                    : "#334155",
-                                }}
-                              >
-                                <Text className="text-white font-bold">✓</Text>
-                              </TouchableOpacity>
+                              <View className="flex-row items-center gap-2">
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    deleteTodo(index, todoIndex);
+                                  }}
+                                  className="h-8 w-8 rounded-full bg-slate-700 items-center justify-center"
+                                >
+                                  <Text className="text-white font-bold text-sm">
+                                    ✕
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    setRoutines((prevRoutines) => {
+                                      const updatedRoutines = [...prevRoutines];
+                                      const updatedTodos = [
+                                        ...updatedRoutines[index].todos,
+                                      ];
+                                      updatedTodos[todoIndex].edited =
+                                        !updatedTodos[todoIndex].edited;
+                                      updatedRoutines[index] = {
+                                        ...updatedRoutines[index],
+                                        todos: updatedTodos,
+                                      };
+                                      return updatedRoutines;
+                                    });
+                                  }}
+                                  className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
+                                >
+                                  <MaterialCommunityIcons
+                                    name="pencil"
+                                    size={16}
+                                    color="white"
+                                  />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    handleCheckInRoutine(todoIndex, index);
+                                  }}
+                                  className="h-8 w-8 rounded-full items-center justify-center"
+                                  style={{
+                                    backgroundColor: isCheckedToday
+                                      ? routine.color
+                                      : "#334155",
+                                  }}
+                                >
+                                  <Text className="text-white font-bold">
+                                    ✓
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
-                            {todoItem.edited ? (
-                              <View className="mt-3 mb-3 flex-row items-center justify-between  rounded-lg mr-12 bg-slate-800">
+                            {todoItem.edited && (
+                              <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-slate-800">
                                 <TextInput
                                   onChangeText={(text) => {
                                     setTodoName(text);
                                   }}
-                                  className=" bg-slate-800 text-white placeholder:text-white rounded-lg"
+                                  className="flex-1 bg-slate-700 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
                                   placeholder="Edit Todo"
-                                ></TextInput>
+                                />
                                 <TouchableOpacity
                                   onPress={() => {
                                     editRoutine(index, todoIndex, newTodoName);
                                   }}
-                                  className="rounded-full h-8 w-8 items-center justify-center bg-slate-700 mr-3"
+                                  className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
                                 >
                                   <MaterialCommunityIcons
-                                    className=""
                                     name="check-circle"
-                                    color={"white"}
-                                    size={20}
-                                  ></MaterialCommunityIcons>
+                                    color="white"
+                                    size={16}
+                                  />
                                 </TouchableOpacity>
                               </View>
-                            ) : null}
+                            )}
                           </View>
                         );
                       })
@@ -2452,11 +2522,11 @@ export default function HomeScreen() {
                       </Text>
                     )}
                   </View>
-                  <View className="p-3 flex-row justify-between items-center mx-auto ">
-                    <View className=" mr-3 mx-auto">
+                  <View className="px-4 pb-4 flex-row justify-between items-center">
+                    <View className="flex-1">
                       <Streak
                         archivated={routine.archivated}
-                        addDays={(days: number) => addDaysRoutine(days, index)}
+                        addDays={(days) => addDaysRoutine(days, index)}
                         startDate1={routine.startDate}
                         checkedDays={routine.checkedDays}
                         color={routine.color}
@@ -2466,32 +2536,36 @@ export default function HomeScreen() {
                         textColor="white"
                       />
                     </View>
-
                     <TouchableOpacity
                       onPress={() => {
                         removeRoutine(index);
                       }}
-                      className="bg-slate-800 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
+                      className="bg-slate-800 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
                     >
-                      <Text className="text-gray-400  text-md text-white ">
-                        ✕
-                      </Text>
+                      <Text className="text-white text-sm">✕</Text>
                     </TouchableOpacity>
-                    <Modal
-                      animationType="slide"
-                      visible={routine.modelOpen}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end  ">
+                  </View>
+
+                  <Modal
+                    animationType="slide"
+                    visible={routine.modelOpen}
+                    transparent={true}
+                  >
+                    <View className="flex-1 justify-end">
+                      <ScrollView
+                        scrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
+                        style={{ maxHeight: "90%" }}
+                      >
                         <View
-                          className={`rounded-t-3xl ${"bg-gray-900"}`}
+                          className="rounded-t-3xl bg-gray-900"
                           style={{
                             shadowColor: "#000",
                             shadowOffset: { width: 0, height: -2 },
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
-                            maxHeight: "90%",
                           }}
                         >
                           <View className="flex-row gap-1 mb-10">
@@ -2504,24 +2578,24 @@ export default function HomeScreen() {
                                 };
                                 setRoutines(newRoutines);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="close"
                                 size={24}
-                                color={"#94a3b8"}
+                                color="#94a3b8"
                               />
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => {
                                 swapRoutines(index, index - 1);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="arrow-up"
                                 size={24}
-                                color={"#94a3b8"}
+                                color="#94a3b8"
                               />
                             </TouchableOpacity>
 
@@ -2529,31 +2603,31 @@ export default function HomeScreen() {
                               onPress={() => {
                                 swapRoutines(index, index + 1);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="arrow-down"
                                 size={24}
-                                color={"#94a3b8"}
+                                color="#94a3b8"
                               />
                             </TouchableOpacity>
                           </View>
 
-                          <View className="flex-col items-center justify-center  mb-10">
-                            <View className="flex-row gap-5 ">
+                          <View className="flex-col items-center justify-center mb-10">
+                            <View className="flex-row gap-5">
                               <Text className="mb-5 font-bold text-3xl text-white">
                                 {routine.name}
                               </Text>
 
-                              <View className="bg-white/20 px-3 py-1 rounded-full h-10  ">
+                              <View className="bg-white/20 px-3 py-1 rounded-full h-10">
                                 <FlameAnimation
                                   flames={routine.streak}
                                   color="white"
-                                ></FlameAnimation>
+                                />
                               </View>
                             </View>
 
-                            <Text className="mb-5 text-gray-400 font-bold text-md ">
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
                               Started on:
                               {routine.startDate &&
                               !isNaN(Date.parse(routine.startDate.toString()))
@@ -2563,29 +2637,27 @@ export default function HomeScreen() {
                                   ).toLocaleDateString("de-DE")
                                 : "Date not set"}
                             </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md ">
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
                               Last Checked:
                               {" " + routine.lastCheckedDate}
                             </Text>
-                            <View className=" flex justify-center items-center   ">
+                            <View className="flex justify-center items-center">
                               <StreakV2
                                 archivated={routine.archivated}
-                                addDays={(days: number) =>
-                                  addDaysRoutine(days, index)
-                                }
+                                addDays={(days) => addDaysRoutine(days, index)}
                                 startDate1={routine.startDate}
                                 checkedDays={routine.checkedDays}
                                 color={routine.color}
                                 bgcolor="[#0f172a]"
                                 grayColor="#1f2937"
-                              ></StreakV2>
+                              />
                             </View>
                             <Text className="mb-5 text-white font-bold text-lg">
                               Selected Days
                             </Text>
-                            <View className="flex-row flex-wrap justitfy-center items-center mb-20 gap-4">
-                              {routine.selectedDays.map((day, index) => (
-                                <View key={index}>
+                            <View className="flex-row flex-wrap justify-center items-center mb-20 gap-4">
+                              {routine.selectedDays.map((day, dayIndex) => (
+                                <View key={dayIndex}>
                                   <TouchableOpacity
                                     className="h-12 w-12 rounded-full items-center justify-center"
                                     style={{ backgroundColor: routine.color }}
@@ -2599,10 +2671,11 @@ export default function HomeScreen() {
                             </View>
                           </View>
                         </View>
-                      </View>
-                    </Modal>
-                  </View>
-                  {routine.changeIcon ? (
+                      </ScrollView>
+                    </View>
+                  </Modal>
+
+                  {routine.changeIcon && (
                     <View className="flex-col">
                       <ScrollView
                         className="h-72 mb-4 mt-8"
@@ -2611,9 +2684,9 @@ export default function HomeScreen() {
                         nestedScrollEnabled={true}
                       >
                         <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, index) => (
+                          {items.map((item, itemIndex) => (
                             <TouchableOpacity
-                              key={index}
+                              key={itemIndex}
                               className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
                                 selectedIcon === item.value
                                   ? "bg-violet-600 border-gray-600"
@@ -2663,7 +2736,7 @@ export default function HomeScreen() {
                         <Text className="text-white font-bold">Speichern</Text>
                       </TouchableOpacity>
                     </View>
-                  ) : null}
+                  )}
                 </View>
               ))}
             </View>
@@ -2672,14 +2745,26 @@ export default function HomeScreen() {
           <View className="flex-row ">
             {activeTab == "habits" ? (
               <TouchableOpacity
-                onPress={() => setExpand(!expand)}
+                onPress={() => {
+                  setExpand(!expand);
+                  setName("");
+                  setSelectedCategory("");
+                  setAmount("");
+                  setSelectedDays([]);
+                }}
                 className=" mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
               >
                 <Text className="font-bold text-3xl text-white">+</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={() => setExpandRoutine(!expandRoutine)}
+                onPress={() => {
+                  setExpandRoutine(!expandRoutine);
+                  setName("");
+                  setSelectedCategory("");
+                  setAmount("");
+                  setSelectedDays([]);
+                }}
                 className="mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
               >
                 <Text className="font-bold text-3xl text-white">+</Text>
@@ -2711,6 +2796,24 @@ export default function HomeScreen() {
                 value={amount}
                 onChangeText={setAmount}
               />
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-black
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
 
               <ScrollView>
                 {routineItem.map((item, index) => (
@@ -2768,7 +2871,7 @@ export default function HomeScreen() {
                         });
                       }}
                       className={`rounded-full h-12 w-12 items-center justify-center ${
-                        isSelected ? "bg-blue-500" : "bg-slate-800"
+                        isSelected ? "bg-violet-600" : "bg-slate-800"
                       }`}
                     >
                       <Text className="text-gray-400 font-bold">
@@ -2866,6 +2969,24 @@ export default function HomeScreen() {
                 value={amount}
                 onChangeText={setAmount}
               />
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
 
               <Text className="text-white font-medium mb-3">
                 Choose an icon
@@ -3451,7 +3572,7 @@ export default function HomeScreen() {
                           style={{ maxHeight: "90%" }}
                         >
                           <View
-                            className={`rounded-t-3xl ${"bg-violet-600"}`}
+                            className={`rounded-t-3xl ${"bg-white"}`}
                             style={{
                               shadowColor: "#000",
                               shadowOffset: { width: 0, height: -2 },
@@ -3470,24 +3591,24 @@ export default function HomeScreen() {
                                   };
                                   setCategories(newCategories);
                                 }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
                               >
                                 <MaterialCommunityIcons
                                   name="close"
                                   size={24}
-                                  color={"#6b7280"}
+                                  color={"white"}
                                 />
                               </TouchableOpacity>
                               <TouchableOpacity
                                 onPress={() => {
                                   swapHabits(index, index - 1);
                                 }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
                               >
                                 <MaterialCommunityIcons
                                   name="arrow-up"
                                   size={24}
-                                  color={"#6b7280"}
+                                  color={"white"}
                                 />
                               </TouchableOpacity>
 
@@ -3495,25 +3616,25 @@ export default function HomeScreen() {
                                 onPress={() => {
                                   swapHabits(index, index + 1);
                                 }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
                               >
                                 <MaterialCommunityIcons
                                   name="arrow-down"
                                   size={24}
-                                  color={"#6b7280"}
+                                  color={"white"}
                                 />
                               </TouchableOpacity>
                             </View>
                             <View className="flex-col items-center justify-center  mb-10">
                               <View className="flex-row gap-5 ">
-                                <Text className="mb-5 font-bold text-3xl text-white">
+                                <Text className="mb-5 font-bold text-3xl text-gray-500">
                                   {category.name}
                                 </Text>
 
-                                <View className="bg-white/20 px-3 py-1 rounded-full h-9  ">
+                                <View className="bg-gray-300 px-3 py-1 rounded-full h-9  ">
                                   <FlameAnimation
                                     flames={category.streak}
-                                    color="white"
+                                    color="black"
                                   ></FlameAnimation>
                                 </View>
                               </View>
@@ -3695,12 +3816,12 @@ export default function HomeScreen() {
               {routines.map((routine, index) => (
                 <View
                   key={index}
-                  className="overflow-hidden rounded-2xl bg-white backdrop-blur-lg border border-gray-200 mb-10 shadow-sm"
+                  className="overflow-hidden rounded-2xl bg-white backdrop-blur-lg border border-gray-200 mb-10"
                 >
                   {routine.archivated && (
                     <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
                   )}
-                  <View className="bg-gray-100 p-4 rounded-t-2xl">
+                  <View className={`bg-gray-100 p-4`}>
                     <View className="flex-row justify-between items-center mb-3">
                       <View className="flex-row justify-between gap-3">
                         <TouchableOpacity
@@ -3721,7 +3842,6 @@ export default function HomeScreen() {
                           />
                         </TouchableOpacity>
                         <TouchableOpacity
-                          className="font-bold text-2xl text-gray-800"
                           onPress={() => {
                             const newRoutines = [...routines];
                             newRoutines[index] = {
@@ -3731,18 +3851,18 @@ export default function HomeScreen() {
                             setRoutines(newRoutines);
                           }}
                         >
-                          <Text className="font-bold text-2xl text-gray-800">
+                          <Text className="font-bold text-2xl text-black max-w-[160px] ">
                             {routine.name}
                           </Text>
                         </TouchableOpacity>
                       </View>
-                      <View className="flex-row">
+                      <View className="flex-row ">
                         <View className="mr-3">
                           <TouchableOpacity
                             onPress={() => {
                               archivateroutine(index);
                             }}
-                            className="bg-gray-200 h-9 w-9 rounded-full items-center justify-center shadow-lg z-20"
+                            className="bg-slate-200 h-9 w-9 rounded-full items-center justify-center shadow-lg z-20"
                           >
                             <MaterialCommunityIcons
                               name="archive"
@@ -3751,17 +3871,17 @@ export default function HomeScreen() {
                             />
                           </TouchableOpacity>
                         </View>
-                        <View className="bg-white/80 px-3 py-1 rounded-full">
+                        <View className="bg-white px-3 py-1 rounded-full ">
                           <FlameAnimation
                             flames={routine.streak}
-                            color="#52525b"
-                          ></FlameAnimation>
+                            color="black"
+                          />
                         </View>
                       </View>
                     </View>
                   </View>
-                  <View className="w-full ml-7 mb-3 mt-2">
-                    <Text className="text-gray-700 font-semibold text-base mb-2">
+                  <View className="px-4 mb-4 mt-2">
+                    <Text className="text-gray-600 font-semibold text-base mb-3">
                       Todos:
                     </Text>
                     {routine.todos && routine.todos.length > 0 ? (
@@ -3771,77 +3891,86 @@ export default function HomeScreen() {
                           todoItem.lastCheckedDate === today;
 
                         return (
-                          <View key={todoIndex}>
-                            <View className="flex-row items-center justify-between p-2 mb-2 rounded-lg mr-12 bg-gray-200">
-                              <Text className="text-gray-800 flex-1">
+                          <View key={todoIndex} className="mb-3">
+                            <View className="flex-row items-center justify-between p-3 rounded-xl bg-gray-200">
+                              <Text className="text-gray-500 flex-1 mr-3">
                                 {todoItem.name}
                               </Text>
-                              <TouchableOpacity
-                                style={{ marginRight: 8 }}
-                                onPress={() => {
-                                  setRoutines((prevRoutines) => {
-                                    const updatedRoutines = [...prevRoutines];
-
-                                    const updatedTodos = [
-                                      ...updatedRoutines[index].todos,
-                                    ];
-                                    updatedTodos[todoIndex].edited =
-                                      !updatedTodos[todoIndex].edited;
-
-                                    updatedRoutines[index] = {
-                                      ...updatedRoutines[index],
-                                      todos: updatedTodos,
-                                    };
-
-                                    return updatedRoutines;
-                                  });
-                                }}
-                                className="h-8 w-8 rounded-full items-center justify-center bg-violet-600"
-                              >
-                                <MaterialCommunityIcons
-                                  name="pen"
-                                  size={20}
-                                  color="white"
-                                />
-                              </TouchableOpacity>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  handleCheckInRoutine(todoIndex, index);
-                                }}
-                                className="h-8 w-8 rounded-full items-center justify-center"
-                                style={{
-                                  backgroundColor: isCheckedToday
-                                    ? routine.color
-                                    : "#6b7280",
-                                }}
-                              >
-                                <Text className="text-white font-bold">✓</Text>
-                              </TouchableOpacity>
+                              <View className="flex-row items-center gap-2">
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    deleteTodo(index, todoIndex);
+                                  }}
+                                  className="h-8 w-8 rounded-full bg-gray-300 items-center justify-center"
+                                >
+                                  <Text className="text-white font-bold text-sm">
+                                    ✕
+                                  </Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    setRoutines((prevRoutines) => {
+                                      const updatedRoutines = [...prevRoutines];
+                                      const updatedTodos = [
+                                        ...updatedRoutines[index].todos,
+                                      ];
+                                      updatedTodos[todoIndex].edited =
+                                        !updatedTodos[todoIndex].edited;
+                                      updatedRoutines[index] = {
+                                        ...updatedRoutines[index],
+                                        todos: updatedTodos,
+                                      };
+                                      return updatedRoutines;
+                                    });
+                                  }}
+                                  className="h-8 w-8 rounded-full items-center justify-center bg-gray-300"
+                                >
+                                  <MaterialCommunityIcons
+                                    name="pencil"
+                                    size={16}
+                                    color="white"
+                                  />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                  onPress={() => {
+                                    handleCheckInRoutine(todoIndex, index);
+                                  }}
+                                  className="h-8 w-8 rounded-full items-center justify-center"
+                                  style={{
+                                    backgroundColor: isCheckedToday
+                                      ? routine.color
+                                      : "#d1d5db",
+                                  }}
+                                >
+                                  <Text className="text-white font-bold">
+                                    ✓
+                                  </Text>
+                                </TouchableOpacity>
+                              </View>
                             </View>
-                            {todoItem.edited ? (
-                              <View className="mt-3 mb-3 flex-row items-center justify-between  rounded-lg mr-12 bg-gray-200">
+                            {todoItem.edited && (
+                              <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-gray-200">
                                 <TextInput
                                   onChangeText={(text) => {
                                     setTodoName(text);
                                   }}
-                                  className=" bg-gray-200 text-gray-800 placeholder:text-gray-600 rounded-lg"
+                                  className="flex-1 bg-gray-300 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
                                   placeholder="Edit Todo"
-                                ></TextInput>
+                                />
                                 <TouchableOpacity
                                   onPress={() => {
                                     editRoutine(index, todoIndex, newTodoName);
                                   }}
-                                  className="rounded-full h-8 w-8 items-center justify-center bg-violet-600 mr-3"
+                                  className="h-8 w-8 rounded-full items-center justify-center bg-gray-300"
                                 >
                                   <MaterialCommunityIcons
-                                    className=""
                                     name="check-circle"
-                                    color={"white"}
-                                    size={20}
-                                  ></MaterialCommunityIcons>
+                                    color="white"
+                                    size={16}
+                                  />
                                 </TouchableOpacity>
                               </View>
-                            ) : null}
+                            )}
                           </View>
                         );
                       })
@@ -3851,47 +3980,53 @@ export default function HomeScreen() {
                       </Text>
                     )}
                   </View>
-                  <View className="p-3 flex-row justify-between items-center mx-auto">
-                    <View className="mr-3 mx-auto">
+                  <View className="px-4 pb-4 flex-row justify-between items-center">
+                    <View className="flex-1">
                       <Streak
                         archivated={routine.archivated}
-                        addDays={(days: number) => addDaysRoutine(days, index)}
+                        addDays={(days) => addDaysRoutine(days, index)}
                         startDate1={routine.startDate}
                         checkedDays={routine.checkedDays}
                         color={routine.color}
-                        bgcolor="#6b7280"
+                        bgcolor="[#111827]"
                         grayColor="#6b7280"
                         days={105}
-                        textColor="#71717a"
+                        textColor="#6b7280"
                       />
                     </View>
-
                     <TouchableOpacity
                       onPress={() => {
                         removeRoutine(index);
                       }}
-                      className="bg-gray-200 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
+                      className="bg-gray-500 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
                     >
-                      <Text className="text-gray-600 text-md">✕</Text>
+                      <Text className="text-white text-sm">✕</Text>
                     </TouchableOpacity>
-                    <Modal
-                      animationType="slide"
-                      visible={routine.modelOpen}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end  ">
+                  </View>
+
+                  <Modal
+                    animationType="slide"
+                    visible={routine.modelOpen}
+                    transparent={true}
+                  >
+                    <View className="flex-1 justify-end">
+                      <ScrollView
+                        scrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
+                        style={{ maxHeight: "90%" }}
+                      >
                         <View
-                          className={`rounded-t-3xl ${"bg-violet-600"}`}
+                          className="rounded-t-3xl bg-white"
                           style={{
                             shadowColor: "#000",
                             shadowOffset: { width: 0, height: -2 },
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
-                            maxHeight: "90%",
                           }}
                         >
-                          <View className="flex-row  mb-10">
+                          <View className="flex-row gap-1 mb-10">
                             <TouchableOpacity
                               onPress={() => {
                                 const newRoutines = [...routines];
@@ -3901,24 +4036,24 @@ export default function HomeScreen() {
                                 };
                                 setRoutines(newRoutines);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="close"
                                 size={24}
-                                color={"#6b7280"}
+                                color="white"
                               />
                             </TouchableOpacity>
                             <TouchableOpacity
                               onPress={() => {
                                 swapRoutines(index, index - 1);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="arrow-up"
                                 size={24}
-                                color={"#6b7280"}
+                                color="white"
                               />
                             </TouchableOpacity>
 
@@ -3926,30 +4061,31 @@ export default function HomeScreen() {
                               onPress={() => {
                                 swapRoutines(index, index + 1);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-200 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
                             >
                               <MaterialCommunityIcons
                                 name="arrow-down"
                                 size={24}
-                                color={"#6b7280"}
+                                color="white"
                               />
                             </TouchableOpacity>
                           </View>
-                          <View className="flex-col items-center justify-center  mb-10">
-                            <View className="flex-row gap-5 ">
-                              <Text className="mb-5 font-bold text-3xl text-white">
+
+                          <View className="flex-col items-center justify-center mb-10">
+                            <View className="flex-row gap-5">
+                              <Text className="mb-5 font-bold text-3xl text-black">
                                 {routine.name}
                               </Text>
 
-                              <View className="bg-white/20 px-3 py-1 rounded-full h-10  ">
+                              <View className="bg-gray-200 px-3 py-1 rounded-full h-10">
                                 <FlameAnimation
                                   flames={routine.streak}
-                                  color="#52525b"
-                                ></FlameAnimation>
+                                  color="black"
+                                />
                               </View>
                             </View>
 
-                            <Text className="mb-5 text-gray-400 font-bold text-md ">
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
                               Started on:
                               {routine.startDate &&
                               !isNaN(Date.parse(routine.startDate.toString()))
@@ -3959,29 +4095,27 @@ export default function HomeScreen() {
                                   ).toLocaleDateString("de-DE")
                                 : "Date not set"}
                             </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md ">
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
                               Last Checked:
                               {" " + routine.lastCheckedDate}
                             </Text>
-                            <View className=" flex justify-center items-center   ">
+                            <View className="flex justify-center items-center">
                               <StreakV2
                                 archivated={routine.archivated}
-                                addDays={(days: number) =>
-                                  addDaysRoutine(days, index)
-                                }
+                                addDays={(days) => addDaysRoutine(days, index)}
                                 startDate1={routine.startDate}
                                 checkedDays={routine.checkedDays}
                                 color={routine.color}
                                 bgcolor="[#0f172a]"
                                 grayColor="#1f2937"
-                              ></StreakV2>
+                              />
                             </View>
-                            <Text className="mb-5 text-white font-bold text-lg">
+                            <Text className="mb-5 text-gray-500 font-bold text-lg">
                               Selected Days
                             </Text>
-                            <View className="flex-row flex-wrap justitfy-center items-center mb-20 gap-4">
-                              {routine.selectedDays.map((day, index) => (
-                                <View key={index}>
+                            <View className="flex-row flex-wrap justify-center items-center mb-20 gap-4">
+                              {routine.selectedDays.map((day, dayIndex) => (
+                                <View key={dayIndex}>
                                   <TouchableOpacity
                                     className="h-12 w-12 rounded-full items-center justify-center"
                                     style={{ backgroundColor: routine.color }}
@@ -3995,11 +4129,11 @@ export default function HomeScreen() {
                             </View>
                           </View>
                         </View>
-                      </View>
-                    </Modal>
-                  </View>
+                      </ScrollView>
+                    </View>
+                  </Modal>
 
-                  {routine.changeIcon ? (
+                  {routine.changeIcon && (
                     <View className="flex-col">
                       <ScrollView
                         className="h-72 mb-4 mt-8"
@@ -4008,13 +4142,13 @@ export default function HomeScreen() {
                         nestedScrollEnabled={true}
                       >
                         <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, index) => (
+                          {items.map((item, itemIndex) => (
                             <TouchableOpacity
-                              key={index}
+                              key={itemIndex}
                               className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
                                 selectedIcon === item.value
-                                  ? "bg-violet-600 border-violet-600"
-                                  : "bg-gray-100 border-gray-200"
+                                  ? "bg-violet-600 border-gray-600"
+                                  : "bg-gray-800 border-gray-800"
                               }`}
                               onPress={() => setSelectedIcon(item.value)}
                             >
@@ -4024,14 +4158,14 @@ export default function HomeScreen() {
                                 color={
                                   selectedIcon === item.value
                                     ? "#FFFFFF"
-                                    : "#6b7280"
+                                    : "#4B5563"
                                 }
                               />
                               <Text
                                 className={`text-xs mt-1 text-center ${
                                   selectedIcon === item.value
                                     ? "text-white"
-                                    : "text-gray-700"
+                                    : "text-gray-600"
                                 }`}
                                 numberOfLines={1}
                               >
@@ -4053,14 +4187,14 @@ export default function HomeScreen() {
                         }}
                         className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
                           !name || !selectedIcon
-                            ? "bg-gray-300"
-                            : "bg-violet-600"
+                            ? "bg-slate-800"
+                            : "bg-gray-400"
                         }`}
                       >
-                        <Text className="text-white font-bold">Save</Text>
+                        <Text className="text-white font-bold">Speichern</Text>
                       </TouchableOpacity>
                     </View>
-                  ) : null}
+                  )}
                 </View>
               ))}
             </View>
@@ -4069,14 +4203,26 @@ export default function HomeScreen() {
           <View className="flex-row">
             {activeTab == "habits" ? (
               <TouchableOpacity
-                onPress={() => setExpand(!expand)}
+                onPress={() => {
+                  setExpand(!expand);
+                  setName("");
+                  setSelectedCategory("");
+                  setAmount("");
+                  setSelectedDays([]);
+                }}
                 className="mt-8 mx-auto bg-violet-600 rounded-full w-16 h-16 items-center justify-center mb-4"
               >
                 <Text className="font-bold text-3xl text-white">+</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                onPress={() => setExpandRoutine(!expandRoutine)}
+                onPress={() => {
+                  setExpandRoutine(!expandRoutine);
+                  setName("");
+                  setSelectedCategory("");
+                  setAmount("");
+                  setSelectedDays([]);
+                }}
                 className="mt-8 mx-auto bg-violet-600 rounded-full w-16 h-16 items-center justify-center mb-4"
               >
                 <Text className="font-bold text-3xl text-white">+</Text>
@@ -4108,6 +4254,24 @@ export default function HomeScreen() {
                 value={amount}
                 onChangeText={setAmount}
               />
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-black
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
 
               <ScrollView>
                 {routineItem.map((item, index) => (
@@ -4267,6 +4431,24 @@ export default function HomeScreen() {
                 value={amount}
                 onChangeText={setAmount}
               />
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-black
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
 
               <Text className="text-gray-800 font-medium mb-3">
                 Choose an icon

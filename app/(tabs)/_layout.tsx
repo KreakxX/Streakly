@@ -9,11 +9,12 @@ export default function TabLayout() {
           position: "absolute",
           borderTopLeftRadius: 50,
           borderTopRightRadius: 50,
-          backgroundColor: "transparent", // Tab-Bar Hintergrund transparent
-          borderColor: "transparent", // Keine Randfarbe
-          borderTopColor: "transparent", // Oberer Rand transparent
-          shadowColor: "transparent", // Keine Schatten
+          backgroundColor: "transparent",
+          borderColor: "transparent",
+          borderTopColor: "transparent",
+          shadowColor: "transparent",
         },
+        tabBarActiveTintColor: "#7c3aed",
       }}
     >
       <Tabs.Screen

@@ -2,7 +2,7 @@ import routines from "@/components/Routines";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,7 +14,6 @@ import {
   View,
 } from "react-native";
 
-// Categories
 const categories = [
   { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
   { id: "productivity", name: "Productivity", icon: "lightning-bolt" },
@@ -22,6 +21,10 @@ const categories = [
   { id: "learning", name: "Learning", icon: "book-open-variant" },
   { id: "creativity", name: "Creativity", icon: "palette" },
   { id: "social", name: "Social", icon: "account-group" },
+  { id: "finance", name: "Finance", icon: "finance" },
+  { id: "nutrition", name: "Nutrition", icon: "nutrition" },
+  { id: "sleep", name: "Sleep", icon: "sleep" },
+  { id: "family", name: "Family", icon: "family-tree" },
 ];
 
 interface Todo {
@@ -58,12 +61,10 @@ interface Routine {
 
 export default function ExploreScreen() {
   const [colorScheme, setColorScheme] = useState<string>("dark");
-  const [availableRoutines, setAvailableRoutines] =
-    useState<Routine[]>(routines);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [addedRoutines, setAddedRoutines] = useState<number[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [addedRoutineNames, setAddedRoutineNames] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [expandedRoutineIndex, setExpandedRoutineIndex] = useState<
     number | null
   >(null);
@@ -71,22 +72,21 @@ export default function ExploreScreen() {
   const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
   const isDarkMode = colorScheme === "dark";
 
-  const enhanceRoutines = (routines: Routine[]) => {
-    return routines.map((routine, index) => {
-      const categoryOptions = [
-        "health",
-        "productivity",
-        "mindfulness",
-        "learning",
-        "creativity",
-        "social",
-      ];
-      return {
-        ...routine,
-        category: categoryOptions[index % categoryOptions.length],
-      };
+  // Memoized filtered routines - this is the key fix
+  const filteredRoutines = useMemo(() => {
+    return routines.filter((routine) => {
+      // Category filter
+      const matchesCategory =
+        selectedCategory === "" || routine.category === selectedCategory;
+
+      // Search filter
+      const matchesSearch =
+        searchQuery.trim() === "" ||
+        routine.name.toLowerCase().includes(searchQuery.toLowerCase());
+
+      return matchesCategory && matchesSearch;
     });
-  };
+  }, [selectedCategory, searchQuery]);
 
   useFocusEffect(
     useCallback(() => {
@@ -97,20 +97,16 @@ export default function ExploreScreen() {
             setColorScheme(JSON.parse(colorScheme));
           }
 
-          const enhancedRoutines = enhanceRoutines(routines);
-          setAvailableRoutines(enhancedRoutines);
-
+          // Reset filters when screen is focused
           setSearchQuery("");
+          setSelectedCategory("");
 
           const routinesString = await AsyncStorage.getItem("routines");
           const userRoutines = routinesString ? JSON.parse(routinesString) : [];
-          const addedIds = userRoutines
-            .map((r: Routine) =>
-              routines.findIndex((routine) => routine.name === r.name)
-            )
-            .filter((id: number) => id !== -1);
 
-          setAddedRoutines(addedIds);
+          // Store routine names instead of indices
+          const addedNames = userRoutines.map((r: Routine) => r.name);
+          setAddedRoutineNames(addedNames);
         } catch (e) {
           console.error("Failed to load data", e);
         }
@@ -119,22 +115,18 @@ export default function ExploreScreen() {
     }, [])
   );
 
-  const addPrebuildRoutine = async (index: number) => {
+  const addPrebuildRoutine = async (routine: Routine) => {
     try {
       setIsLoading(true);
       const routinesString = await AsyncStorage.getItem("routines");
       const userRoutines = routinesString ? JSON.parse(routinesString) : [];
 
-      const selectedRoutine = routines[index];
-      if (selectedRoutine) {
-        const exists = userRoutines.some(
-          (r: Routine) => r.name === selectedRoutine.name
-        );
-        if (!exists) {
-          userRoutines.push(selectedRoutine);
-          await AsyncStorage.setItem("routines", JSON.stringify(userRoutines));
-          setAddedRoutines([...addedRoutines, index]);
-        }
+      const exists = userRoutines.some((r: Routine) => r.name === routine.name);
+
+      if (!exists) {
+        userRoutines.push(routine);
+        await AsyncStorage.setItem("routines", JSON.stringify(userRoutines));
+        setAddedRoutineNames([...addedRoutineNames, routine.name]);
       }
     } catch (error) {
       console.log("Error adding routine:", error);
@@ -143,34 +135,24 @@ export default function ExploreScreen() {
     }
   };
 
-  const searchForRoutine = (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (!query.trim()) {
-      if (selectedCategory) {
-        filterByCategory(selectedCategory);
-      } else {
-        setAvailableRoutines(enhanceRoutines(routines));
-      }
-      return;
-    }
-
-    const filteredRoutines = enhanceRoutines(routines).filter((routine) =>
-      routine.name.toLowerCase().includes(query.toLowerCase())
-    );
-    setAvailableRoutines(filteredRoutines);
   };
 
-  const filterByCategory = (categoryId: string) => {
-    if (selectedCategory === categoryId) {
-      setSelectedCategory(null);
-      setAvailableRoutines(enhanceRoutines(routines));
+  const handleCategoryFilter = (categoryName: string) => {
+    if (categoryName === selectedCategory) {
+      setSelectedCategory("");
     } else {
-      setSelectedCategory(categoryId);
-      const filteredRoutines = enhanceRoutines(routines).filter(
-        (routine) => routine.category === categoryId
-      );
-      setAvailableRoutines(filteredRoutines);
+      setSelectedCategory(categoryName);
     }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+
+  const clearCategory = () => {
+    setSelectedCategory("");
   };
 
   const getBackgroundColor = (isDark: boolean, isAdded: boolean) => {
@@ -188,7 +170,7 @@ export default function ExploreScreen() {
   };
 
   const renderCategoryItem = ({ item }: { item: (typeof categories)[0] }) => {
-    const isSelected = selectedCategory === item.id;
+    const isSelected = selectedCategory === item.name;
 
     return (
       <TouchableOpacity
@@ -209,7 +191,7 @@ export default function ExploreScreen() {
             ? "border-slate-700"
             : "border-gray-200"
         }`}
-        onPress={() => filterByCategory(item.id)}
+        onPress={() => handleCategoryFilter(item.name)}
       >
         <MaterialCommunityIcons
           name={item.icon as any}
@@ -228,8 +210,8 @@ export default function ExploreScreen() {
           className={`ml-2 font-medium ${
             isSelected
               ? isDarkMode
-                ? "text-gray-600"
-                : "text-gray-600"
+                ? "text-blue-400"
+                : "text-blue-600"
               : isDarkMode
               ? "text-gray-300"
               : "text-gray-700"
@@ -244,6 +226,11 @@ export default function ExploreScreen() {
   const openRoutineModal = (routine: Routine) => {
     setSelectedRoutine(routine);
     setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedRoutine(null);
   };
 
   return (
@@ -278,15 +265,15 @@ export default function ExploreScreen() {
             />
             <TextInput
               value={searchQuery}
-              onChangeText={searchForRoutine}
               className={`flex-1 py-3.5 ${
                 isDarkMode ? "text-white" : "text-gray-800"
               }`}
+              onChangeText={handleSearch}
               placeholder="Search for routines"
               placeholderTextColor={isDarkMode ? "#94a3b8" : "#94a3b8"}
             />
             {searchQuery ? (
-              <TouchableOpacity onPress={() => searchForRoutine("")}>
+              <TouchableOpacity onPress={clearSearch}>
                 <MaterialCommunityIcons
                   name="close-circle"
                   size={20}
@@ -317,8 +304,8 @@ export default function ExploreScreen() {
         </View>
 
         <View className="pb-10 px-5">
-          {selectedCategory && (
-            <View className="flex-row items-center mb-4">
+          {(selectedCategory || searchQuery) && (
+            <View className="flex-row items-center mb-4 flex-wrap">
               <Text
                 className={`font-medium ${
                   isDarkMode ? "text-white" : "text-gray-800"
@@ -326,33 +313,60 @@ export default function ExploreScreen() {
               >
                 Showing:
               </Text>
-              <View
-                className={`ml-2 px-3 py-1 rounded-full ${
-                  isDarkMode ? "bg-gray-900" : "bg-blue-50"
-                }`}
-              >
-                <Text
-                  className={`${
-                    isDarkMode ? "text-gray-600" : "text-gray-600"
-                  }`}
-                >
-                  {categories.find((c) => c.id === selectedCategory)?.name}
-                </Text>
-              </View>
-              <TouchableOpacity
-                className="ml-2"
-                onPress={() => filterByCategory(selectedCategory)}
-              >
-                <MaterialCommunityIcons
-                  name="close-circle"
-                  size={18}
-                  color={isDarkMode ? "#94a3b8" : "#3b82f6"}
-                />
-              </TouchableOpacity>
+
+              {selectedCategory && (
+                <View className="flex-row items-center ml-2 mb-1">
+                  <View
+                    className={`px-3 py-1 rounded-full ${
+                      isDarkMode ? "bg-gray-900" : "bg-blue-50"
+                    }`}
+                  >
+                    <Text
+                      className={`${
+                        isDarkMode ? "text-blue-400" : "text-blue-600"
+                      }`}
+                    >
+                      {selectedCategory}
+                    </Text>
+                  </View>
+                  <TouchableOpacity className="ml-2" onPress={clearCategory}>
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={18}
+                      color={isDarkMode ? "#94a3b8" : "#3b82f6"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {searchQuery && (
+                <View className="flex-row items-center ml-2 mb-1">
+                  <View
+                    className={`px-3 py-1 rounded-full ${
+                      isDarkMode ? "bg-gray-900" : "bg-green-50"
+                    }`}
+                  >
+                    <Text
+                      className={`${
+                        isDarkMode ? "text-green-400" : "text-green-600"
+                      }`}
+                    >
+                      "{searchQuery}"
+                    </Text>
+                  </View>
+                  <TouchableOpacity className="ml-2" onPress={clearSearch}>
+                    <MaterialCommunityIcons
+                      name="close-circle"
+                      size={18}
+                      color={isDarkMode ? "#94a3b8" : "#3b82f6"}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           )}
 
-          {availableRoutines.length === 0 ? (
+          {filteredRoutines.length === 0 ? (
             <View className="items-center justify-center py-10">
               <MaterialCommunityIcons
                 name="magnify-close"
@@ -364,21 +378,27 @@ export default function ExploreScreen() {
                   isDarkMode ? "text-gray-600" : "text-gray-500"
                 }`}
               >
-                No routines found{" "}
-                {searchQuery ? `for "${searchQuery}"` : "in this category"}
+                No routines found
+                {searchQuery && selectedCategory
+                  ? ` for "${searchQuery}" in ${selectedCategory}`
+                  : searchQuery
+                  ? ` for "${searchQuery}"`
+                  : selectedCategory
+                  ? ` in ${selectedCategory}`
+                  : ""}
               </Text>
             </View>
           ) : (
-            availableRoutines.map((routine, index) => {
-              const isAdded = addedRoutines.includes(index);
+            filteredRoutines.map((routine, index) => {
+              const isAdded = addedRoutineNames.includes(routine.name);
               const categoryInfo = categories.find(
-                (c) => c.id === routine.category
+                (c) => c.name === routine.category
               );
               const isExpanded = expandedRoutineIndex === index;
 
               return (
                 <View
-                  key={index}
+                  key={`${routine.name}-${index}`}
                   className={`mb-5 rounded-xl overflow-hidden shadow-sm ${
                     isDarkMode ? "bg-gray-900" : "bg-white"
                   } border ${
@@ -399,7 +419,7 @@ export default function ExploreScreen() {
                     <View className="flex-row items-center gap-3">
                       <View
                         className={`w-12 h-12 rounded-full justify-center items-center ${
-                          isDarkMode ? "bg-gray-900" : "bg-blue-50"
+                          isDarkMode ? "bg-gray-800" : "bg-blue-50"
                         }`}
                       >
                         <MaterialCommunityIcons
@@ -419,7 +439,7 @@ export default function ExploreScreen() {
                         <View className="flex-row items-center">
                           <Text
                             className={`${
-                              isDarkMode ? "text-gray-600" : "text-gray-500"
+                              isDarkMode ? "text-gray-400" : "text-gray-500"
                             } text-sm`}
                           >
                             {routine.todos.length}{" "}
@@ -442,7 +462,7 @@ export default function ExploreScreen() {
                               />
                               <Text
                                 className={`ml-1 text-xs ${
-                                  isDarkMode ? "text-gray-600" : "text-gray-600"
+                                  isDarkMode ? "text-blue-400" : "text-blue-600"
                                 }`}
                               >
                                 {categoryInfo.name}
@@ -459,7 +479,7 @@ export default function ExploreScreen() {
                       <View
                         key={todoIndex}
                         className={`flex-row items-center py-3.5 ${
-                          todoIndex !== routine.todos.length - 1 && !isExpanded
+                          todoIndex < Math.min(4, routine.todos.length - 1)
                             ? `border-b ${
                                 isDarkMode
                                   ? "border-gray-800"
@@ -470,7 +490,7 @@ export default function ExploreScreen() {
                       >
                         <View
                           className={`h-7 w-7 rounded-full items-center justify-center mr-3 ${
-                            isDarkMode ? "bg-gray-900" : "bg-blue-50"
+                            isDarkMode ? "bg-gray-800" : "bg-blue-50"
                           }`}
                         >
                           <MaterialCommunityIcons
@@ -489,15 +509,15 @@ export default function ExploreScreen() {
                       </View>
                     ))}
 
-                    {routine.todos.length > 5 && !isExpanded && (
+                    {routine.todos.length > 5 && (
                       <TouchableOpacity
                         className="py-3 items-center"
                         onPress={() => openRoutineModal(routine)}
                       >
-                        <View className="flex-row items-center ">
+                        <View className="flex-row items-center">
                           <Text
                             className={`text-sm font-medium ${
-                              isDarkMode ? "text-gray-600" : "text-gray-600"
+                              isDarkMode ? "text-blue-400" : "text-blue-600"
                             }`}
                           >
                             See all {routine.todos.length} tasks
@@ -515,7 +535,7 @@ export default function ExploreScreen() {
 
                   <View className="px-4 py-4">
                     <TouchableOpacity
-                      onPress={() => !isAdded && addPrebuildRoutine(index)}
+                      onPress={() => !isAdded && addPrebuildRoutine(routine)}
                       disabled={isAdded || isLoading}
                       className={`py-3 rounded-lg justify-center items-center ${getBackgroundColor(
                         isDarkMode,
@@ -557,12 +577,9 @@ export default function ExploreScreen() {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-          setSelectedRoutine(null);
-        }}
+        onRequestClose={closeModal}
       >
-        <View className="flex-1 justify-end ">
+        <View className="flex-1 justify-end">
           <View
             className={`rounded-t-3xl ${
               isDarkMode ? "bg-gray-900" : "bg-white"
@@ -577,13 +594,7 @@ export default function ExploreScreen() {
             }}
           >
             <View className="flex-row justify-between items-center p-5 border-b border-opacity-10 border-gray-400">
-              <TouchableOpacity
-                onPress={() => {
-                  setModalVisible(false);
-                  setSelectedRoutine(null);
-                }}
-                className="p-2"
-              >
+              <TouchableOpacity onPress={closeModal} className="p-2">
                 <MaterialCommunityIcons
                   name="close"
                   size={24}
@@ -607,7 +618,7 @@ export default function ExploreScreen() {
                 <View className="flex-row items-center mb-6">
                   <View
                     className={`w-14 h-14 rounded-full justify-center items-center ${
-                      isDarkMode ? "bg-gray-900" : "bg-blue-50"
+                      isDarkMode ? "bg-gray-800" : "bg-blue-50"
                     }`}
                   >
                     <MaterialCommunityIcons
@@ -627,7 +638,7 @@ export default function ExploreScreen() {
                     <View className="flex-row items-center">
                       <Text
                         className={`${
-                          isDarkMode ? "text-gray-600" : "text-gray-500"
+                          isDarkMode ? "text-gray-400" : "text-gray-500"
                         }`}
                       >
                         {selectedRoutine.todos.length}{" "}
@@ -644,7 +655,7 @@ export default function ExploreScreen() {
                           <MaterialCommunityIcons
                             name={
                               categories.find(
-                                (c) => c.id === selectedRoutine.category
+                                (c) => c.name === selectedRoutine.category
                               )?.icon as any
                             }
                             size={12}
@@ -652,12 +663,12 @@ export default function ExploreScreen() {
                           />
                           <Text
                             className={`ml-1 text-xs ${
-                              isDarkMode ? "text-gray-600" : "text-gray-600"
+                              isDarkMode ? "text-blue-400" : "text-blue-600"
                             }`}
                           >
                             {
                               categories.find(
-                                (c) => c.id === selectedRoutine.category
+                                (c) => c.name === selectedRoutine.category
                               )?.name
                             }
                           </Text>
@@ -693,7 +704,7 @@ export default function ExploreScreen() {
                     >
                       <View
                         className={`h-8 w-8 rounded-full items-center justify-center mr-3 ${
-                          isDarkMode ? "bg-gray-900" : "bg-blue-50"
+                          isDarkMode ? "bg-gray-800" : "bg-blue-50"
                         }`}
                       >
                         <MaterialCommunityIcons
@@ -716,27 +727,17 @@ export default function ExploreScreen() {
                 <View className="mt-6 mb-10">
                   <TouchableOpacity
                     onPress={() => {
-                      const index = routines.findIndex(
-                        (r) => r.name === selectedRoutine.name
-                      );
-                      if (index !== -1 && !addedRoutines.includes(index)) {
-                        addPrebuildRoutine(index);
+                      if (!addedRoutineNames.includes(selectedRoutine.name)) {
+                        addPrebuildRoutine(selectedRoutine);
                       }
-                      setModalVisible(false);
+                      closeModal();
                     }}
                     disabled={
-                      addedRoutines.includes(
-                        routines.findIndex(
-                          (r) => r.name === selectedRoutine.name
-                        )
-                      ) || isLoading
+                      addedRoutineNames.includes(selectedRoutine.name) ||
+                      isLoading
                     }
                     className={`py-3.5 rounded-lg justify-center items-center ${
-                      addedRoutines.includes(
-                        routines.findIndex(
-                          (r) => r.name === selectedRoutine.name
-                        )
-                      )
+                      addedRoutineNames.includes(selectedRoutine.name)
                         ? isDarkMode
                           ? "bg-violet-800"
                           : "bg-violet-800"
@@ -754,11 +755,7 @@ export default function ExploreScreen() {
                       <View className="flex-row items-center">
                         <MaterialCommunityIcons
                           name={
-                            addedRoutines.includes(
-                              routines.findIndex(
-                                (r) => r.name === selectedRoutine.name
-                              )
-                            )
+                            addedRoutineNames.includes(selectedRoutine.name)
                               ? "check"
                               : "plus"
                           }
@@ -768,11 +765,7 @@ export default function ExploreScreen() {
                         />
                         <Text
                           className={`font-semibold text-base ${
-                            addedRoutines.includes(
-                              routines.findIndex(
-                                (r) => r.name === selectedRoutine.name
-                              )
-                            )
+                            addedRoutineNames.includes(selectedRoutine.name)
                               ? isDarkMode
                                 ? "text-gray-600"
                                 : "text-gray-200"
@@ -781,11 +774,7 @@ export default function ExploreScreen() {
                               : "text-white"
                           }`}
                         >
-                          {addedRoutines.includes(
-                            routines.findIndex(
-                              (r) => r.name === selectedRoutine.name
-                            )
-                          )
+                          {addedRoutineNames.includes(selectedRoutine.name)
                             ? "Added to My Routines"
                             : "Add to My Routines"}
                         </Text>
