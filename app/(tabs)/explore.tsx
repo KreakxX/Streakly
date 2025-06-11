@@ -249,7 +249,7 @@ export default function ExploreScreen() {
               isDarkMode ? "text-gray-400" : "text-gray-500"
             }`}
           >
-            Discover habits that transform your daily life
+            Discover routines that transform your daily life
           </Text>
 
           <View

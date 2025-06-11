@@ -12,8 +12,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { Video } from "expo-av";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
-import * as Device from "expo-device";
-import * as Notifications from "expo-notifications";
 import { useFocusEffect } from "expo-router";
 import * as StoreReview from "expo-store-review";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -24,7 +22,6 @@ import {
   Image,
   Modal,
   NativeModules,
-  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -55,6 +52,7 @@ interface Category {
   imagePaths: string[];
   galleryVisible: boolean;
   category?: string;
+  longestStreak: number;
 }
 
 interface Routine {
@@ -194,6 +192,13 @@ export default function HomeScreen() {
   };
   const isDarkMode = colorScheme === "dark";
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategoryCategories, setSelectedCategoryCategories] =
+    useState<string>("");
+  const [selectedCategoryRoutines, setSelectedCategoryRoutines] =
+    useState<string>("");
+  const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
+  const [originalRoutines, setOriginalRoutines] = useState<Routine[]>([]);
+
   const GroupCategories = [
     { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
     { id: "productivity", name: "Productivity", icon: "lightning-bolt" },
@@ -264,6 +269,155 @@ export default function HomeScreen() {
     );
   };
 
+  const sortByCategory = (category: string) => {
+    if (selectedCategoryCategories === category) {
+      setSelectedCategoryCategories("");
+      setCategories(originalCategories);
+      return;
+    }
+
+    setSelectedCategoryCategories(category);
+    const filtered = originalCategories.filter(
+      (cat) => cat.category === category
+    );
+
+    setCategories(filtered);
+  };
+
+  const sortByRoutines = (category: string) => {
+    if (selectedCategoryRoutines === category) {
+      setSelectedCategoryRoutines("");
+      setRoutines(originalRoutines);
+      return;
+    }
+
+    setSelectedCategoryRoutines(category);
+    const filtered = originalRoutines.filter(
+      (rout) => rout.category === category
+    );
+
+    setRoutines(filtered);
+  };
+
+  const renderCategoryItem2 = ({
+    item,
+  }: {
+    item: (typeof GroupCategories)[0];
+  }) => {
+    const isSelected = selectedCategoryCategories === item.name;
+
+    return (
+      <TouchableOpacity
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
+          isSelected
+            ? isDarkMode
+              ? "bg-violet-600"
+              : "bg-violet-600"
+            : isDarkMode
+            ? "bg-gray-900"
+            : "bg-white"
+        } border ${
+          isSelected
+            ? isDarkMode
+              ? "border-violet-800"
+              : "border-violet-800"
+            : isDarkMode
+            ? "border-slate-700"
+            : "border-gray-200"
+        }`}
+        onPress={() => {
+          sortByCategory(item.name);
+        }}
+      >
+        <MaterialCommunityIcons
+          name={item.icon as any}
+          size={18}
+          color={
+            isSelected
+              ? isDarkMode
+                ? "white"
+                : "white"
+              : isDarkMode
+              ? "#94a3b8"
+              : "#64748b"
+          }
+        />
+        <Text
+          className={`ml-2 font-medium ${
+            isSelected
+              ? isDarkMode
+                ? "text-white"
+                : "text-white"
+              : isDarkMode
+              ? "text-gray-300"
+              : "text-gray-700"
+          }`}
+        >
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderCategoryItem3 = ({
+    item,
+  }: {
+    item: (typeof GroupCategories)[0];
+  }) => {
+    const isSelected = selectedCategoryRoutines === item.name;
+
+    return (
+      <TouchableOpacity
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
+          isSelected
+            ? isDarkMode
+              ? "bg-violet-600"
+              : "bg-violet-600"
+            : isDarkMode
+            ? "bg-gray-900"
+            : "bg-white"
+        } border ${
+          isSelected
+            ? isDarkMode
+              ? "border-violet-800"
+              : "border-violet-800"
+            : isDarkMode
+            ? "border-slate-700"
+            : "border-gray-200"
+        }`}
+        onPress={() => {
+          sortByRoutines(item.name);
+        }}
+      >
+        <MaterialCommunityIcons
+          name={item.icon as any}
+          size={18}
+          color={
+            isSelected
+              ? isDarkMode
+                ? "white"
+                : "white"
+              : isDarkMode
+              ? "#94a3b8"
+              : "#64748b"
+          }
+        />
+        <Text
+          className={`ml-2 font-medium ${
+            isSelected
+              ? isDarkMode
+                ? "text-white"
+                : "text-white"
+              : isDarkMode
+              ? "text-gray-300"
+              : "text-gray-700"
+          }`}
+        >
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
   useEffect(() => {
     const checkAndClearWidgetCache = async () => {
       const alreadyCleared = await AsyncStorage.getItem("widget_cache_cleared");
@@ -280,6 +434,7 @@ export default function HomeScreen() {
         await CategoryDatamodule.saveToPrefs("widget_habit_streak", "0");
         await CategoryDatamodule.updateWidget();
         setCategories([]);
+        setOriginalCategories([]);
 
         await AsyncStorage.setItem("widget_cache_cleared", "true");
       } catch (e) {
@@ -312,13 +467,11 @@ export default function HomeScreen() {
         JSON.stringify(localCheckedDays)
       );
 
-      // Fix: Convert string to Date if necessary
       const startDate =
         category.startDate instanceof Date
           ? category.startDate
           : new Date(category.startDate);
 
-      // Check if the date is valid
       if (isNaN(startDate.getTime())) {
         console.error("Invalid startDate:", category.startDate);
         return;
@@ -511,7 +664,10 @@ export default function HomeScreen() {
         if (categories.length === 0) {
           await AsyncStorage.setItem("categories", JSON.stringify([]));
         } else {
-          await AsyncStorage.setItem("categories", JSON.stringify(categories));
+          await AsyncStorage.setItem(
+            "categories",
+            JSON.stringify(originalCategories)
+          );
         }
       } catch (e) {
         console.error("Speichern fehlgeschlagen", e);
@@ -523,7 +679,10 @@ export default function HomeScreen() {
         if (routines.length === 0) {
           await AsyncStorage.setItem("routines", JSON.stringify([]));
         } else {
-          await AsyncStorage.setItem("routines", JSON.stringify(routines));
+          await AsyncStorage.setItem(
+            "routines",
+            JSON.stringify(originalRoutines)
+          );
         }
       } catch (error) {
         console.log(error);
@@ -614,7 +773,16 @@ export default function HomeScreen() {
           }
           return category;
         });
-        setCategories(updatedCategories);
+        setOriginalCategories(updatedCategories);
+
+        const finalCategories =
+          selectedCategoryCategories && selectedCategoryCategories.trim() !== ""
+            ? updatedCategories.filter(
+                (cat: any) => cat.category === selectedCategoryCategories
+              )
+            : updatedCategories;
+
+        setCategories(finalCategories);
       }
     } catch (e) {
       console.error("Laden fehlgeschlagen", e);
@@ -623,9 +791,71 @@ export default function HomeScreen() {
       loadWidgetData();
     }
   };
+
+  const loadRoutines = async () => {
+    try {
+      const stored = await AsyncStorage.getItem("routines");
+      if (!stored) {
+        return;
+      }
+      if (stored) {
+        const parsed = JSON.parse(stored);
+
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayFormatted = yesterday.toLocaleDateString("de-DE");
+        const today = new Date();
+        const todayFormatted = today.toLocaleDateString("de-DE");
+        const days = [
+          "Sonntag",
+          "Montag",
+          "Dienstag",
+          "Mittwoch",
+          "Donnerstag",
+          "Freitag",
+          "Samstag",
+        ];
+        const dayOfWeek = today.getDay();
+        const dayName = days[dayOfWeek];
+        const NewUpdatedroutines = parsed.map((routine: any) => {
+          if (
+            routine.lastCheckDate != yesterdayFormatted &&
+            routine.lastCheckDate != "" &&
+            routine.lastCheckDate != todayFormatted &&
+            !routine.selectedDays.includes(dayName) &&
+            routine.streak > 1
+          ) {
+            if (!routine.archivated) {
+              return { ...routine, streak: 0 };
+            }
+          }
+          return routine;
+        });
+        setOriginalRoutines(NewUpdatedroutines);
+
+        const finalRoutines =
+          selectedCategoryRoutines && selectedCategoryRoutines.trim() !== ""
+            ? NewUpdatedroutines.filter(
+                (rout: any) => rout.category === selectedCategoryRoutines
+              )
+            : NewUpdatedroutines;
+
+        setRoutines(finalRoutines);
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    loadRoutines();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       loadCategories();
@@ -634,53 +864,6 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      const loadRoutines = async () => {
-        try {
-          const stored = await AsyncStorage.getItem("routines");
-          if (!stored) {
-            return;
-          }
-          if (stored) {
-            const parsed = JSON.parse(stored);
-
-            const yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
-            const yesterdayFormatted = yesterday.toLocaleDateString("de-DE");
-            const today = new Date();
-            const todayFormatted = today.toLocaleDateString("de-DE");
-            const days = [
-              "Sonntag",
-              "Montag",
-              "Dienstag",
-              "Mittwoch",
-              "Donnerstag",
-              "Freitag",
-              "Samstag",
-            ];
-            const dayOfWeek = today.getDay();
-            const dayName = days[dayOfWeek];
-            const NewUpdatedroutines = parsed.map((routine: any) => {
-              if (
-                routine.lastCheckDate != yesterdayFormatted &&
-                routine.lastCheckDate != "" &&
-                routine.lastCheckdate != todayFormatted &&
-                !routine.selectedDays.includes(dayName) &&
-                routine.streak > 1
-              ) {
-                if (!routine.archivated) {
-                  return { ...routine, streak: 0 };
-                }
-              }
-              return routine;
-            });
-            setRoutines(NewUpdatedroutines);
-          }
-        } catch (error) {
-          console.log(error);
-          throw error;
-        }
-      };
-
       loadRoutines();
     }, [])
   );
@@ -714,9 +897,11 @@ export default function HomeScreen() {
             day.date instanceof Date ? day.date : new Date(day.date);
           return isSameDay(dayDate, todayDate);
         });
+
         if (index !== -1) {
           category.checkedDays[index].status = true;
         }
+
         category.buttonColor = category.color;
         category.streak += 1;
         category.lastCheckDate = today;
@@ -731,25 +916,25 @@ export default function HomeScreen() {
           day.date instanceof Date ? day.date : new Date(day.date);
         return isSameDay(dayDate, todayDate);
       });
+
       if (index !== -1) {
         category.checkedDays[index].status = false;
       }
-      if (colorScheme === "dark") {
-        category.buttonColor = "#1e293b";
-      } else {
-        category.buttonColor = "#71717a";
-      }
+
+      category.buttonColor = colorScheme === "dark" ? "#1e293b" : "#71717a";
       category.streak -= 1;
       category.lastCheckDate = "";
-      category.days--;
+      category.days -= 1;
       category.checkedToday = 0;
+      category.longestStreak -= 1;
     } else {
       const index = category.checkedDays.findIndex((day) => {
         const dayDate =
           day.date instanceof Date ? day.date : new Date(day.date);
         return isSameDay(dayDate, todayDate);
       });
-      if (category.amount == 1) {
+
+      if (category.amount === 1) {
         category.checkedToday = 1;
         if (index !== -1) {
           category.checkedDays[index].status = true;
@@ -758,12 +943,15 @@ export default function HomeScreen() {
         category.streak += 1;
         category.lastCheckDate = today;
         category.days += 1;
+        if (category.streak > category.longestStreak) {
+          category.longestStreak = category.streak;
+        }
       } else {
         if (category.amount > category.checkedToday) {
           category.checkedToday++;
         }
 
-        if (category.amount == category.checkedToday) {
+        if (category.amount === category.checkedToday) {
           if (index !== -1) {
             category.checkedDays[index].status = true;
           }
@@ -771,6 +959,9 @@ export default function HomeScreen() {
           category.streak += 1;
           category.lastCheckDate = today;
           category.days += 1;
+          if (category.streak > category.longestStreak) {
+            category.longestStreak = category.streak;
+          }
         }
       }
     }
@@ -782,6 +973,7 @@ export default function HomeScreen() {
       streak: Math.max(0, category.streak),
     });
   };
+
   useEffect(() => {
     const askForReview = async () => {
       const available = await StoreReview.isAvailableAsync();
@@ -886,9 +1078,16 @@ export default function HomeScreen() {
     amount: number,
     selectedDays: string[]
   ) => {
-    if (name === "" || name.length > 15) {
+    if (name === "") {
+      Alert.alert("Error", "Please enter a name for your habit");
       return;
     }
+
+    if (name.length > 15) {
+      Alert.alert("Error", "Name should not be longer than 15 characters");
+      return;
+    }
+
     const totalDays = 315;
 
     const today = new Date();
@@ -930,10 +1129,22 @@ export default function HomeScreen() {
       imagePaths: [],
       galleryVisible: false,
       category: selectedCategory,
+      longestStreak: 0,
     };
+    const updatedCategories = [...originalCategories, newCategory];
+    setOriginalCategories(updatedCategories);
+
+    if (selectedCategoryCategories) {
+      const filtered = updatedCategories.filter(
+        (cat) => cat.category === selectedCategoryCategories
+      );
+      setCategories(filtered);
+    } else {
+      setCategories(updatedCategories);
+    }
+    setSelectedCategoryCategories("");
 
     setSelectedIcon("");
-    setCategories((prev) => [...prev, newCategory]);
     setExpand(false);
     setName("");
     setSelectedDays([]);
@@ -1000,7 +1211,13 @@ export default function HomeScreen() {
     amount: number,
     selectedDays: string[]
   ) => {
-    if (name === "" || name.length > 15) {
+    if (name === "") {
+      Alert.alert("Error", "Please enter a name for your Routine");
+      return;
+    }
+
+    if (name.length > 15) {
+      Alert.alert("Error", "Name should not be longer than 15 characters");
       return;
     }
     const totalDays = 315;
@@ -1045,7 +1262,19 @@ export default function HomeScreen() {
       modelOpen: false,
       category: selectedCategory,
     };
-    setRoutines((prev) => [...prev, newRoutine]);
+
+    const updatedRoutines = [...originalRoutines, newRoutine];
+    setOriginalRoutines(updatedRoutines);
+
+    if (selectedCategoryRoutines) {
+      const filtered = updatedRoutines.filter(
+        (rout) => rout.category === selectedCategoryRoutines
+      );
+      setRoutines(filtered);
+    } else {
+      setRoutines(updatedRoutines);
+    }
+    setSelectedCategoryRoutines("");
     setExpandRoutine(false);
     setName("");
     const index = categories.length;
@@ -1081,6 +1310,7 @@ export default function HomeScreen() {
       (category, index) => index !== reindex
     );
     setCategories(updatedCategories);
+    setOriginalCategories(updatedCategories);
   };
 
   const removeRoutine = (reindex: number) => {
@@ -1110,6 +1340,7 @@ export default function HomeScreen() {
       (routine, index) => index !== reindex
     );
     setRoutines(updatedRoutines);
+    setOriginalRoutines(updatedRoutines);
   };
 
   const handleDeletePress = (reindex: number) => {
@@ -1165,7 +1396,7 @@ export default function HomeScreen() {
     return uncheckedCategories[randomIndex].name;
   };
 
-  async function registerForPushNotificationsAsync() {
+  /*async function registerForPushNotificationsAsync() {
     if (!Device.isDevice) {
       return false;
     }
@@ -1241,7 +1472,7 @@ export default function HomeScreen() {
       }
     })();
   }, []);
-
+*/
   const addDays = async (days: number, index: number) => {
     const updatedCategories = [...categories];
     const category = updatedCategories[index];
@@ -1868,7 +2099,20 @@ export default function HomeScreen() {
           </View>
 
           {activeTab === "habits" ? (
-            <View className="space-y-4 mt-5">
+            <View className="flex-1 bg-gray-950">
+              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem2}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 8,
+                  }}
+                  className="flex-grow-0"
+                />
+              </View>
               {categories.map((category, index) => (
                 <View
                   key={index}
@@ -1924,7 +2168,7 @@ export default function HomeScreen() {
                             };
                             setCategories(newCategories);
                           }}
-                          className="bg-slate-800 h-9 w-9 mr-3 rounded-full items-center justify-center   z-20"
+                          className="bg-slate-800 h-9 w-9 mr-3 rounded-full items-center justify-center"
                         >
                           <MaterialCommunityIcons
                             name="camera"
@@ -2180,6 +2424,9 @@ export default function HomeScreen() {
                                   ></FlameAnimation>
                                 </View>
                               </View>
+                              <Text className="mb-5 text-gray-400 font-bold text-md">
+                                Longest Streak: {category.longestStreak}
+                              </Text>
 
                               <Text className="mb-5 text-gray-400 font-bold text-md ">
                                 Started on:
@@ -2208,6 +2455,7 @@ export default function HomeScreen() {
                                   color={category.color}
                                   bgcolor="[#0f172a]"
                                   grayColor="#1f2937"
+                                  textColor="white"
                                 ></StreakV2>
                               </View>
                               <Text className="mb-3 text-white font-bold text-lg">
@@ -2355,6 +2603,19 @@ export default function HomeScreen() {
             </View>
           ) : (
             <View className="space-y-4 mt-5">
+              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem3}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 8,
+                  }}
+                  className="flex-grow-0"
+                />
+              </View>
               {routines.map((routine, index) => (
                 <View
                   key={index}
@@ -2650,6 +2911,7 @@ export default function HomeScreen() {
                                 color={routine.color}
                                 bgcolor="[#0f172a]"
                                 grayColor="#1f2937"
+                                textColor="white"
                               />
                             </View>
                             <Text className="mb-5 text-white font-bold text-lg">
@@ -2799,7 +3061,7 @@ export default function HomeScreen() {
               <View className="mb-6 mt-6">
                 <Text
                   className={` font-bold text-lg mb-3 
-                             text-black
+                             text-white
                           }`}
                 >
                   Select a Category
@@ -3191,6 +3453,77 @@ export default function HomeScreen() {
                 visible={badgeAnimationVisible}
               />
             )}
+            <Modal animationType="slide" visible={questview} transparent={true}>
+              <View className="flex-1 justify-end ">
+                <View
+                  className={`rounded-t-3xl  px-6 ${"bg-white"}`}
+                  style={{
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.25,
+                    shadowRadius: 3.84,
+                    elevation: 5,
+                    maxHeight: "90%",
+                  }}
+                >
+                  <View className="py-10">
+                    <TouchableOpacity
+                      onPress={() => setQuestView(false)}
+                      className="p-2 h-11 w-11 rounded-full bg-zinc-500 items-center justify-center mb-6"
+                    >
+                      <MaterialCommunityIcons
+                        name="close"
+                        size={24}
+                        color={"#94a3b8"}
+                      />
+                    </TouchableOpacity>
+
+                    <View className="flex justify-center items-center mb-10">
+                      <View className="bg-zinc-500 h-12 w-20 px-3 py-2 rounded-full justify-center items-center ">
+                        <FlameAnimation flames={QuestsDone} color="white" />
+                      </View>
+                    </View>
+
+                    <Text className="font-bold text-black text-2xl mb-5 text-center">
+                      Daily Quest:
+                    </Text>
+                    <Text className="text-black text-xl mb-8 text-center">
+                      {dailyQuests[DayQuestNumber()]}
+                    </Text>
+                    <View className="w-full h-3 bg-zinc-500 rounded-full mx-auto mb-5 overflow-hidden">
+                      <View
+                        className="h-3 rounded-full"
+                        style={{
+                          width:
+                            QuestDateDone ===
+                            new Date().toLocaleDateString("de-DE")
+                              ? "100%"
+                              : "0%",
+                          backgroundColor:
+                            QuestDateDone ===
+                            new Date().toLocaleDateString("de-DE")
+                              ? "#22c55e"
+                              : "#71717a",
+                        }}
+                      />
+                    </View>
+                    <TouchableOpacity
+                      onPress={CheckQuest}
+                      className="h-12 w-12 rounded-full items-center justify-center mx-auto"
+                      style={{
+                        backgroundColor:
+                          QuestDateDone ===
+                          new Date().toLocaleDateString("de-DE")
+                            ? "#22c55e"
+                            : "#71717a",
+                      }}
+                    >
+                      <Text className="text-white font-bold text-xl">✓</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </Modal>
             <Modal animationType="slide" visible={quickView} transparent={true}>
               <View className="flex-1 justify-end">
                 <View
@@ -3327,6 +3660,16 @@ export default function HomeScreen() {
 
           {activeTab === "habits" ? (
             <View className="space-y-4 mt-5">
+              <View className="mb-8">
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem2}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
               {categories.map((category, index) => (
                 <View
                   key={index}
@@ -3665,7 +4008,8 @@ export default function HomeScreen() {
                                   checkedDays={category.checkedDays}
                                   color={category.color}
                                   bgcolor="[#0f172a]"
-                                  grayColor="#1f2937"
+                                  grayColor="#71717a"
+                                  textColor="#71717a"
                                 ></StreakV2>
                               </View>
                               <Text className="mb-3 text-white font-bold text-lg">
@@ -3813,6 +4157,19 @@ export default function HomeScreen() {
             </View>
           ) : (
             <View className="space-y-4 mt-5">
+              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem3}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 8,
+                  }}
+                  className="flex-grow-0"
+                />
+              </View>
               {routines.map((routine, index) => (
                 <View
                   key={index}
@@ -4107,7 +4464,8 @@ export default function HomeScreen() {
                                 checkedDays={routine.checkedDays}
                                 color={routine.color}
                                 bgcolor="[#0f172a]"
-                                grayColor="#1f2937"
+                                grayColor="#71717a"
+                                textColor="#71717a"
                               />
                             </View>
                             <Text className="mb-5 text-gray-500 font-bold text-lg">

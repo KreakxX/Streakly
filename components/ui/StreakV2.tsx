@@ -17,6 +17,7 @@ interface StreakProps {
   startDate1: Date;
   addDays: (days: number) => void;
   archivated: boolean;
+  textColor: string;
 }
 
 const StreakV2 = ({
@@ -27,6 +28,7 @@ const StreakV2 = ({
   addDays,
   startDate1,
   archivated,
+  textColor,
 }: StreakProps) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -144,7 +146,12 @@ const StreakV2 = ({
             color={color}
             style={{ marginRight: 4 }}
           />
-          <Text className="text-white font-bold text-center">
+          <Text
+            style={{
+              color: textColor,
+            }}
+            className=" font-bold text-center"
+          >
             {formatDate(startDate)} - {formatDate(endDate)}
           </Text>
         </View>

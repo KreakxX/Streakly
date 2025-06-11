@@ -1,9 +1,12 @@
+import PieChart from "@/components/ui/HabitDonutPieChart";
+import LineChart from "@/components/ui/LineChart";
 import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { RadarChart } from "@salmonco/react-native-radar-chart";
 import React, { useCallback, useEffect, useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { FlatList } from "react-native-gesture-handler";
 
 export default function ProfileScreen() {
   const streakBadges = [
@@ -74,6 +77,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<string>("weekly");
   const [analysis, setAnalysis] = useState<boolean>(true);
   const weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+  const [categories, setCategories] = useState<any[]>([]);
 
   const [problemWeekDays, setProblemWeekDays] = useState<{
     [habitName: string]: string[];
@@ -114,6 +118,7 @@ export default function ProfileScreen() {
           const categories = await AsyncStorage.getItem("categories");
           if (categories) {
             const categoriesArray = JSON.parse(categories);
+            setCategories(categoriesArray);
             const now = new Date();
             const day = now.getDay();
             const diffToMonday = (day + 6) % 7;
@@ -309,6 +314,132 @@ export default function ProfileScreen() {
       getcolor();
     }, [])
   );
+  const get_longest_streak = async () => {
+    let o = 0;
+
+    for (let i = 0; i < categories.length; i++) {
+      if (categories[i].longestStreak > o) {
+        o = categories[i].longestStreak;
+      }
+    }
+    return o;
+  };
+  const getPieChartData = async (index: number): Promise<number> => {
+    const habits = await AsyncStorage.getItem("categories");
+    let percent = 0;
+    const maxDays = 30;
+    const today = new Date();
+
+    if (habits) {
+      const categories = JSON.parse(habits);
+      const category = categories[index];
+      if (!category || !category.checkedDays || !category.startDate) {
+        return 0;
+      }
+      let firstRealCheckDate = null;
+      for (const day of category.checkedDays) {
+        if (day.status) {
+          const d = new Date(day.date);
+          d.setHours(0, 0, 0, 0);
+          firstRealCheckDate = d;
+          break;
+        }
+      }
+
+      if (!firstRealCheckDate) {
+        return 0;
+      }
+      const diffTime = Math.abs(today.getTime() - firstRealCheckDate.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      const days = diffDays < maxDays ? diffDays : maxDays;
+
+      const fromDate = new Date(today);
+      fromDate.setDate(today.getDate() - days);
+
+      const checkedInLastDays = category.checkedDays.filter((entry: any) => {
+        if (!entry.status) return false;
+        const entryDate = new Date(entry.date);
+        return entryDate >= fromDate && entryDate <= today;
+      });
+
+      const completed = checkedInLastDays.length;
+      percent = Math.round((completed / days) * 100);
+      return percent;
+    }
+
+    return percent;
+  };
+
+  const [percentages, setPercentages] = useState<number[]>([]);
+  const [checkins, setCheckins] = useState<number[][]>([]);
+
+  const getWeeklyCheckInData = async (
+    index: number,
+    weeks = 6
+  ): Promise<number[]> => {
+    const Categories = await AsyncStorage.getItem("categories");
+    if (Categories) {
+      const categories = JSON.parse(Categories);
+      const category = categories[index];
+      const today = new Date();
+      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+
+      const results: number[] = [];
+
+      for (let i = weeks - 1; i >= 0; i--) {
+        const start = new Date(today.getTime() - oneWeek * (i + 1));
+        const end = new Date(today.getTime() - oneWeek * i);
+
+        const count = category.checkedDays.filter((entry: any) => {
+          const entryDate = new Date(entry.date);
+          return entry.status && entryDate >= start && entryDate < end;
+        }).length;
+
+        results.push(count);
+      }
+      return results;
+    } else {
+      return [0];
+    }
+  };
+  const loadCheckIns = async () => {
+    const Categories = await AsyncStorage.getItem("categories");
+    if (!Categories) {
+      return;
+    }
+    const categories = JSON.parse(Categories);
+    if (categories.length === 0) return;
+
+    const results = await Promise.all(
+      categories.map((_: any, index: any) => getWeeklyCheckInData(index))
+    );
+    setCheckins(results);
+  };
+
+  const loadPercentages = async () => {
+    const Categories = await AsyncStorage.getItem("categories");
+    if (!Categories) {
+      return;
+    }
+    const categories = JSON.parse(Categories);
+    if (categories.length === 0) return;
+    const results = await Promise.all(
+      categories.map((_: any, index: any) => getPieChartData(index))
+    );
+    setPercentages(results);
+  };
+  useEffect(() => {
+    loadPercentages();
+    loadCheckIns();
+  }, [categories]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPercentages();
+      loadCheckIns();
+    }, [categories])
+  );
 
   const generateTimeLineData = async () => {
     const habits = await AsyncStorage.getItem("categories");
@@ -429,7 +560,6 @@ export default function ProfileScreen() {
 
         {activeTab2 === "analysis" ? (
           <View className="w-full mb-10">
-            {/* Achievements Section */}
             <View className={`${cardBgColor} rounded-2xl p-5 mb-6 shadow-md`}>
               <Text
                 className={`${textColor} text-2xl font-bold mb-2 text-center`}
@@ -440,7 +570,6 @@ export default function ProfileScreen() {
                 Track your habit completion rates
               </Text>
 
-              {/* Chart Tab Selector */}
               <View className={`${tabBgColor} rounded-xl p-1 mb-6`}>
                 <View className="flex-row">
                   <TouchableOpacity
@@ -476,10 +605,9 @@ export default function ProfileScreen() {
                 </View>
               </View>
 
-              {/* Radar Chart */}
               <View className="items-center mb-4">
                 {(activeTab === "weekly" ? radarData : radarDataall).length >
-                3 ? (
+                2 ? (
                   <RadarChart
                     gradientColor={{
                       startColor: isDark ? "#1e1b4b" : "#f3f4f6",
@@ -519,7 +647,6 @@ export default function ProfileScreen() {
               </View>
             </View>
 
-            {/* Problem Analysis Section */}
             <View className={`${cardBgColor} rounded-2xl p-5 mb-6 shadow-md`}>
               <Text
                 className={`${textColor} text-2xl font-bold mb-2 text-center`}
@@ -532,7 +659,6 @@ export default function ProfileScreen() {
 
               {analysis && (
                 <View>
-                  {/* Inactive Habits */}
                   <View className="mb-6">
                     <Text className={`${textColor} text-lg font-semibold mb-3`}>
                       Inactive Habits
@@ -561,7 +687,6 @@ export default function ProfileScreen() {
                     )}
                   </View>
 
-                  {/* Weekly Performance */}
                   <View>
                     <Text className={`${textColor} text-lg font-semibold mb-3`}>
                       Weekly Performance Issues
@@ -618,6 +743,106 @@ export default function ProfileScreen() {
                   </View>
                 </View>
               )}
+
+              <View className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-5 `}>
+                <Text
+                  className={`${textColor} text-2xl font-bold mb-2 text-center`}
+                >
+                  Last Weeks Report
+                </Text>
+                <Text className={`${textMutedColor} text-center mb-6`}>
+                  All checkins in the Last Weeks
+                </Text>
+
+                <FlatList
+                  data={categories}
+                  horizontal
+                  keyExtractor={(item, index) => index.toString()}
+                  contentContainerStyle={{ paddingVertical: 16 }}
+                  ItemSeparatorComponent={() => <View className="h-4" />}
+                  renderItem={({ item, index }) => {
+                    const Checkins = checkins[index];
+                    return (
+                      <View
+                        className={`${borderColor} border rounded-xl pb-3 pt-3  `}
+                      >
+                        <View className="mb-3">
+                          <Text
+                            className={`${textColor} text-lg font-semibold text-center`}
+                          >
+                            {item.name}
+                          </Text>
+                        </View>
+
+                        <LineChart
+                          data={Checkins}
+                          isDarkMode={colorSchem === "dark"}
+                        ></LineChart>
+                      </View>
+                    );
+                  }}
+                  ListEmptyComponent={() => (
+                    <View
+                      className={`${borderColor} border rounded-xl p-4 items-center`}
+                    >
+                      <Text className={`${textMutedColor} font-medium`}>
+                        No habits to display
+                      </Text>
+                    </View>
+                  )}
+                />
+              </View>
+
+              <View className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-5`}>
+                <Text
+                  className={`${textColor} text-2xl font-bold mb-2 text-center`}
+                >
+                  All Time Review
+                </Text>
+                <Text className={`${textMutedColor} text-center mb-6`}>
+                  All completion rates for each habit
+                </Text>
+
+                <FlatList
+                  data={categories}
+                  horizontal
+                  keyExtractor={(item, index) => index.toString()}
+                  contentContainerStyle={{ paddingVertical: 16 }}
+                  ItemSeparatorComponent={() => <View className="h-4" />}
+                  renderItem={({ item, index }) => {
+                    const achieved = percentages[index] ?? 0;
+                    return (
+                      <View className={`${borderColor} border rounded-xl p-11`}>
+                        <View className="mb-3">
+                          <Text
+                            className={`${textColor} text-lg font-semibold text-center`}
+                          >
+                            {item.name}
+                          </Text>
+                          <Text
+                            className={`${textMutedColor} text-center text-sm`}
+                          >
+                            {achieved}% completed
+                          </Text>
+                        </View>
+                        <PieChart
+                          percentage={achieved}
+                          isDarkMode={colorSchem === "dark"}
+                        />
+                      </View>
+                    );
+                  }}
+                  ListEmptyComponent={() => (
+                    <View
+                      className={`${borderColor} border rounded-xl p-4 items-center`}
+                    >
+                      <Text className={`${textMutedColor} font-medium`}>
+                        No habits to display
+                      </Text>
+                    </View>
+                  )}
+                />
+              </View>
             </View>
           </View>
         ) : (

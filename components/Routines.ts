@@ -655,7 +655,311 @@ const routines: Routine [] = [
     selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
     category: "Productivity"
   },
+{
+    name: "Oprah Winfrey - Gratitude Queen",
+    streak: 0,
+    color: "#8A2BE2",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#9370DB",
+    iconname: "heart",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 7,
+    checkedToday: 0,
+    todos: [
+      { name: "Wake Up: Say 'Thank You' First", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "20 Min Meditation", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "Write 5 Gratitudes in Journal", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "Healthy Breakfast Mindfully", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "Exercise: Walking/Treadmill", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "Afternoon Tea Ritual", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" },
+      { name: "Evening Gratitude: 3 Things", lastCheckedDate: undefined, buttoncolor: "#8A2BE2" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Mindfulness"
+  },
 
+  // CREATIVITY
+  {
+    name: "Lady Gaga - Creative Monster",
+    streak: 0,
+    color: "#FF69B4",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#FF1493",
+    iconname: "music",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 6,
+    checkedToday: 0,
+    todos: [
+      { name: "Morning Piano Practice", lastCheckedDate: undefined, buttoncolor: "#FF69B4" },
+      { name: "Visual Art/Sketching Session", lastCheckedDate: undefined, buttoncolor: "#FF69B4" },
+      { name: "Studio Recording Time", lastCheckedDate: undefined, buttoncolor: "#FF69B4" },
+      { name: "Fashion Exploration", lastCheckedDate: undefined, buttoncolor: "#FF69B4" },
+      { name: "Mental Health Check-In", lastCheckedDate: undefined, buttoncolor: "#FF69B4" },
+      { name: "Kindness Acts Planning", lastCheckedDate: undefined, buttoncolor: "#FF69B4" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Creativity"
+  },
+
+  // LEARNING
+  {
+    name: "Neil deGrasse Tyson - Astrophysics Mind",
+    streak: 0,
+    color: "#191970",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#4169E1",
+    iconname: "telescope",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 7,
+    checkedToday: 0,
+    todos: [
+      { name: "Read Scientific Papers", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Planetarium Visit/Planning", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Social Media Science Posts", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Podcast Recording/Prep", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Wine Tasting (Astrophysics)", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Teaching/Lecture Prep", lastCheckedDate: undefined, buttoncolor: "#191970" },
+      { name: "Stargazing Session", lastCheckedDate: undefined, buttoncolor: "#191970" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Learning"
+  },
+
+  // SOCIAL
+  {
+    name: "Ellen DeGeneres - Kindness Daily",
+    streak: 0,
+    color: "#00CED1",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#48D1CC",
+    iconname: "emoticon-happy",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 6,
+    checkedToday: 0,
+    todos: [
+      { name: "Morning Meditation", lastCheckedDate: undefined, buttoncolor: "#00CED1" },
+      { name: "Dance Break", lastCheckedDate: undefined, buttoncolor: "#00CED1" },
+      { name: "Random Act of Kindness", lastCheckedDate: undefined, buttoncolor: "#00CED1" },
+      { name: "Comedy Writing/Practice", lastCheckedDate: undefined, buttoncolor: "#00CED1" },
+      { name: "Connect with Friends", lastCheckedDate: undefined, buttoncolor: "#00CED1" },
+      { name: "Vegan Meal Prep", lastCheckedDate: undefined, buttoncolor: "#00CED1" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Social"
+  },
+
+  // NUTRITION
+  {
+    name: "Gordon Ramsay - Kitchen Warrior",
+    streak: 0,
+    color: "#B22222",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#DC143C",
+    iconname: "chef-hat",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 7,
+    checkedToday: 0,
+    todos: [
+      { name: "4:30 AM Wake Up", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "Intense Workout (Ironman Training)", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "Fresh Market Shopping", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "Recipe Development", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "Team Training Session", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "Family Sunday Roast", lastCheckedDate: undefined, buttoncolor: "#B22222" },
+      { name: "No Processed Food Rule", lastCheckedDate: undefined, buttoncolor: "#B22222" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Nutrition"
+  },
+
+  // SLEEP
+  {
+    name: "Arianna Huffington - Sleep Revolution",
+    streak: 0,
+    color: "#4B0082",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#6A5ACD",
+    iconname: "bed",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 8,
+    checkedToday: 0,
+    todos: [
+      { name: "8 Hours Sleep Non-Negotiable", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Phone Charging Station Outside Bedroom", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Evening Tech Shutdown 30min Before Bed", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Meditation Before Sleep", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Gratitude Practice", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Hot Bath with Epsom Salt", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Reading Physical Books", lastCheckedDate: undefined, buttoncolor: "#4B0082" },
+      { name: "Wake Up Without Alarm", lastCheckedDate: undefined, buttoncolor: "#4B0082" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Sleep"
+  },
+
+  // FAMILY
+  {
+    name: "Will Smith - Family First",
+    streak: 0,
+    color: "#228B22",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#32CD32",
+    iconname: "family-tree",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 6,
+    checkedToday: 0,
+    todos: [
+      { name: "Morning Workout with Family", lastCheckedDate: undefined, buttoncolor: "#228B22" },
+      { name: "Family Breakfast Together", lastCheckedDate: undefined, buttoncolor: "#228B22" },
+      { name: "Kids School Drop-off", lastCheckedDate: undefined, buttoncolor: "#228B22" },
+      { name: "Evening Family Game Time", lastCheckedDate: undefined, buttoncolor: "#228B22" },
+      { name: "Bedtime Stories/Reading", lastCheckedDate: undefined, buttoncolor: "#228B22" },
+      { name: "Weekend Family Adventures", lastCheckedDate: undefined, buttoncolor: "#228B22" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Family"
+  },
+
+  // CREATIVITY
+  {
+    name: "Banksy - Anonymous Artist",
+    streak: 0,
+    color: "#2F4F4F",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#696969",
+    iconname: "spray-bottle",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 5,
+    checkedToday: 0,
+    todos: [
+      { name: "Late Night Street Art Sessions", lastCheckedDate: undefined, buttoncolor: "#2F4F4F" },
+      { name: "Social Issue Research", lastCheckedDate: undefined, buttoncolor: "#2F4F4F" },
+      { name: "Stencil Design Work", lastCheckedDate: undefined, buttoncolor: "#2F4F4F" },
+      { name: "Location Scouting", lastCheckedDate: undefined, buttoncolor: "#2F4F4F" },
+      { name: "Anonymous Identity Maintenance", lastCheckedDate: undefined, buttoncolor: "#2F4F4F" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Creativity"
+  },
+
+  // FINANCE
+  {
+    name: "Dave Ramsey - Debt-Free Discipline",
+    streak: 0,
+    color: "#DAA520",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#FFD700",
+    iconname: "calculator",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 7,
+    checkedToday: 0,
+    todos: [
+      { name: "5:00 AM Wake Up", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "Review Personal Budget", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "No Credit Card Rule", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "Emergency Fund Check", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "Radio Show Prep", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "Cash-Only Purchases", lastCheckedDate: undefined, buttoncolor: "#DAA520" },
+      { name: "Baby Steps Progress Review", lastCheckedDate: undefined, buttoncolor: "#DAA520" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+    category: "Finance"
+  },
+
+  // PRODUCTIVITY
+  {
+    name: "Gary Vaynerchuk - Hustle Culture",
+    streak: 0,
+    color: "#FF4500",
+    lastCheckedDate: undefined,
+    checkedDays: [...checkedDays],
+    days: 105,
+    startDate: new Date(startDate),
+    buttonColor: "#FF6347",
+    iconname: "rocket",
+    archivated: false,
+    changeIcon: false,
+    github: false,
+    modelOpen: false,
+    amount: 8,
+    checkedToday: 0,
+    todos: [
+      { name: "6:00 AM Wake Up", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Workout: 45 Minutes", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Social Media Content Creation", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Business Meetings (10-15 daily)", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Respond to Every DM/Comment", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Podcast Recording", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Wine Business Tasks", lastCheckedDate: undefined, buttoncolor: "#FF4500" },
+      { name: "Family Dinner Priority", lastCheckedDate: undefined, buttoncolor: "#FF4500" }
+    ],
+    todoschecked: 0,
+    selectedDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    category: "Productivity"
+  }
 ];
 
 export default routines;
