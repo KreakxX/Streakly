@@ -1,5 +1,9 @@
+"use client";
+
+import type React from "react";
+
 import { FontAwesome5 } from "@expo/vector-icons";
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Animated, Easing, Modal, Text, View } from "react-native";
 import ConfettiCannon from "react-native-confetti-cannon";
 
@@ -60,12 +64,18 @@ const streakBadges = [
   { days: 2300, icon: "ghost", color: "#FBC02D" },
   { days: 2500, icon: "ghost", color: "#F57F17" },
 ];
+
 interface BadgeAnimationProps {
   days: number;
   visible: boolean;
+  isDarkMode?: boolean;
 }
 
-const BadgeAnimation: React.FC<BadgeAnimationProps> = ({ days, visible }) => {
+const BadgeAnimation: React.FC<BadgeAnimationProps> = ({
+  days,
+  visible,
+  isDarkMode = true,
+}) => {
   const badge = streakBadges.find((badge) => badge.days === days);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
@@ -83,13 +93,13 @@ const BadgeAnimation: React.FC<BadgeAnimationProps> = ({ days, visible }) => {
           Animated.sequence([
             Animated.timing(glowAnim, {
               toValue: 1,
-              duration: 800,
+              duration: 1200,
               useNativeDriver: true,
               easing: Easing.inOut(Easing.ease),
             }),
             Animated.timing(glowAnim, {
               toValue: 0,
-              duration: 800,
+              duration: 1200,
               useNativeDriver: true,
               easing: Easing.inOut(Easing.ease),
             }),
@@ -106,51 +116,74 @@ const BadgeAnimation: React.FC<BadgeAnimationProps> = ({ days, visible }) => {
 
   const glow = glowAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 20],
+    outputRange: [0, 12],
   });
+
+  const cardBgColor = isDarkMode ? "#1f2937" : "#ffffff";
+  const textColor = isDarkMode ? "#ffffff" : "#1f2937";
+  const subtitleColor = isDarkMode ? "#d1d5db" : "#6b7280";
 
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View
-        className="flex-1 justify-center items-center"
+        className="flex-1 justify-center items-center px-8"
         style={{
-          backgroundColor: "rgba(0,0,0,0.7)",
+          backgroundColor: "rgba(0,0,0,0.8)",
         }}
       >
         {visible && (
-          <ConfettiCannon count={80} origin={{ x: 200, y: 0 }} fadeOut />
+          <ConfettiCannon count={60} origin={{ x: 200, y: 0 }} fadeOut />
         )}
         <Animated.View
           style={{
-            backgroundColor: "#22223b",
-            borderRadius: 24,
+            backgroundColor: cardBgColor,
+            borderRadius: 20,
             padding: 32,
             alignItems: "center",
             shadowColor: badge.color,
-            shadowOpacity: 0.8,
+            shadowOpacity: 0.3,
             shadowRadius: glow,
-            shadowOffset: { width: 0, height: 0 },
+            shadowOffset: { width: 0, height: 4 },
             transform: [{ scale: scaleAnim }],
-            elevation: 20,
+            elevation: 12,
+            maxWidth: 320,
+            width: "100%",
           }}
         >
-          <Text className="text-2xl font-extrabold mb-2 text-white">
-            🎉 Glückwunsch! 🎉
-          </Text>
-          <FontAwesome5
-            name={badge.icon as any}
-            size={72}
-            color={badge.color}
-            style={{ marginBottom: 12 }}
-          />
           <Text
-            className="text-2xl font-bold mb-1"
+            className="text-2xl font-bold mb-6 text-center"
+            style={{ color: textColor }}
+          >
+            🎉 Achievement Unlocked! 🎉
+          </Text>
+
+          <View
+            className="w-20 h-20 rounded-full items-center justify-center mb-4"
+            style={{
+              backgroundColor: `${badge.color}20`,
+              borderWidth: 2,
+              borderColor: badge.color,
+            }}
+          >
+            <FontAwesome5
+              name={badge.icon as any}
+              size={40}
+              color={badge.color}
+            />
+          </View>
+
+          <Text
+            className="text-xl font-bold mb-2 text-center"
             style={{ color: badge.color }}
           >
-            {badge.days} Tage Streak!
+            {badge.days} Day Streak
           </Text>
-          <Text className="text-lg text-white mt-2">
-            Du hast ein neues Badge freigeschaltet!
+
+          <Text
+            className="text-base text-center leading-5"
+            style={{ color: subtitleColor }}
+          >
+            You've earned a new badge for your dedication!
           </Text>
         </Animated.View>
       </View>

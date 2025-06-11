@@ -432,13 +432,13 @@ export default function ProfileScreen() {
   useEffect(() => {
     loadPercentages();
     loadCheckIns();
-  }, [categories]);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       loadPercentages();
       loadCheckIns();
-    }, [categories])
+    }, [])
   );
 
   const generateTimeLineData = async () => {
@@ -744,7 +744,7 @@ export default function ProfileScreen() {
                 </View>
               )}
 
-              <View className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-5 `}>
+              <View className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-20 `}>
                 <Text
                   className={`${textColor} text-2xl font-bold mb-2 text-center`}
                 >
@@ -758,6 +758,11 @@ export default function ProfileScreen() {
                   data={categories}
                   horizontal
                   keyExtractor={(item, index) => index.toString()}
+                  extraData={checkins}
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={5}
+                  windowSize={10}
+                  initialNumToRender={5}
                   contentContainerStyle={{ paddingVertical: 16 }}
                   ItemSeparatorComponent={() => <View className="h-4" />}
                   renderItem={({ item, index }) => {
@@ -766,12 +771,16 @@ export default function ProfileScreen() {
                       <View
                         className={`${borderColor} border rounded-xl pb-3 pt-3  `}
                       >
-                        <View className="mb-3">
-                          <Text
-                            className={`${textColor} text-lg font-semibold text-center`}
+                        <View className="mb-3 flex justify-center items-center">
+                          <View
+                            className={` rounded-full ${primaryColor} px-6 py-2 justify-center items-center`}
                           >
-                            {item.name}
-                          </Text>
+                            <Text
+                              className={`${textColor} text-xl font-semibold text-center`}
+                            >
+                              {item.name}
+                            </Text>
+                          </View>
                         </View>
 
                         <LineChart
@@ -809,22 +818,31 @@ export default function ProfileScreen() {
                   keyExtractor={(item, index) => index.toString()}
                   contentContainerStyle={{ paddingVertical: 16 }}
                   ItemSeparatorComponent={() => <View className="h-4" />}
+                  removeClippedSubviews={true}
+                  maxToRenderPerBatch={5}
+                  windowSize={10}
+                  initialNumToRender={5}
+                  extraData={percentages}
                   renderItem={({ item, index }) => {
                     const achieved = percentages[index] ?? 0;
                     return (
                       <View className={`${borderColor} border rounded-xl p-11`}>
                         <View className="mb-3">
-                          <Text
-                            className={`${textColor} text-lg font-semibold text-center`}
+                          <View
+                            className={` rounded-full ${primaryColor}  py-2 justify-center items-center mx-20`}
                           >
-                            {item.name}
-                          </Text>
-                          <Text
-                            className={`${textMutedColor} text-center text-sm`}
-                          >
-                            {achieved}% completed
-                          </Text>
+                            <Text
+                              className={`${textColor} text-xl font-semibold text-center`}
+                            >
+                              {item.name}
+                            </Text>
+                          </View>
                         </View>
+                        <Text
+                          className={`${textMutedColor} text-center text-sm`}
+                        >
+                          {achieved}% completed
+                        </Text>
                         <PieChart
                           percentage={achieved}
                           isDarkMode={colorSchem === "dark"}

@@ -77,16 +77,15 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingHorizontal: 24,
-              backgroundColor: "#1f2937", // GLEICHE FARBE WIE DEIN ANDERES MODAL
+              backgroundColor: "#111827",
               shadowColor: "#000",
               shadowOffset: { width: 0, height: -2 },
               shadowOpacity: 0.25,
               shadowRadius: 3.84,
               elevation: 5,
-              maxHeight: "85%", // WICHTIG: BEGRENZT DIE HÖHE
+              maxHeight: "85%",
             }}
           >
-            {/* CLOSE BUTTON - GENAU WIE DEINS */}
             <View style={{ flexDirection: "row", marginBottom: 40 }}>
               <TouchableOpacity
                 onPress={onClose}
@@ -111,7 +110,6 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* HEADER */}
               <View style={{ alignItems: "center", marginBottom: 24 }}>
                 <View
                   style={{
@@ -325,7 +323,6 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
                 ))}
               </View>
 
-              {/* CTA BUTTON */}
               <TouchableOpacity
                 style={{
                   backgroundColor: "#7c3aed",
@@ -416,7 +413,6 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
-              {/* HEADER */}
               <View style={{ alignItems: "center", marginBottom: 24 }}>
                 <View
                   style={{
@@ -450,9 +446,7 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
                 </Text>
               </View>
 
-              {/* PRICING CARDS */}
               <View style={{ marginBottom: 24 }}>
-                {/* MONTHLY PLAN */}
                 <TouchableOpacity
                   onPress={() => setSelectedPlan("monthly")}
                   style={{

@@ -9,12 +9,14 @@ import Streak from "@/components/ui/streak";
 import StreakV2 from "@/components/ui/StreakV2";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { Video } from "expo-av";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
 import { useFocusEffect } from "expo-router";
 import * as StoreReview from "expo-store-review";
 import { useCallback, useEffect, useRef, useState } from "react";
+
 import {
   Alert,
   AppState,
@@ -22,6 +24,7 @@ import {
   Image,
   Modal,
   NativeModules,
+  Platform,
   ScrollView,
   Text,
   TextInput,
@@ -892,21 +895,37 @@ export default function HomeScreen() {
 
     if (github) {
       if (category.lastCheckDate !== today) {
-        const index = category.checkedDays.findIndex((day) => {
+        const dayIndex = category.checkedDays.findIndex((day) => {
           const dayDate =
             day.date instanceof Date ? day.date : new Date(day.date);
           return isSameDay(dayDate, todayDate);
         });
 
-        if (index !== -1) {
-          category.checkedDays[index].status = true;
+        if (dayIndex !== -1) {
+          category.checkedDays[dayIndex].status = true;
         }
 
         category.buttonColor = category.color;
         category.streak += 1;
         category.lastCheckDate = today;
         category.days += 1;
+
+        if (category.amount > category.checkedToday) {
+          category.checkedToday++;
+        }
+
+        if (category.streak > category.longestStreak) {
+          category.longestStreak = category.streak;
+        }
       }
+
+      setCategories(updatedCategories);
+
+      await updateWidgetWithCategory({
+        ...category,
+        streak: Math.max(0, category.streak),
+      });
+
       return;
     }
 
@@ -984,47 +1003,47 @@ export default function HomeScreen() {
     askForReview();
   }, []);
 
-  useEffect(() => {
-    const connectWithGithub = async () => {
-      const updatedCategories = [...categories];
-      const username = await AsyncStorage.getItem("github");
-      let github = false;
-      const todayFormatted = new Date().toISOString().split("T")[0];
-      updatedCategories.forEach((category, index) => {
-        if (
-          category.name.includes("coding") ||
-          category.name.includes("Coding") ||
-          category.name.includes("Github") ||
-          category.name.includes("github") ||
-          category.github == true
-        ) {
-          github = true;
-        }
-      });
-      if (github) {
-        try {
-          const response = await axios.get(
-            `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
-            {
-              headers: {
-                Accept: "application/vnd.github.v3+json",
-              },
-            }
-          );
-          const count = response.data["total_count"];
-          updatedCategories.forEach((category, index) => {
-            if (count) {
-              handleCheckIn(index, true);
-            }
-          });
-        } catch (error) {
-          console.log(error);
-          throw error;
-        }
-      }
-    };
-    connectWithGithub();
-  }, []);
+  // const connectWithGithub = async () => {
+  //   const updatedCategories = [...categories];
+  //   const username = await AsyncStorage.getItem("github");
+  //   let github = false;
+  //   let CategoryIndex = 0;
+  //   const todayFormatted = new Date().toISOString().split("T")[0];
+  //   updatedCategories.forEach((category, index) => {
+  //     if (category.github == true) {
+  //       github = true;
+  //       CategoryIndex = index;
+  //     }
+  //   });
+  //   if (github) {
+  //     try {
+  //       const response = await axios.get(
+  //         `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
+  //         {
+  //           headers: {
+  //             Accept: "application/vnd.github.v3+json",
+  //           },
+  //         }
+  //       );
+  //       const count = response.data["total_count"];
+  //       if (count) {
+  //         handleCheckIn(CategoryIndex, true);
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //       throw error;
+  //     }
+  //   }
+  // };
+  // useEffect(() => {
+  //   connectWithGithub();
+  // }, []);
+
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     connectWithGithub();
+  //   }, [])
+  // );
 
   const availableColors2 = availableColors;
   const items2 = items;
@@ -1396,7 +1415,7 @@ export default function HomeScreen() {
     return uncheckedCategories[randomIndex].name;
   };
 
-  /*async function registerForPushNotificationsAsync() {
+  async function registerForPushNotificationsAsync() {
     if (!Device.isDevice) {
       return false;
     }
@@ -1428,20 +1447,6 @@ export default function HomeScreen() {
   }
 
   useEffect(() => {
-    const loadColorScheme = async () => {
-      try {
-        const colorScheme = await AsyncStorage.getItem("color");
-        if (colorScheme) {
-          setColorScheme(JSON.parse(colorScheme));
-        }
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    loadColorScheme();
-  }, []);
-
-  useEffect(() => {
     (async () => {
       const permissionGranted = await registerForPushNotificationsAsync();
       const settingspermissionGranted = await AsyncStorage.getItem(
@@ -1460,19 +1465,47 @@ export default function HomeScreen() {
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "🎯 Daily Habit Check!",
-              body: `Du hast heute dein Habit "${uncheckedHabbit}" noch nicht erledigt!`,
+              body: `Du hast heute dein Habit ${uncheckedHabbit} noch nicht erledigt!`,
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DAILY,
-              hour: 21,
+              hour: 19,
               minute: 0,
+            },
+          });
+        }
+
+        if (send) {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: "🎯 Daily Habit Check!",
+              body: `Vergiss nicht deine Gewohnheiten zu checken 🔥`,
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+              seconds: 4 * 60 * 60,
+              repeats: true,
             },
           });
         }
       }
     })();
   }, []);
-*/
+
+  useEffect(() => {
+    const loadColorScheme = async () => {
+      try {
+        const colorScheme = await AsyncStorage.getItem("color");
+        if (colorScheme) {
+          setColorScheme(JSON.parse(colorScheme));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    loadColorScheme();
+  }, []);
+
   const addDays = async (days: number, index: number) => {
     const updatedCategories = [...categories];
     const category = updatedCategories[index];
@@ -1876,7 +1909,7 @@ export default function HomeScreen() {
           <View className="flex-row mb-10 bg-gray-900 rounded-lg p-1">
             <TouchableOpacity
               className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "habits" ? "bg-slate-800" : ""
+                activeTab === "habits" ? "bg-violet-600" : ""
               }`}
               onPress={() => {
                 setActiveTab("habits");
@@ -1893,7 +1926,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "routines" ? "bg-slate-800" : ""
+                activeTab === "routines" ? "bg-biolet-600" : ""
               }`}
               onPress={() => {
                 setActiveTab("routines");
@@ -2275,7 +2308,11 @@ export default function HomeScreen() {
                             maxHeight: "90%",
                           }}
                         >
-                          <CameraView ref={cameraRef} facing={facing}>
+                          <CameraView
+                            ref={cameraRef}
+                            facing={facing}
+                            className=""
+                          >
                             <TouchableOpacity className=" ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center">
                               <MaterialCommunityIcons
                                 name="close"

@@ -2,7 +2,7 @@ import routines from "@/components/Routines";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -59,6 +59,230 @@ interface Routine {
   category?: string;
 }
 
+const RoutineCard = memo(
+  ({
+    routine,
+    index,
+    isAdded,
+    isDarkMode,
+    isLoading,
+    onAddRoutine,
+    onOpenModal,
+  }: {
+    routine: Routine;
+    index: number;
+    isAdded: boolean;
+    isDarkMode: boolean;
+    isLoading: boolean;
+    onAddRoutine: (routine: Routine) => void;
+    onOpenModal: (routine: Routine) => void;
+  }) => {
+    const categoryInfo = useMemo(
+      () => categories.find((c) => c.name === routine.category),
+      [routine.category]
+    );
+
+    const addPrebuildRoutine = useCallback(() => {
+      if (!isAdded) {
+        onAddRoutine(routine);
+      }
+    }, [isAdded, onAddRoutine, routine]);
+
+    const handleOpenModal = useCallback(() => {
+      onOpenModal(routine);
+    }, [onOpenModal, routine]);
+
+    const buttonStyle = useMemo(() => {
+      const getBackgroundColor = (isDark: boolean, isAdded: boolean) => {
+        if (isDark) {
+          return isAdded ? "bg-violet-800" : "bg-violet-600";
+        }
+        return isAdded ? "bg-violet-700" : "bg-violet-600";
+      };
+      return getBackgroundColor(isDarkMode, isAdded);
+    }, [isDarkMode, isAdded]);
+
+    const textStyle = useMemo(() => {
+      const getTextColor = (isDark: boolean, isAdded: boolean) => {
+        if (isDark) {
+          return isAdded ? "text-gray-600" : "text-white";
+        }
+        return isAdded ? "text-gray-200" : "text-white";
+      };
+      return getTextColor(isDarkMode, isAdded);
+    }, [isDarkMode, isAdded]);
+
+    const visibleTodos = useMemo(
+      () => routine.todos.slice(0, 5),
+      [routine.todos]
+    );
+
+    return (
+      <View
+        className={`mb-5 rounded-xl overflow-hidden shadow-sm ${
+          isDarkMode ? "bg-gray-900" : "bg-white"
+        } border ${isDarkMode ? "border-gray-800" : "border-gray-100"}`}
+        style={{
+          shadowColor: isDarkMode ? "#000" : "#718096",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDarkMode ? 0.3 : 0.1,
+          shadowRadius: 2,
+          elevation: 2,
+        }}
+      >
+        <TouchableOpacity
+          className="p-4 border-b border-opacity-10 border-gray-400"
+          onPress={handleOpenModal}
+        >
+          <View className="flex-row items-center gap-3">
+            <View
+              className={`w-12 h-12 rounded-full justify-center items-center ${
+                isDarkMode ? "bg-gray-800" : "bg-blue-50"
+              }`}
+            >
+              <MaterialCommunityIcons
+                name={routine.iconname as any}
+                size={24}
+                color={routine.color}
+              />
+            </View>
+            <View className="flex-1">
+              <Text
+                className={`font-bold ${
+                  isDarkMode ? "text-white" : "text-gray-800"
+                } text-lg`}
+              >
+                {routine.name}
+              </Text>
+              <View className="flex-row items-center">
+                <Text
+                  className={`${
+                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                  } text-sm`}
+                >
+                  {routine.todos.length}{" "}
+                  {routine.todos.length === 1 ? "task" : "tasks"} • Daily
+                  routine
+                </Text>
+                {categoryInfo && (
+                  <View
+                    className="flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20"
+                    style={{
+                      backgroundColor: isDarkMode ? "#1e293b" : "#eff6ff",
+                    }}
+                  >
+                    <MaterialCommunityIcons
+                      name={categoryInfo.icon as any}
+                      size={12}
+                      color={isDarkMode ? "#60a5fa" : "#3b82f6"}
+                    />
+                    <Text
+                      className={`ml-1 text-xs ${
+                        isDarkMode ? "text-blue-400" : "text-blue-600"
+                      }`}
+                    >
+                      {categoryInfo.name}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        <View className="px-4">
+          {visibleTodos.map((todo, todoIndex) => (
+            <View
+              key={todoIndex}
+              className={`flex-row items-center py-3.5 ${
+                todoIndex < Math.min(4, routine.todos.length - 1)
+                  ? `border-b ${
+                      isDarkMode ? "border-gray-800" : "border-gray-100"
+                    }`
+                  : ""
+              }`}
+            >
+              <View
+                className={`h-7 w-7 rounded-full items-center justify-center mr-3 ${
+                  isDarkMode ? "bg-gray-800" : "bg-blue-50"
+                }`}
+              >
+                <MaterialCommunityIcons
+                  name="check"
+                  color={routine.color}
+                  size={16}
+                />
+              </View>
+              <Text
+                className={`${
+                  isDarkMode ? "text-gray-300" : "text-gray-700"
+                } text-base flex-1`}
+              >
+                {todo.name}
+              </Text>
+            </View>
+          ))}
+
+          {routine.todos.length > 5 && (
+            <TouchableOpacity
+              className="py-3 items-center"
+              onPress={handleOpenModal}
+            >
+              <View className="flex-row items-center">
+                <Text
+                  className={`text-sm font-medium ${
+                    isDarkMode ? "text-blue-400" : "text-blue-600"
+                  }`}
+                >
+                  See all {routine.todos.length} tasks
+                </Text>
+                <MaterialCommunityIcons
+                  name="chevron-down"
+                  size={18}
+                  color={isDarkMode ? "#60a5fa" : "#3b82f6"}
+                  style={{ marginLeft: 4 }}
+                />
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View className="px-4 py-4">
+          <TouchableOpacity
+            onPress={addPrebuildRoutine}
+            disabled={isAdded || isLoading}
+            className={`py-3 rounded-lg justify-center items-center ${buttonStyle}`}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={routine.color} size="small" />
+            ) : (
+              <View className="flex-row items-center">
+                <MaterialCommunityIcons
+                  name={isAdded ? "check" : "plus"}
+                  color={routine.color}
+                  size={18}
+                  style={{ marginRight: 6 }}
+                />
+                <Text className={`font-semibold text-base ${textStyle}`}>
+                  {isAdded ? "Added to My Routines" : "Add to My Routines"}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  },
+  (prevProps, nextProps) => {
+    return (
+      prevProps.routine.name === nextProps.routine.name &&
+      prevProps.isAdded === nextProps.isAdded &&
+      prevProps.isDarkMode === nextProps.isDarkMode &&
+      prevProps.isLoading === nextProps.isLoading
+    );
+  }
+);
+
 export default function ExploreScreen() {
   const [colorScheme, setColorScheme] = useState<string>("dark");
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -72,7 +296,6 @@ export default function ExploreScreen() {
   const [selectedRoutine, setSelectedRoutine] = useState<Routine | null>(null);
   const isDarkMode = colorScheme === "dark";
 
-  // Memoized filtered routines - this is the key fix
   const filteredRoutines = useMemo(() => {
     return routines.filter((routine) => {
       // Category filter
@@ -97,14 +320,12 @@ export default function ExploreScreen() {
             setColorScheme(JSON.parse(colorScheme));
           }
 
-          // Reset filters when screen is focused
           setSearchQuery("");
           setSelectedCategory("");
 
           const routinesString = await AsyncStorage.getItem("routines");
           const userRoutines = routinesString ? JSON.parse(routinesString) : [];
 
-          // Store routine names instead of indices
           const addedNames = userRoutines.map((r: Routine) => r.name);
           setAddedRoutineNames(addedNames);
         } catch (e) {
@@ -151,6 +372,10 @@ export default function ExploreScreen() {
     setSearchQuery("");
   };
 
+  const handleOpenModal = useCallback((routine: Routine) => {
+    setSelectedRoutine(routine);
+    setModalVisible(true);
+  }, []);
   const clearCategory = () => {
     setSelectedCategory("");
   };
@@ -169,60 +394,6 @@ export default function ExploreScreen() {
     return isAdded ? "text-gray-200" : "text-white";
   };
 
-  const renderCategoryItem = ({ item }: { item: (typeof categories)[0] }) => {
-    const isSelected = selectedCategory === item.name;
-
-    return (
-      <TouchableOpacity
-        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
-          isSelected
-            ? isDarkMode
-              ? "bg-slate-700"
-              : "bg-blue-100"
-            : isDarkMode
-            ? "bg-gray-900"
-            : "bg-white"
-        } border ${
-          isSelected
-            ? isDarkMode
-              ? "border-slate-600"
-              : "border-blue-200"
-            : isDarkMode
-            ? "border-slate-700"
-            : "border-gray-200"
-        }`}
-        onPress={() => handleCategoryFilter(item.name)}
-      >
-        <MaterialCommunityIcons
-          name={item.icon as any}
-          size={18}
-          color={
-            isSelected
-              ? isDarkMode
-                ? "#60a5fa"
-                : "#3b82f6"
-              : isDarkMode
-              ? "#94a3b8"
-              : "#64748b"
-          }
-        />
-        <Text
-          className={`ml-2 font-medium ${
-            isSelected
-              ? isDarkMode
-                ? "text-blue-400"
-                : "text-blue-600"
-              : isDarkMode
-              ? "text-gray-300"
-              : "text-gray-700"
-          }`}
-        >
-          {item.name}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
   const openRoutineModal = (routine: Routine) => {
     setSelectedRoutine(routine);
     setModalVisible(true);
@@ -232,6 +403,63 @@ export default function ExploreScreen() {
     setModalVisible(false);
     setSelectedRoutine(null);
   };
+
+  const renderCategoryItem = useCallback(
+    ({ item }: { item: (typeof categories)[0] }) => {
+      const isSelected = selectedCategory === item.name;
+
+      return (
+        <TouchableOpacity
+          className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
+            isSelected
+              ? isDarkMode
+                ? "bg-slate-700"
+                : "bg-blue-100"
+              : isDarkMode
+              ? "bg-gray-900"
+              : "bg-white"
+          } border ${
+            isSelected
+              ? isDarkMode
+                ? "border-slate-600"
+                : "border-blue-200"
+              : isDarkMode
+              ? "border-slate-700"
+              : "border-gray-200"
+          }`}
+          onPress={() => handleCategoryFilter(item.name)}
+        >
+          <MaterialCommunityIcons
+            name={item.icon as any}
+            size={18}
+            color={
+              isSelected
+                ? isDarkMode
+                  ? "#60a5fa"
+                  : "#3b82f6"
+                : isDarkMode
+                ? "#94a3b8"
+                : "#64748b"
+            }
+          />
+          <Text
+            className={`ml-2 font-medium ${
+              isSelected
+                ? isDarkMode
+                  ? "text-blue-400"
+                  : "text-blue-600"
+                : isDarkMode
+                ? "text-gray-300"
+                : "text-gray-700"
+            }`}
+          >
+            {item.name}
+          </Text>
+        </TouchableOpacity>
+      );
+    },
+    [selectedCategory, isDarkMode, handleCategoryFilter]
+  );
 
   return (
     <View className={isDarkMode ? "bg-slate-950 flex-1" : "bg-gray-50 flex-1"}>
@@ -391,182 +619,18 @@ export default function ExploreScreen() {
           ) : (
             filteredRoutines.map((routine, index) => {
               const isAdded = addedRoutineNames.includes(routine.name);
-              const categoryInfo = categories.find(
-                (c) => c.name === routine.category
-              );
-              const isExpanded = expandedRoutineIndex === index;
 
               return (
-                <View
-                  key={`${routine.name}-${index}`}
-                  className={`mb-5 rounded-xl overflow-hidden shadow-sm ${
-                    isDarkMode ? "bg-gray-900" : "bg-white"
-                  } border ${
-                    isDarkMode ? "border-gray-800" : "border-gray-100"
-                  }`}
-                  style={{
-                    shadowColor: isDarkMode ? "#000" : "#718096",
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: isDarkMode ? 0.3 : 0.1,
-                    shadowRadius: 2,
-                    elevation: 2,
-                  }}
-                >
-                  <TouchableOpacity
-                    className="p-4 border-b border-opacity-10 border-gray-400"
-                    onPress={() => openRoutineModal(routine)}
-                  >
-                    <View className="flex-row items-center gap-3">
-                      <View
-                        className={`w-12 h-12 rounded-full justify-center items-center ${
-                          isDarkMode ? "bg-gray-800" : "bg-blue-50"
-                        }`}
-                      >
-                        <MaterialCommunityIcons
-                          name={routine.iconname as any}
-                          size={24}
-                          color={routine.color}
-                        />
-                      </View>
-                      <View className="flex-1">
-                        <Text
-                          className={`font-bold ${
-                            isDarkMode ? "text-white" : "text-gray-800"
-                          } text-lg`}
-                        >
-                          {routine.name}
-                        </Text>
-                        <View className="flex-row items-center">
-                          <Text
-                            className={`${
-                              isDarkMode ? "text-gray-400" : "text-gray-500"
-                            } text-sm`}
-                          >
-                            {routine.todos.length}{" "}
-                            {routine.todos.length === 1 ? "task" : "tasks"} •
-                            Daily routine
-                          </Text>
-                          {categoryInfo && (
-                            <View
-                              className="flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20"
-                              style={{
-                                backgroundColor: isDarkMode
-                                  ? "#1e293b"
-                                  : "#eff6ff",
-                              }}
-                            >
-                              <MaterialCommunityIcons
-                                name={categoryInfo.icon as any}
-                                size={12}
-                                color={isDarkMode ? "#60a5fa" : "#3b82f6"}
-                              />
-                              <Text
-                                className={`ml-1 text-xs ${
-                                  isDarkMode ? "text-blue-400" : "text-blue-600"
-                                }`}
-                              >
-                                {categoryInfo.name}
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-
-                  <View className="px-4">
-                    {routine.todos.slice(0, 5).map((todo, todoIndex) => (
-                      <View
-                        key={todoIndex}
-                        className={`flex-row items-center py-3.5 ${
-                          todoIndex < Math.min(4, routine.todos.length - 1)
-                            ? `border-b ${
-                                isDarkMode
-                                  ? "border-gray-800"
-                                  : "border-gray-100"
-                              }`
-                            : ""
-                        }`}
-                      >
-                        <View
-                          className={`h-7 w-7 rounded-full items-center justify-center mr-3 ${
-                            isDarkMode ? "bg-gray-800" : "bg-blue-50"
-                          }`}
-                        >
-                          <MaterialCommunityIcons
-                            name="check"
-                            color={routine.color}
-                            size={16}
-                          />
-                        </View>
-                        <Text
-                          className={`${
-                            isDarkMode ? "text-gray-300" : "text-gray-700"
-                          } text-base flex-1`}
-                        >
-                          {todo.name}
-                        </Text>
-                      </View>
-                    ))}
-
-                    {routine.todos.length > 5 && (
-                      <TouchableOpacity
-                        className="py-3 items-center"
-                        onPress={() => openRoutineModal(routine)}
-                      >
-                        <View className="flex-row items-center">
-                          <Text
-                            className={`text-sm font-medium ${
-                              isDarkMode ? "text-blue-400" : "text-blue-600"
-                            }`}
-                          >
-                            See all {routine.todos.length} tasks
-                          </Text>
-                          <MaterialCommunityIcons
-                            name="chevron-down"
-                            size={18}
-                            color={isDarkMode ? "#60a5fa" : "#3b82f6"}
-                            style={{ marginLeft: 4 }}
-                          />
-                        </View>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  <View className="px-4 py-4">
-                    <TouchableOpacity
-                      onPress={() => !isAdded && addPrebuildRoutine(routine)}
-                      disabled={isAdded || isLoading}
-                      className={`py-3 rounded-lg justify-center items-center ${getBackgroundColor(
-                        isDarkMode,
-                        isAdded
-                      )}`}
-                    >
-                      {isLoading ? (
-                        <ActivityIndicator color={routine.color} size="small" />
-                      ) : (
-                        <View className="flex-row items-center">
-                          <MaterialCommunityIcons
-                            name={isAdded ? "check" : "plus"}
-                            color={routine.color}
-                            size={18}
-                            style={{ marginRight: 6 }}
-                          />
-                          <Text
-                            className={`font-semibold text-base ${getTextColor(
-                              isDarkMode,
-                              isAdded
-                            )}`}
-                          >
-                            {isAdded
-                              ? "Added to My Routines"
-                              : "Add to My Routines"}
-                          </Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <RoutineCard
+                  key={routine.name}
+                  routine={routine}
+                  index={index}
+                  isAdded={isAdded}
+                  isDarkMode={isDarkMode}
+                  isLoading={isLoading}
+                  onAddRoutine={addPrebuildRoutine}
+                  onOpenModal={handleOpenModal}
+                />
               );
             })
           )}

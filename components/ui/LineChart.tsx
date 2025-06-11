@@ -1,5 +1,6 @@
-import type React from "react";
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+import Svg, { Circle, Line, Path } from "react-native-svg";
 
 interface LineChartProps {
   data: number[];
@@ -20,17 +21,31 @@ const LineChart: React.FC<LineChartProps> = ({
     pointActive: "#a855f7",
     text: isDarkMode ? "#ffffff" : "#000000",
     textSecondary: isDarkMode ? "#9ca3af" : "#6b7280",
-    currentWeek: "#7c3aed", // Highlight-Farbe für aktuelle Woche
+    currentWeek: "#7c3aed",
   };
 
-  // Breite ein kleines bisschen reduziert (von 280 auf 260)
   const chartWidth = 260;
   const chartHeight = 160;
   const padding = 20;
   const maxValue = 7;
   const minValue = 0;
 
-  // Calculate positions for data points
+  if (!data || data.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <View style={[styles.emptyState, { borderColor: colors.gridLine }]}>
+          <Text style={[styles.emptyText, { color: colors.text }]}>
+            No Data Available
+          </Text>
+          <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+            Start tracking your habits to see your progress
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   const getPointPosition = (index: number, value: number) => {
     const x =
       padding + (index * (chartWidth - 2 * padding)) / (data.length - 1);
@@ -42,8 +57,9 @@ const LineChart: React.FC<LineChartProps> = ({
     return { x, y };
   };
 
-  const generatePath = () => {
-    if (data.length === 1) return "";
+  // Generate path for connecting lines
+  const generateLinePath = () => {
+    if (data.length < 2) return "";
 
     let path = "";
     data.forEach((value, index) => {
@@ -57,7 +73,6 @@ const LineChart: React.FC<LineChartProps> = ({
     return path;
   };
 
-  // Generate grid lines
   const generateGridLines = () => {
     const lines = [];
     const gridCount = 4;
@@ -66,17 +81,15 @@ const LineChart: React.FC<LineChartProps> = ({
     for (let i = 0; i <= gridCount; i++) {
       const y = padding + (i * (chartHeight - 2 * padding)) / gridCount;
       lines.push(
-        <View
+        <Line
           key={`h-${i}`}
-          style={[
-            styles.gridLine,
-            {
-              backgroundColor: colors.gridLine,
-              top: y,
-              left: padding,
-              width: chartWidth - 2 * padding,
-            },
-          ]}
+          x1={padding}
+          y1={y}
+          x2={chartWidth - padding}
+          y2={y}
+          stroke={colors.gridLine}
+          strokeWidth="1"
+          opacity="0.5"
         />
       );
     }
@@ -85,18 +98,15 @@ const LineChart: React.FC<LineChartProps> = ({
     for (let i = 0; i <= data.length - 1; i++) {
       const x = padding + (i * (chartWidth - 2 * padding)) / (data.length - 1);
       lines.push(
-        <View
+        <Line
           key={`v-${i}`}
-          style={[
-            styles.gridLine,
-            {
-              backgroundColor: colors.gridLine,
-              left: x,
-              top: padding,
-              height: chartHeight - 2 * padding,
-              width: 1,
-            },
-          ]}
+          x1={x}
+          y1={padding}
+          x2={x}
+          y2={chartHeight - padding}
+          stroke={colors.gridLine}
+          strokeWidth="1"
+          opacity="0.3"
         />
       );
     }
@@ -104,38 +114,20 @@ const LineChart: React.FC<LineChartProps> = ({
     return lines;
   };
 
-  // Generate data points
   const generateDataPoints = () => {
     return data.map((value, index) => {
       const { x, y } = getPointPosition(index, value);
 
       return (
-        <View key={index}>
-          {/* Spike line from bottom */}
-          <View
-            style={[
-              styles.spikeLine,
-              {
-                backgroundColor: colors.line,
-                left: x - 1,
-                top: y,
-                height: chartHeight - padding - y,
-              },
-            ]}
+        <React.Fragment key={index}>
+          <Circle
+            cx={x}
+            cy={y}
+            r="4"
+            fill={colors.point}
+            stroke={colors.background}
+            strokeWidth="2"
           />
-          {/* Data point */}
-          <View
-            style={[
-              styles.dataPoint,
-              {
-                backgroundColor: colors.point,
-                left: x - 4,
-                top: y - 4,
-                borderColor: colors.background,
-              },
-            ]}
-          />
-          {/* Value label */}
           <Text
             style={[
               styles.valueLabel,
@@ -148,22 +140,20 @@ const LineChart: React.FC<LineChartProps> = ({
           >
             {value}
           </Text>
-        </View>
+        </React.Fragment>
       );
     });
   };
 
-  // Generate week labels with current week highlighting
   const generateWeekLabels = () => {
     return data.map((_, index) => {
       const x =
         padding + (index * (chartWidth - 2 * padding)) / (data.length - 1);
       const weekNumber = data.length - index;
-      const isCurrentWeek = weekNumber === 1; // W1 ist die aktuelle Woche
+      const isCurrentWeek = weekNumber === 1;
 
       return (
         <View key={index}>
-          {/* Highlight-Hintergrund für aktuelle Woche */}
           {isCurrentWeek && (
             <View
               style={[
@@ -176,7 +166,6 @@ const LineChart: React.FC<LineChartProps> = ({
               ]}
             />
           )}
-          {/* Week Label */}
           <Text
             style={[
               styles.weekLabel,
@@ -203,12 +192,50 @@ const LineChart: React.FC<LineChartProps> = ({
       <View
         style={[styles.chartContainer, { backgroundColor: colors.background }]}
       >
-        <View style={styles.gridContainer}>{generateGridLines()}</View>
+        {/* SVG Chart */}
+        <Svg width={chartWidth} height={chartHeight} style={styles.svgChart}>
+          {/* Grid Lines */}
+          {generateGridLines()}
 
-        <View style={styles.chartContent}>{generateDataPoints()}</View>
+          {/* Connecting Line */}
+          <Path
+            d={generateLinePath()}
+            stroke={colors.line}
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+          />
 
+          {/* Data Points */}
+          {generateDataPoints()}
+        </Svg>
+
+        {/* Value Labels */}
+        <View style={styles.chartContent}>
+          {data.map((value, index) => {
+            const { x, y } = getPointPosition(index, value);
+            return (
+              <Text
+                key={index}
+                style={[
+                  styles.valueLabel,
+                  {
+                    color: colors.text,
+                    left: x - 10,
+                    top: y - 25,
+                  },
+                ]}
+              >
+                {value}
+              </Text>
+            );
+          })}
+        </View>
+
+        {/* Week Labels */}
         <View style={styles.labelsContainer}>{generateWeekLabels()}</View>
 
+        {/* Y-Axis Labels */}
         <View style={styles.yAxisContainer}>
           <Text
             style={[
@@ -230,7 +257,9 @@ const LineChart: React.FC<LineChartProps> = ({
       </View>
 
       {/* Stats */}
-      <View style={styles.statsContainer}>
+      <View
+        style={[styles.statsContainer, { borderTopColor: colors.gridLine }]}
+      >
         <View style={styles.statItem}>
           <Text style={[styles.statValue, { color: colors.text }]}>
             {Math.max(...data)}
@@ -264,6 +293,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     margin: 10,
+    borderRadius: 12,
     elevation: 2,
     shadowColor: "#000",
     shadowOffset: {
@@ -285,30 +315,15 @@ const styles = StyleSheet.create({
     height: 200,
     alignSelf: "center",
   },
-  gridContainer: {
+  svgChart: {
     position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-  gridLine: {
-    position: "absolute",
-    height: 1,
+    top: 0,
+    left: 0,
   },
   chartContent: {
     position: "absolute",
     width: "100%",
     height: "100%",
-  },
-  spikeLine: {
-    position: "absolute",
-    width: 2,
-  },
-  dataPoint: {
-    position: "absolute",
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    borderWidth: 2,
   },
   valueLabel: {
     position: "absolute",
@@ -356,7 +371,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingTop: 15,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
   },
   statItem: {
     alignItems: "center",
@@ -376,7 +390,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: "#e5e7eb",
     borderStyle: "dashed",
   },
   emptyText: {
@@ -388,35 +401,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: "center",
     paddingHorizontal: 20,
-  },
-  containerSmall: {
-    padding: 0,
-    borderRadius: 12,
-    margin: 0,
-    width: "90%",
-    elevation: 1,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  titleSmall: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  emptyStateSmall: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 120,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: "#e5e7eb",
-    borderStyle: "dashed",
   },
 });
 
