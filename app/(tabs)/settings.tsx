@@ -450,6 +450,16 @@ export default function Tab() {
                 }
               />
             </View>
+            <View className="w-full">
+              <TouchableOpacity className="flex-row items-center justify-center gap-3 bg-gray-950 rounded-full  h-14">
+                <MaterialCommunityIcons
+                  name="gmail"
+                  size={20}
+                  color={iconColor}
+                ></MaterialCommunityIcons>
+                <Text className=" text-gray-200 text-lg">Send feedback</Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View>

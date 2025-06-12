@@ -78,6 +78,7 @@ interface Routine {
   selectedDays: string[];
   modelOpen: boolean;
   category?: string;
+  longestStreak: number;
 }
 interface Todo {
   name: string;
@@ -1099,11 +1100,20 @@ export default function HomeScreen() {
   ) => {
     if (name === "") {
       Alert.alert("Error", "Please enter a name for your habit");
+      setExpand(false);
+      setSelectedIcon("star");
+      setSelectedDays([]);
+      setSelectedCategory("");
       return;
     }
 
     if (name.length > 15) {
       Alert.alert("Error", "Name should not be longer than 15 characters");
+      setExpand(false);
+      setSelectedIcon("star");
+      setSelectedDays([]);
+      setSelectedCategory("");
+
       return;
     }
 
@@ -1211,12 +1221,16 @@ export default function HomeScreen() {
         Routine.streak += 1;
         Routine.days += 1;
       }
+      if (Routine.longestStreak < Routine.streak) {
+        Routine.longestStreak = Routine.streak;
+      }
       Routine.lastCheckedDate = today;
     } else {
       Routine.checkedDays[RoutineIndex].status = false;
       if (wasCompleteBefore) {
         Routine.streak -= 1;
         Routine.days -= 1;
+        Routine.longestStreak -= 1;
       }
       Routine.lastCheckedDate = "";
     }
@@ -1232,11 +1246,19 @@ export default function HomeScreen() {
   ) => {
     if (name === "") {
       Alert.alert("Error", "Please enter a name for your Routine");
+      setExpandRoutine(false);
+      setSelectedDays([]);
+      setSelectedCategory("");
+      setSelectedIcon("star");
       return;
     }
 
     if (name.length > 15) {
       Alert.alert("Error", "Name should not be longer than 15 characters");
+      setExpandRoutine(false);
+      setSelectedDays([]);
+      setSelectedCategory("");
+      setSelectedIcon("star");
       return;
     }
     const totalDays = 315;
@@ -1280,6 +1302,7 @@ export default function HomeScreen() {
       selectedDays: selectedDays,
       modelOpen: false,
       category: selectedCategory,
+      longestStreak: 0,
     };
 
     const updatedRoutines = [...originalRoutines, newRoutine];
@@ -1461,7 +1484,7 @@ export default function HomeScreen() {
       }
       if (permissionGranted) {
         await Notifications.cancelAllScheduledNotificationsAsync();
-        if (send && uncheckedHabbit !== null) {
+        if (send && uncheckedHabbit !== null && uncheckedHabbit !== undefined) {
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "🎯 Daily Habit Check!",
@@ -1866,13 +1889,13 @@ export default function HomeScreen() {
             <View className="flex-col">
               <TouchableOpacity
                 onPress={() => updateColor("white")}
-                className="bg-slate-800 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+                className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
               >
                 <Text className="font-bold text-xl">🌙</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => setQuestView(!questview)}
-                className="bg-slate-800 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+                className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
               >
                 <MaterialCommunityIcons
                   name="script-text"
@@ -1883,7 +1906,7 @@ export default function HomeScreen() {
             </View>
             <TouchableOpacity
               onPress={() => setQuickView(!quickView)}
-              className="bg-slate-800 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              className="bg-slate-900 h-10 border border-gray-700 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
             >
               <MaterialCommunityIcons
                 size={20}
@@ -1926,7 +1949,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "routines" ? "bg-biolet-600" : ""
+                activeTab === "routines" ? "bg-violet-600" : ""
               }`}
               onPress={() => {
                 setActiveTab("routines");
@@ -2033,7 +2056,7 @@ export default function HomeScreen() {
                 >
                   {activeTab === "habits" ? (
                     <View>
-                      <View className="flex-row mb-10  ">
+                      <View className="flex-row mb-10   ">
                         <TouchableOpacity
                           onPress={() => {
                             setQuickView(false);
@@ -2132,7 +2155,7 @@ export default function HomeScreen() {
           </View>
 
           {activeTab === "habits" ? (
-            <View className="flex-1 bg-gray-950">
+            <View className="flex-1 bg-gray-950 ">
               <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
                 <FlatList
                   data={GroupCategories}
@@ -2422,31 +2445,6 @@ export default function HomeScreen() {
                                   color={"#94a3b8"}
                                 />
                               </TouchableOpacity>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  swapHabits(index, index - 1);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="arrow-up"
-                                  size={24}
-                                  color={"#94a3b8"}
-                                />
-                              </TouchableOpacity>
-
-                              <TouchableOpacity
-                                onPress={() => {
-                                  swapHabits(index, index + 1);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="arrow-down"
-                                  size={24}
-                                  color={"#94a3b8"}
-                                />
-                              </TouchableOpacity>
                             </View>
                             <View className="flex-col items-center justify-center  mb-10">
                               <View className="flex-row gap-5 ">
@@ -2639,7 +2637,7 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : (
-            <View className="space-y-4 mt-5">
+            <View className="space-y-4 ">
               <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
                 <FlatList
                   data={GroupCategories}
@@ -2673,7 +2671,7 @@ export default function HomeScreen() {
                             };
                             setRoutines(newRoutines);
                           }}
-                          className="h-8 w-8 shadow-lg bg-gray-800 rounded-full items-center justify-center"
+                          className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
                         >
                           <MaterialCommunityIcons
                             name={routine.iconname as any}
@@ -2702,7 +2700,7 @@ export default function HomeScreen() {
                             onPress={() => {
                               archivateroutine(index);
                             }}
-                            className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center shadow-lg z-20"
+                            className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center  z-20"
                           >
                             <MaterialCommunityIcons
                               name="archive"
@@ -2884,31 +2882,6 @@ export default function HomeScreen() {
                                 color="#94a3b8"
                               />
                             </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => {
-                                swapRoutines(index, index - 1);
-                              }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
-                            >
-                              <MaterialCommunityIcons
-                                name="arrow-up"
-                                size={24}
-                                color="#94a3b8"
-                              />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                              onPress={() => {
-                                swapRoutines(index, index + 1);
-                              }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
-                            >
-                              <MaterialCommunityIcons
-                                name="arrow-down"
-                                size={24}
-                                color="#94a3b8"
-                              />
-                            </TouchableOpacity>
                           </View>
 
                           <View className="flex-col items-center justify-center mb-10">
@@ -2924,7 +2897,10 @@ export default function HomeScreen() {
                                 />
                               </View>
                             </View>
-
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
+                              Longest Streak:
+                              {" " + routine.longestStreak}
+                            </Text>
                             <Text className="mb-5 text-gray-400 font-bold text-md">
                               Started on:
                               {routine.startDate &&
@@ -3074,7 +3050,7 @@ export default function HomeScreen() {
           {expandRoutine ? (
             <View
               style={{
-                backgroundColor: "#0f172a",
+                backgroundColor: "#111827",
               }}
               className="rounded-xl p-4 shadow-sm mt-4"
             >
@@ -3095,24 +3071,6 @@ export default function HomeScreen() {
                 value={amount}
                 onChangeText={setAmount}
               />
-              <View className="mb-6 mt-6">
-                <Text
-                  className={` font-bold text-lg mb-3 
-                             text-white
-                          }`}
-                >
-                  Select a Category
-                </Text>
-
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
-                />
-              </View>
 
               <ScrollView>
                 {routineItem.map((item, index) => (
@@ -3150,6 +3108,24 @@ export default function HomeScreen() {
                   </Text>
                 </TouchableOpacity>
               </ScrollView>
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
               <Text className="text-white font-medium mb-5">
                 Select Weekdays
               </Text>
@@ -3696,7 +3672,7 @@ export default function HomeScreen() {
           </View>
 
           {activeTab === "habits" ? (
-            <View className="space-y-4 mt-5">
+            <View className="space-y-4 ">
               <View className="mb-8">
                 <FlatList
                   data={GroupCategories}
@@ -3979,31 +3955,6 @@ export default function HomeScreen() {
                                   color={"white"}
                                 />
                               </TouchableOpacity>
-                              <TouchableOpacity
-                                onPress={() => {
-                                  swapHabits(index, index - 1);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="arrow-up"
-                                  size={24}
-                                  color={"white"}
-                                />
-                              </TouchableOpacity>
-
-                              <TouchableOpacity
-                                onPress={() => {
-                                  swapHabits(index, index + 1);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="arrow-down"
-                                  size={24}
-                                  color={"white"}
-                                />
-                              </TouchableOpacity>
                             </View>
                             <View className="flex-col items-center justify-center  mb-10">
                               <View className="flex-row gap-5 ">
@@ -4018,7 +3969,9 @@ export default function HomeScreen() {
                                   ></FlameAnimation>
                                 </View>
                               </View>
-
+                              <Text className="mb-5 text-gray-300 font-bold text-md">
+                                Longest Streak: {category.longestStreak}
+                              </Text>
                               <Text className="mb-5 text-gray-300 font-bold text-md ">
                                 Started on:
                                 {category.startDate &&
@@ -4193,7 +4146,7 @@ export default function HomeScreen() {
               ))}
             </View>
           ) : (
-            <View className="space-y-4 mt-5">
+            <View className="space-y-4 ">
               <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
                 <FlatList
                   data={GroupCategories}
@@ -4438,31 +4391,6 @@ export default function HomeScreen() {
                                 color="white"
                               />
                             </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => {
-                                swapRoutines(index, index - 1);
-                              }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
-                            >
-                              <MaterialCommunityIcons
-                                name="arrow-up"
-                                size={24}
-                                color="white"
-                              />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                              onPress={() => {
-                                swapRoutines(index, index + 1);
-                              }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
-                            >
-                              <MaterialCommunityIcons
-                                name="arrow-down"
-                                size={24}
-                                color="white"
-                              />
-                            </TouchableOpacity>
                           </View>
 
                           <View className="flex-col items-center justify-center mb-10">
@@ -4478,7 +4406,10 @@ export default function HomeScreen() {
                                 />
                               </View>
                             </View>
-
+                            <Text className="mb-5 text-gray-400 font-bold text-md">
+                              Longest Streak:
+                              {" " + routine.longestStreak}
+                            </Text>
                             <Text className="mb-5 text-gray-400 font-bold text-md">
                               Started on:
                               {routine.startDate &&
