@@ -48,7 +48,7 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
       description: "Access to auto Check with Github",
     },
     {
-      icon: "palet",
+      icon: "palette",
       title: "Custom Themes",
       description: "Access to custom themes",
     },

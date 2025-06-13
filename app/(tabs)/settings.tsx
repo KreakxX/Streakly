@@ -6,7 +6,8 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { useCallback, useState } from "react";
+import { vars } from "nativewind";
+import { useCallback, useEffect, useState } from "react";
 import {
   Linking,
   ScrollView,
@@ -293,20 +294,145 @@ export default function Tab() {
     }
   };
 
+  const [activeTheme, setActiveTheme] = useState<string>("default");
+
+  const loadTheme = async () => {
+    const Theme = await AsyncStorage.getItem("theme");
+    if (Theme) {
+      const theme = JSON.parse(Theme);
+      setActiveTheme(theme);
+    }
+  };
+
+  useFocusEffect(() => {
+    loadTheme();
+  });
+
+  useEffect(() => {
+    loadTheme();
+  });
+
+  const themes = {
+    default: {
+      primary: {
+        main: "#7c3aed", // violet-600
+        light: "#8b5cf6", // violet-500
+        dark: "#6d28d9", // violet-700
+        text: colorScheme === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
+        bg: colorScheme === "dark" ? "#1f2937" : "#f5f3ff", // violet-950 : violet-50
+      },
+      bg: colorScheme === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
+      card: colorScheme === "dark" ? "#111827" : "#ffffff", // gray-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
+      textMuted: colorScheme === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
+      border: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      tab: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+    },
+    ocean: {
+      primary: {
+        main: "#2563eb", // blue-600
+        light: "#3b82f6", // blue-500
+        dark: "#1d4ed8", // blue-700
+        text: colorScheme === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
+        bg: colorScheme === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
+      },
+      bg: colorScheme === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
+      card: colorScheme === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
+      textMuted: colorScheme === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
+      border: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      tab: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+    },
+    forest: {
+      primary: {
+        main: "#059669", // emerald-600
+        light: "#10b981", // emerald-500
+        dark: "#047857", // emerald-700
+        text: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
+        bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      },
+      bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      card: colorScheme === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
+      textMuted: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
+      border: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      tab: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+    },
+    sunset: {
+      primary: {
+        main: "#ea580c", // orange-600
+        light: "#f97316", // orange-500
+        dark: "#c2410c", // orange-700
+        text: colorScheme === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
+        bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      },
+      bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      card: colorScheme === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
+      textMuted: colorScheme === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
+      border: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      tab: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+    },
+    berry: {
+      primary: {
+        main: "#c026d3", // fuchsia-600
+        light: "#d946ef", // fuchsia-500
+        dark: "#a21caf", // fuchsia-700
+        text: colorScheme === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
+        bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      },
+      bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      card: colorScheme === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
+      textMuted: colorScheme === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
+      border: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      tab: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+    },
+    monochrome: {
+      primary: {
+        main: "#525252", // neutral-600
+        light: "#737373", // neutral-500
+        dark: "#404040", // neutral-700
+        text: colorScheme === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
+        bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      },
+      bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      card: colorScheme === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
+      text: colorScheme === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
+      textMuted: colorScheme === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
+      border: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      tab: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+    },
+  };
   const isDark = colorScheme === "dark";
-  const bgColor = isDark ? "bg-gray-950" : "bg-gray-50";
-  const cardBgColor = isDark ? "bg-gray-900" : "bg-white";
-  const textColor = isDark ? "text-white" : "text-gray-800";
-  const textMutedColor = isDark ? "text-gray-400" : "text-gray-500";
-  const borderColor = isDark ? "border-gray-800" : "border-gray-200";
-  const inputBgColor = isDark ? "bg-gray-800" : "bg-gray-100";
-  const primaryBgColor = isDark ? "bg-violet-600" : "bg-violet-600";
-  const primaryHoverBgColor = isDark ? "bg-violet-700" : "bg-violet-700";
-  const secondaryBgColor = isDark ? "bg-gray-800" : "bg-gray-200";
-  const iconColor = isDark ? "#CBD5E1" : "#4b5563";
+  const currentTheme =
+    themes[activeTheme as keyof typeof themes] || themes.default;
+
+  const themeVars = vars({
+    "--bg-color": currentTheme.bg,
+    "--card-color": currentTheme.card,
+    "--text-color": currentTheme.text,
+    "--text-muted-color": currentTheme.textMuted,
+    "--border-color": currentTheme.border,
+    "--primary-color": currentTheme.primary.main,
+    "--primary-text-color": currentTheme.primary.text,
+    "--tab-color": currentTheme.tab,
+    "--primary-bg-color": currentTheme.primary.bg,
+  });
+
+  const bgColor = "bg-[var(--bg-color)]";
+  const cardBgColor = "bg-[var(--card-color)]";
+  const textColor = "text-[var(--text-color)]";
+  const textMutedColor = "text-[var(--text-muted-color)]";
+  const borderColor = "border-[var(--border-color)]";
+  const primaryBgColor = "bg-[var(--primary-color)]";
+  const secondaryBgColor = "bg-[var(--primary-bg-color)]";
+
+  const iconColor = "--text-color";
+  const inputBgColor = "bg-[var(--primary-bg-color)]";
 
   return (
-    <ScrollView className={`flex-1 ${bgColor}`}>
+    <ScrollView className={`flex-1 ${bgColor}`} style={themeVars}>
       <View className={`flex-1 ${bgColor} py-8 px-5`}>
         <View className="mt-12 mb-6">
           <Text className={`${textColor} text-4xl font-bold mb-1`}>
@@ -334,7 +460,11 @@ export default function Tab() {
               className={`flex-row items-center ${borderColor} border-b pb-4 mb-4`}
             >
               <View className="w-10 items-center">
-                <FontAwesome5 name="github" size={18} color={iconColor} />
+                <FontAwesome5
+                  name="github"
+                  size={18}
+                  color={currentTheme.text}
+                />
               </View>
               <Text className={`${textColor} text-base font-medium w-24`}>
                 Github
@@ -379,7 +509,11 @@ export default function Tab() {
             >
               <View className="flex-row items-center">
                 <View className="w-10 items-center">
-                  <FontAwesome5 name="bell" size={18} color={iconColor} />
+                  <FontAwesome5
+                    name="bell"
+                    size={18}
+                    color={currentTheme.text}
+                  />
                 </View>
                 <Text className={`${textColor} text-base font-medium`}>
                   Push Notifications
@@ -414,7 +548,7 @@ export default function Tab() {
                   <MaterialCommunityIcons
                     name="archive"
                     size={20}
-                    color={iconColor}
+                    color={currentTheme.text}
                   />
                 </View>
                 <Text className={`${textColor} text-base font-medium`}>
@@ -442,7 +576,7 @@ export default function Tab() {
                   <MaterialCommunityIcons
                     name="archive-outline"
                     size={20}
-                    color={iconColor}
+                    color={currentTheme.text}
                   />
                 </View>
                 <Text className={`${textColor} text-base font-medium`}>
@@ -463,13 +597,13 @@ export default function Tab() {
             </View>
             <View className="w-full">
               <TouchableOpacity
-                className="flex-row items-center justify-center gap-3 bg-gray-950 rounded-full  h-14"
+                className={`flex-row items-center justify-center gap-3 ${primaryBgColor} rounded-full  h-14`}
                 onPress={sendEmail}
               >
                 <MaterialCommunityIcons
                   name="gmail"
                   size={20}
-                  color={iconColor}
+                  color={currentTheme.text}
                 ></MaterialCommunityIcons>
                 <Text className=" text-gray-200 text-lg">Send feedback</Text>
               </TouchableOpacity>

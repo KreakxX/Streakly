@@ -505,26 +505,32 @@ export default function ProfileScreen() {
 
   const get_longest_streak = async () => {
     let o = 0;
-
-    for (let i = 0; i < categories.length; i++) {
-      if (categories[i].longestStreak > o) {
-        o = categories[i].longestStreak;
-        console.log(o);
+    const Categories = await AsyncStorage.getItem("categories");
+    if (Categories) {
+      const categories = JSON.parse(Categories);
+      for (let i = 0; i < categories.length; i++) {
+        if (categories[i].longestStreak > o) {
+          o = categories[i].longestStreak;
+          console.log(o);
+        }
       }
+      setlongest_streak_habbit(o);
     }
-    setlongest_streak_habbit(o);
   };
 
   const get_longest_streak_routine = async () => {
     let o = 0;
-
-    for (let i = 0; i < routines.length; i++) {
-      if (routines[i].longestStreak > o) {
-        o = routines[i].longestStreak;
-        console.log(o);
+    const Routines = await AsyncStorage.getItem("routines");
+    if (Routines) {
+      const routines = JSON.parse(Routines);
+      for (let i = 0; i < routines.length; i++) {
+        if (routines[i].longestStreak > o) {
+          o = routines[i].longestStreak;
+          console.log(o);
+        }
       }
+      setlongest_streak_routine(o);
     }
-    setlongest_streak_routine(o);
   };
 
   const getPieChartData = async (index: number): Promise<number> => {
@@ -820,90 +826,112 @@ export default function ProfileScreen() {
 
   const [activeTheme, setActiveTheme] = useState<string>("default");
 
-  const updateTheme = async (newTheme: string) => {
-    try {
-      setActiveTheme(newTheme);
-      await AsyncStorage.setItem("theme", JSON.stringify(newTheme));
-    } catch (e) {
-      console.error("Failed to save theme", e);
+  const loadTheme = async () => {
+    const Theme = await AsyncStorage.getItem("theme");
+    if (Theme) {
+      const theme = JSON.parse(Theme);
+      setActiveTheme(theme);
     }
   };
+
+  useFocusEffect(() => {
+    loadTheme();
+  });
+
+  useEffect(() => {
+    loadTheme();
+  });
 
   const themes = {
     default: {
       primary: {
-        main: "124 58 237", // violet-600 as RGB values
-        light: "139 92 246", // violet-500
-        dark: "109 40 217", // violet-700
-        text: colorSchem === "dark" ? "196 181 253" : "124 58 237", // violet-400 : violet-600
-        bg: colorSchem === "dark" ? "24 24 27" : "245 243 255", // violet-950 : violet-50
+        main: "#7c3aed", // violet-600
+        light: "#8b5cf6", // violet-500
+        dark: "#6d28d9", // violet-700
+        text: colorSchem === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
+        bg: colorSchem === "dark" ? "#1f2937" : "#f5f3ff", // violet-950 : violet-50
       },
-      bg: colorSchem === "dark" ? "3 7 18" : "249 250 251", // gray-950 : gray-50
-      card: colorSchem === "dark" ? "17 24 39" : "255 255 255", // gray-900 : white
-      text: colorSchem === "dark" ? "255 255 255" : "31 41 55", // white : gray-800
-      textMuted: colorSchem === "dark" ? "156 163 175" : "107 114 128", // gray-400 : gray-500
-      border: colorSchem === "dark" ? "31 41 55" : "229 231 235", // gray-800 : gray-200
-      tab: colorSchem === "dark" ? "31 41 55" : "229 231 235", // gray-800 : gray-200
+      bg: colorSchem === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
+      card: colorSchem === "dark" ? "#111827" : "#ffffff", // gray-900 : white
+      text: colorSchem === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
+      textMuted: colorSchem === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
+      border: colorSchem === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      tab: colorSchem === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
     },
     ocean: {
       primary: {
-        main: "37 99 235", // blue-600
-        light: "59 130 246", // blue-500
-        dark: "29 78 216", // blue-700
-        text: colorSchem === "dark" ? "96 165 250" : "37 99 235", // blue-400 : blue-600
-        bg: colorSchem === "dark" ? "12 10 9" : "239 246 255", // blue-950 : blue-50
+        main: "#2563eb", // blue-600
+        light: "#3b82f6", // blue-500
+        dark: "#1d4ed8", // blue-700
+        text: colorSchem === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
+        bg: colorSchem === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
       },
-      bg: colorSchem === "dark" ? "2 6 23" : "248 250 252", // slate-950 : slate-50
-      card: colorSchem === "dark" ? "15 23 42" : "255 255 255", // slate-900 : white
-      text: colorSchem === "dark" ? "255 255 255" : "30 41 59", // white : slate-800
-      textMuted: colorSchem === "dark" ? "148 163 184" : "100 116 139", // slate-400 : slate-500
-      border: colorSchem === "dark" ? "30 41 59" : "226 232 240", // slate-800 : slate-200
-      tab: colorSchem === "dark" ? "30 41 59" : "226 232 240", // slate-800 : slate-200
+      bg: colorSchem === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
+      card: colorSchem === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
+      text: colorSchem === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
+      textMuted: colorSchem === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
+      border: colorSchem === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      tab: colorSchem === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
     },
     forest: {
       primary: {
-        main: "5 150 105", // emerald-600
-        light: "16 185 129", // emerald-500
-        dark: "4 120 87", // emerald-700
-        text: colorSchem === "dark" ? "52 211 153" : "5 150 105", // emerald-400 : emerald-600
-        bg: colorSchem === "dark" ? "2 44 34" : "236 253 245", // emerald-950 : emerald-50
+        main: "#059669", // emerald-600
+        light: "#10b981", // emerald-500
+        dark: "#047857", // emerald-700
+        text: colorSchem === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
+        bg: colorSchem === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
       },
-      bg: colorSchem === "dark" ? "2 44 34" : "236 253 245", // emerald-950 : emerald-50
-      card: colorSchem === "dark" ? "6 78 59" : "255 255 255", // emerald-900 : white
-      text: colorSchem === "dark" ? "255 255 255" : "6 78 59", // white : emerald-800
-      textMuted: colorSchem === "dark" ? "52 211 153" : "5 150 105", // emerald-400 : emerald-500
-      border: colorSchem === "dark" ? "6 78 59" : "167 243 208", // emerald-800 : emerald-200
-      tab: colorSchem === "dark" ? "6 78 59" : "167 243 208", // emerald-800 : emerald-200
+      bg: colorSchem === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      card: colorSchem === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
+      text: colorSchem === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
+      textMuted: colorSchem === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
+      border: colorSchem === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      tab: colorSchem === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
     },
     sunset: {
       primary: {
-        main: "234 88 12", // orange-600
-        light: "249 115 22", // orange-500
-        dark: "194 65 12", // orange-700
-        text: colorSchem === "dark" ? "251 146 60" : "234 88 12", // orange-400 : orange-600
-        bg: colorSchem === "dark" ? "67 20 7" : "255 247 237", // orange-950 : orange-50
+        main: "#ea580c", // orange-600
+        light: "#f97316", // orange-500
+        dark: "#c2410c", // orange-700
+        text: colorSchem === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
+        bg: colorSchem === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
       },
-      bg: colorSchem === "dark" ? "67 20 7" : "255 247 237", // orange-950 : orange-50
-      card: colorSchem === "dark" ? "124 45 18" : "255 255 255", // orange-900 : white
-      text: colorSchem === "dark" ? "255 255 255" : "154 52 18", // white : orange-800
-      textMuted: colorSchem === "dark" ? "251 146 60" : "251 146 60", // orange-400 : orange-500
-      border: colorSchem === "dark" ? "154 52 18" : "254 215 170", // orange-800 : orange-200
-      tab: colorSchem === "dark" ? "154 52 18" : "254 215 170", // orange-800 : orange-200
+      bg: colorSchem === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      card: colorSchem === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
+      text: colorSchem === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
+      textMuted: colorSchem === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
+      border: colorSchem === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      tab: colorSchem === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
     },
     berry: {
       primary: {
-        main: "192 38 211",
-        light: "217 70 239",
-        dark: "162 28 175",
-        text: colorSchem === "dark" ? "240 171 252" : "192 38 211", // fuchsia-400 : fuchsia-600
-        bg: colorSchem === "dark" ? "74 4 78" : "253 244 255", // fuchsia-950 : fuchsia-50
+        main: "#c026d3", // fuchsia-600
+        light: "#d946ef", // fuchsia-500
+        dark: "#a21caf", // fuchsia-700
+        text: colorSchem === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
+        bg: colorSchem === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
       },
-      bg: colorSchem === "dark" ? "74 4 78" : "253 244 255", // fuchsia-950 : fuchsia-50
-      card: colorSchem === "dark" ? "134 25 143" : "255 255 255", // fuchsia-900 : white
-      text: colorSchem === "dark" ? "255 255 255" : "112 26 117", // white : fuchsia-800
-      textMuted: colorSchem === "dark" ? "240 171 252" : "240 171 252", // fuchsia-400 : fuchsia-500
-      border: colorSchem === "dark" ? "112 26 117" : "250 209 255", // fuchsia-800 : fuchsia-200
-      tab: colorSchem === "dark" ? "112 26 117" : "250 209 255", // fuchsia-800 : fuchsia-200
+      bg: colorSchem === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      card: colorSchem === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
+      text: colorSchem === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
+      textMuted: colorSchem === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
+      border: colorSchem === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      tab: colorSchem === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+    },
+    monochrome: {
+      primary: {
+        main: "#525252", // neutral-600
+        light: "#737373", // neutral-500
+        dark: "#404040", // neutral-700
+        text: colorSchem === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
+        bg: colorSchem === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      },
+      bg: colorSchem === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      card: colorSchem === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
+      text: colorSchem === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
+      textMuted: colorSchem === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
+      border: colorSchem === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      tab: colorSchem === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
     },
   };
   const isDark = colorSchem === "dark";
@@ -922,15 +950,15 @@ export default function ProfileScreen() {
     "--primary-bg-color": currentTheme.primary.bg,
   });
 
-  const bgColor = "bg-[rgb(var(--bg-color))]";
-  const cardBgColor = "bg-[rgb(var(--card-color))]";
-  const textColor = "text-[rgb(var(--text-color))]";
-  const textMutedColor = "text-[rgb(var(--text-muted-color))]";
-  const borderColor = "border-[rgb(var(--border-color))]";
-  const primaryColor = "bg-[rgb(var(--primary-color))]";
-  const primaryTextColor = "text-[rgb(var(--primary-text-color))]";
-  const tabBgColor = "bg-[rgb(var(--tab-color))]";
-  const tabActiveBgColor = "bg-[rgb(var(--primary-color))]";
+  const bgColor = "bg-[var(--bg-color)]";
+  const cardBgColor = "bg-[var(--card-color)]";
+  const textColor = "text-[var(--text-color)]";
+  const textMutedColor = "text-[var(--text-muted-color)]";
+  const borderColor = "border-[var(--border-color)]";
+  const primaryColor = "bg-[var(--primary-color)]";
+  const primaryTextColor = "text-[var(--primary-text-color)]";
+  const tabBgColor = "bg-[var(--primary-bg-color)]";
+  const tabActiveBgColor = "bg-[var(--primary-color)]";
 
   return (
     <ScrollView className={`flex-1 ${bgColor}`} style={themeVars}>
@@ -1113,8 +1141,8 @@ export default function ProfileScreen() {
                       .length > 2 ? (
                       <RadarChart
                         gradientColor={{
-                          startColor: isDark ? "#1e1b4b" : "#f3f4f6",
-                          endColor: isDark ? "#1e1b4b" : "#f3f4f6",
+                          startColor: currentTheme.bg,
+                          endColor: currentTheme.bg,
                           count: 5,
                         }}
                         maxValue={
@@ -1128,9 +1156,9 @@ export default function ProfileScreen() {
                               )
                         }
                         strokeWidth={[1, 1, 1, 1, 1]}
-                        dataFillColor="#8b5cf6"
-                        dataStroke="#8b5cf6"
-                        labelColor={isDark ? "#9ca3af" : "#4b5563"}
+                        dataFillColor={currentTheme.primary.main}
+                        dataStroke={currentTheme.primary.main}
+                        labelColor={currentTheme.textMuted}
                         labelDistance={1.3}
                         data={activeTab === "weekly" ? radarData : radarDataall}
                         scale={0.8}
@@ -1341,7 +1369,11 @@ export default function ProfileScreen() {
                       data={categories}
                       horizontal
                       keyExtractor={(item, index) => index.toString()}
-                      extraData={checkins}
+                      extraData={{
+                        checkins,
+                        theme: currentTheme,
+                        colorSchem,
+                      }}
                       removeClippedSubviews={true}
                       maxToRenderPerBatch={5}
                       windowSize={10}
@@ -1369,6 +1401,7 @@ export default function ProfileScreen() {
                             </View>
 
                             <LineChart
+                              theme={currentTheme}
                               data={Checkins}
                               isDarkMode={colorSchem === "dark"}
                             ></LineChart>
@@ -1407,7 +1440,11 @@ export default function ProfileScreen() {
                       maxToRenderPerBatch={5}
                       windowSize={10}
                       initialNumToRender={5}
-                      extraData={percentages}
+                      extraData={{
+                        percentages,
+                        theme: currentTheme,
+                        colorSchem,
+                      }}
                       renderItem={({ item, index }) => {
                         const achieved = percentages[index] ?? 0;
                         return (
@@ -1432,6 +1469,7 @@ export default function ProfileScreen() {
                               {achieved}% completed
                             </Text>
                             <PieChart
+                              theme={currentTheme}
                               percentage={achieved}
                               isDarkMode={colorSchem === "dark"}
                             />
@@ -1511,8 +1549,8 @@ export default function ProfileScreen() {
                     ).length > 2 ? (
                       <RadarChart
                         gradientColor={{
-                          startColor: isDark ? "#1e1b4b" : "#f3f4f6",
-                          endColor: isDark ? "#1e1b4b" : "#f3f4f6",
+                          startColor: currentTheme.bg,
+                          endColor: currentTheme.bg,
                           count: 5,
                         }}
                         maxValue={
@@ -1526,9 +1564,9 @@ export default function ProfileScreen() {
                               )
                         }
                         strokeWidth={[1, 1, 1, 1, 1]}
-                        dataFillColor="#8b5cf6"
-                        dataStroke="#8b5cf6"
-                        labelColor={isDark ? "#9ca3af" : "#4b5563"}
+                        dataFillColor={currentTheme.primary.main}
+                        dataStroke={currentTheme.primary.main}
+                        labelColor={currentTheme.textMuted}
                         labelDistance={1.3}
                         data={
                           activeTab === "weekly"
@@ -1745,7 +1783,11 @@ export default function ProfileScreen() {
                         data={routines}
                         horizontal
                         keyExtractor={(item, index) => index.toString()}
-                        extraData={checkinsRoutines}
+                        extraData={{
+                          checkinsRoutines,
+                          theme: currentTheme,
+                          colorSchem,
+                        }}
                         removeClippedSubviews={true}
                         maxToRenderPerBatch={5}
                         windowSize={10}
@@ -1773,6 +1815,7 @@ export default function ProfileScreen() {
                               </View>
 
                               <LineChart
+                                theme={currentTheme}
                                 data={Checkins}
                                 isDarkMode={colorSchem === "dark"}
                               ></LineChart>
@@ -1813,7 +1856,11 @@ export default function ProfileScreen() {
                         maxToRenderPerBatch={5}
                         windowSize={10}
                         initialNumToRender={5}
-                        extraData={percentagesRoutines}
+                        extraData={{
+                          percentagesRoutines,
+                          theme: currentTheme,
+                          colorSchem,
+                        }}
                         renderItem={({ item, index }) => {
                           const achieved = percentagesRoutines[index] ?? 0;
                           return (
@@ -1839,6 +1886,7 @@ export default function ProfileScreen() {
                                 {achieved}% completed
                               </Text>
                               <PieChart
+                                theme={currentTheme}
                                 percentage={achieved}
                                 isDarkMode={colorSchem === "dark"}
                               />

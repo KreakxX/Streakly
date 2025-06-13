@@ -5,77 +5,104 @@ import Svg, { Circle, Line, Path } from "react-native-svg";
 // Screen dimensions
 const { width: screenWidth } = Dimensions.get("window");
 
+type Theme = {
+  primary: {
+    main: string;
+    light: string;
+    dark: string;
+    text: string;
+    bg: string;
+  };
+  bg: string;
+  card: string;
+  text: string;
+  textMuted: string;
+  border: string;
+  tab: string;
+};
+
 interface LineChartProps {
   data: number[];
   isDarkMode: boolean;
   title?: string;
+  theme: Theme;
 }
 
 const LineChart: React.FC<LineChartProps> = ({
   data,
   isDarkMode,
   title = "Weekly Check-ins",
+  theme,
 }) => {
   const chartWidth = Math.min(Math.max(screenWidth * 0.6, 200), 300);
   const chartHeight = Math.min(chartWidth * 0.6, 180);
   const padding = Math.max(15, chartWidth * 0.08);
 
-  const colors = {
-    background: isDarkMode ? "#111827" : "#f9fafb",
-    gridLine: isDarkMode ? "#374151" : "#e5e7eb",
-    line: "#7c3aed",
-    point: "#7c3aed",
-    pointActive: "#a855f7",
-    text: isDarkMode ? "#ffffff" : "#000000",
-    textSecondary: isDarkMode ? "#9ca3af" : "#6b7280",
-    currentWeek: "#7c3aed",
-  };
+  const currentTheme = theme;
 
   const maxValue = 7;
   const minValue = 0;
 
   if (!data || data.length === 0) {
-    const responsiveEmptyStyles = {
-      container: {
-        backgroundColor: colors.background,
-        padding: Math.min(20, screenWidth * 0.05),
-        margin: 10,
-        borderRadius: 12,
-        elevation: 2,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 3.84,
-        width: chartWidth + 40,
-      },
-      title: {
-        color: colors.text,
-        fontSize: Math.min(18, chartWidth * 0.06),
-        fontWeight: "bold" as const,
-        marginBottom: 20,
-        textAlign: "center" as const,
-      },
-      emptyState: {
-        alignItems: "center" as const,
-        justifyContent: "center" as const,
-        height: chartHeight,
-        borderRadius: 8,
-        borderWidth: 2,
-        borderStyle: "dashed" as const,
-        borderColor: colors.gridLine,
-      },
-    };
-
     return (
-      <View style={responsiveEmptyStyles.container}>
-        <Text style={responsiveEmptyStyles.title}>{title}</Text>
-        <View style={responsiveEmptyStyles.emptyState}>
-          <Text style={[responsiveEmptyStyles.title, { marginBottom: 8 }]}>
+      <View
+        style={[
+          {
+            backgroundColor: currentTheme.bg,
+            padding: Math.min(20, screenWidth * 0.05),
+            margin: 10,
+            borderRadius: 12,
+            elevation: 2,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 3.84,
+            width: chartWidth + 40,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            {
+              color: currentTheme.text,
+              fontSize: Math.min(18, chartWidth * 0.06),
+              fontWeight: "bold",
+              marginBottom: 20,
+              textAlign: "center",
+            },
+          ]}
+        >
+          {title}
+        </Text>
+        <View
+          style={[
+            {
+              alignItems: "center",
+              justifyContent: "center",
+              height: chartHeight,
+              borderRadius: 8,
+              borderWidth: 2,
+              borderStyle: "dashed",
+              borderColor: currentTheme.primary.main,
+            },
+          ]}
+        >
+          <Text
+            style={[
+              {
+                color: currentTheme.text,
+                fontSize: Math.min(18, chartWidth * 0.06),
+                fontWeight: "bold",
+                marginBottom: 8,
+                textAlign: "center",
+              },
+            ]}
+          >
             No Data Available
           </Text>
           <Text
             style={{
-              color: colors.textSecondary,
+              color: currentTheme.textMuted,
               fontSize: Math.min(14, chartWidth * 0.045),
               textAlign: "center",
               paddingHorizontal: 20,
@@ -126,7 +153,7 @@ const LineChart: React.FC<LineChartProps> = ({
           y1={y}
           x2={chartWidth - padding}
           y2={y}
-          stroke={colors.gridLine}
+          stroke={currentTheme.primary.main}
           strokeWidth="1"
           opacity="0.5"
         />
@@ -142,7 +169,7 @@ const LineChart: React.FC<LineChartProps> = ({
           y1={padding}
           x2={x}
           y2={chartHeight - padding}
-          stroke={colors.gridLine}
+          stroke={currentTheme.primary.main}
           strokeWidth="1"
           opacity="0.3"
         />
@@ -161,8 +188,8 @@ const LineChart: React.FC<LineChartProps> = ({
             cx={x}
             cy={y}
             r="4"
-            fill={colors.point}
-            stroke={colors.background}
+            fill={currentTheme.primary.main}
+            stroke={currentTheme.primary.main}
             strokeWidth="2"
           />
         </React.Fragment>
@@ -183,7 +210,7 @@ const LineChart: React.FC<LineChartProps> = ({
             <View
               style={{
                 position: "absolute",
-                backgroundColor: colors.currentWeek,
+                backgroundColor: currentTheme.primary.main,
                 left: x - 18,
                 top: chartHeight + 2,
                 width: 36,
@@ -197,7 +224,7 @@ const LineChart: React.FC<LineChartProps> = ({
             style={{
               position: "absolute",
               fontSize: Math.min(12, chartWidth * 0.04),
-              color: isCurrentWeek ? "#ffffff" : colors.textSecondary,
+              color: isCurrentWeek ? "#ffffff" : currentTheme.textMuted,
               left: x - 15,
               top: chartHeight + 5,
               width: 30,
@@ -213,62 +240,48 @@ const LineChart: React.FC<LineChartProps> = ({
     });
   };
 
-  const responsiveStyles = {
-    container: {
-      backgroundColor: colors.background,
-      padding: Math.min(20, screenWidth * 0.05),
-      margin: 10,
-      borderRadius: 12,
-      elevation: 2,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 3.84,
-      width: chartWidth + 40,
-    },
-    title: {
-      fontSize: Math.min(18, chartWidth * 0.06),
-      fontWeight: "bold" as const,
-      marginBottom: 20,
-      textAlign: "center" as const,
-      color: colors.text,
-    },
-    chartContainer: {
-      position: "relative" as const,
-      width: chartWidth,
-      height: chartHeight + 40,
-      alignSelf: "center" as const,
-      backgroundColor: colors.background,
-    },
-    statsContainer: {
-      flexDirection: "row" as const,
-      justifyContent: "space-around" as const,
-      marginTop: 20,
-      paddingTop: 15,
-      borderTopWidth: 1,
-      borderTopColor: colors.gridLine,
-    },
-    statItem: {
-      alignItems: "center" as const,
-    },
-    statValue: {
-      fontSize: Math.min(20, chartWidth * 0.07),
-      fontWeight: "bold" as const,
-      marginBottom: 4,
-      color: colors.text,
-    },
-    statLabel: {
-      fontSize: Math.min(12, chartWidth * 0.04),
-      opacity: 0.7,
-      color: colors.textSecondary,
-    },
-  };
-
   return (
-    <View style={responsiveStyles.container}>
-      <Text style={responsiveStyles.title}>{title}</Text>
+    <View
+      style={[
+        {
+          backgroundColor: currentTheme.bg,
+          padding: Math.min(20, screenWidth * 0.05),
+          margin: 10,
+          borderRadius: 12,
+          elevation: 2,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3.84,
+          width: chartWidth + 40,
+        },
+      ]}
+    >
+      <Text
+        style={[
+          {
+            fontSize: Math.min(18, chartWidth * 0.06),
+            fontWeight: "bold",
+            marginBottom: 20,
+            textAlign: "center",
+            color: currentTheme.text,
+          },
+        ]}
+      >
+        {title}
+      </Text>
 
-      <View style={responsiveStyles.chartContainer}>
+      <View
+        style={[
+          {
+            position: "relative",
+            width: chartWidth,
+            height: chartHeight + 40,
+            alignSelf: "center",
+            backgroundColor: currentTheme.bg,
+          },
+        ]}
+      >
         <Svg
           width={chartWidth}
           height={chartHeight}
@@ -277,7 +290,7 @@ const LineChart: React.FC<LineChartProps> = ({
           {generateGridLines()}
           <Path
             d={generateLinePath()}
-            stroke={colors.line}
+            stroke={currentTheme.primary.main}
             strokeWidth="2"
             fill="none"
             strokeLinecap="round"
@@ -297,7 +310,7 @@ const LineChart: React.FC<LineChartProps> = ({
                   fontWeight: "600",
                   width: 20,
                   textAlign: "center",
-                  color: colors.text,
+                  color: currentTheme.text,
                   left: x - 10,
                   top: y - 25,
                 }}
@@ -321,7 +334,7 @@ const LineChart: React.FC<LineChartProps> = ({
               fontSize: Math.min(12, chartWidth * 0.04),
               textAlign: "right",
               width: 15,
-              color: colors.textSecondary,
+              color: currentTheme.textMuted,
               top: padding - 5,
             }}
           >
@@ -333,7 +346,7 @@ const LineChart: React.FC<LineChartProps> = ({
               fontSize: Math.min(12, chartWidth * 0.04),
               textAlign: "right",
               width: 15,
-              color: colors.textSecondary,
+              color: currentTheme.textMuted,
               top: chartHeight - padding - 10,
             }}
           >
@@ -342,22 +355,110 @@ const LineChart: React.FC<LineChartProps> = ({
         </View>
       </View>
 
-      <View style={responsiveStyles.statsContainer}>
-        <View style={responsiveStyles.statItem}>
-          <Text style={responsiveStyles.statValue}>{Math.max(...data)}</Text>
-          <Text style={responsiveStyles.statLabel}>Best Week</Text>
+      <View
+        style={[
+          {
+            flexDirection: "row",
+            justifyContent: "space-around",
+            marginTop: 20,
+            paddingTop: 15,
+            borderTopWidth: 1,
+            borderTopColor: currentTheme.primary.main,
+          },
+        ]}
+      >
+        <View
+          style={[
+            {
+              alignItems: "center",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              {
+                fontSize: Math.min(20, chartWidth * 0.07),
+                fontWeight: "bold",
+                marginBottom: 4,
+                color: currentTheme.text,
+              },
+            ]}
+          >
+            {Math.max(...data)}
+          </Text>
+          <Text
+            style={[
+              {
+                fontSize: Math.min(12, chartWidth * 0.04),
+                opacity: 0.7,
+                color: currentTheme.textMuted,
+              },
+            ]}
+          >
+            Best Week
+          </Text>
         </View>
-        <View style={responsiveStyles.statItem}>
-          <Text style={responsiveStyles.statValue}>
+        <View
+          style={[
+            {
+              alignItems: "center",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              {
+                fontSize: Math.min(20, chartWidth * 0.07),
+                fontWeight: "bold",
+                marginBottom: 4,
+                color: currentTheme.text,
+              },
+            ]}
+          >
             {Math.round(data.reduce((a, b) => a + b, 0) / data.length)}
           </Text>
-          <Text style={responsiveStyles.statLabel}>Average</Text>
+          <Text
+            style={[
+              {
+                fontSize: Math.min(12, chartWidth * 0.04),
+                opacity: 0.7,
+                color: currentTheme.textMuted,
+              },
+            ]}
+          >
+            Average
+          </Text>
         </View>
-        <View style={responsiveStyles.statItem}>
-          <Text style={responsiveStyles.statValue}>
+        <View
+          style={[
+            {
+              alignItems: "center",
+            },
+          ]}
+        >
+          <Text
+            style={[
+              {
+                fontSize: Math.min(20, chartWidth * 0.07),
+                fontWeight: "bold",
+                marginBottom: 4,
+                color: currentTheme.text,
+              },
+            ]}
+          >
             {data.reduce((a, b) => a + b, 0)}
           </Text>
-          <Text style={responsiveStyles.statLabel}>Total</Text>
+          <Text
+            style={[
+              {
+                fontSize: Math.min(12, chartWidth * 0.04),
+                opacity: 0.7,
+                color: currentTheme.textMuted,
+              },
+            ]}
+          >
+            Total
+          </Text>
         </View>
       </View>
     </View>

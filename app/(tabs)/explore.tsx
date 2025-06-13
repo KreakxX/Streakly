@@ -2,7 +2,8 @@ import routines from "@/components/Routines";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
-import { memo, useCallback, useMemo, useState } from "react";
+import { vars } from "nativewind";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -59,232 +60,198 @@ interface Routine {
   category?: string;
 }
 
-const RoutineCard = memo(
-  ({
-    routine,
-    index,
-    isAdded,
-    isDarkMode,
-    isLoading,
-    onAddRoutine,
-    onOpenModal,
-  }: {
-    routine: Routine;
-    index: number;
-    isAdded: boolean;
-    isDarkMode: boolean;
-    isLoading: boolean;
-    onAddRoutine: (routine: Routine) => void;
-    onOpenModal: (routine: Routine) => void;
-  }) => {
-    const categoryInfo = useMemo(
-      () => categories.find((c) => c.name === routine.category),
-      [routine.category]
-    );
+export default function ExploreScreen() {
+  const RoutineCard = memo(
+    ({
+      routine,
+      index,
+      isAdded,
+      isDarkMode,
+      isLoading,
+      onAddRoutine,
+      onOpenModal,
+    }: {
+      routine: Routine;
+      index: number;
+      isAdded: boolean;
+      isDarkMode: boolean;
+      isLoading: boolean;
+      onAddRoutine: (routine: Routine) => void;
+      onOpenModal: (routine: Routine) => void;
+    }) => {
+      const categoryInfo = useMemo(
+        () => categories.find((c) => c.name === routine.category),
+        [routine.category]
+      );
 
-    const addPrebuildRoutine = useCallback(() => {
-      if (!isAdded) {
-        onAddRoutine(routine);
-      }
-    }, [isAdded, onAddRoutine, routine]);
-
-    const handleOpenModal = useCallback(() => {
-      onOpenModal(routine);
-    }, [onOpenModal, routine]);
-
-    const buttonStyle = useMemo(() => {
-      const getBackgroundColor = (isDark: boolean, isAdded: boolean) => {
-        if (isDark) {
-          return isAdded ? "bg-violet-800" : "bg-violet-600";
+      const addPrebuildRoutine = useCallback(() => {
+        if (!isAdded) {
+          onAddRoutine(routine);
         }
-        return isAdded ? "bg-violet-700" : "bg-violet-600";
-      };
-      return getBackgroundColor(isDarkMode, isAdded);
-    }, [isDarkMode, isAdded]);
+      }, [isAdded, onAddRoutine, routine]);
 
-    const textStyle = useMemo(() => {
-      const getTextColor = (isDark: boolean, isAdded: boolean) => {
-        if (isDark) {
-          return isAdded ? "text-gray-600" : "text-white";
-        }
-        return isAdded ? "text-gray-200" : "text-white";
-      };
-      return getTextColor(isDarkMode, isAdded);
-    }, [isDarkMode, isAdded]);
+      const handleOpenModal = useCallback(() => {
+        onOpenModal(routine);
+      }, [onOpenModal, routine]);
 
-    const visibleTodos = useMemo(
-      () => routine.todos.slice(0, 5),
-      [routine.todos]
-    );
+      const buttonStyle = useMemo(() => {
+        return isAdded ? primaryBgColor : bgColor;
+      }, [isAdded]);
 
-    return (
-      <View
-        className={`mb-5 rounded-xl overflow-hidden shadow-sm ${
-          isDarkMode ? "bg-gray-900" : "bg-white"
-        } border ${isDarkMode ? "border-gray-800" : "border-gray-100"}`}
-        style={{
-          shadowColor: isDarkMode ? "#000" : "#718096",
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: isDarkMode ? 0.3 : 0.1,
-          shadowRadius: 2,
-          elevation: 2,
-        }}
-      >
-        <TouchableOpacity
-          className="p-4 border-b border-opacity-10 border-gray-400"
-          onPress={handleOpenModal}
+      const textStyle = useMemo(() => {
+        const getTextColor = (isDark: boolean, isAdded: boolean) => {
+          if (isDark) {
+            return isAdded ? "text-gray-600" : "text-white";
+          }
+          return isAdded ? "text-gray-200" : "text-white";
+        };
+        return getTextColor(isDarkMode, isAdded);
+      }, [isDarkMode, isAdded]);
+
+      const visibleTodos = useMemo(
+        () => routine.todos.slice(0, 5),
+        [routine.todos]
+      );
+
+      return (
+        <View
+          className={`mb-5 rounded-xl overflow-hidden shadow-sm ${cardBgColor}  ${borderColor}`}
+          style={{
+            shadowColor: isDarkMode ? "#000" : "#718096",
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: isDarkMode ? 0.3 : 0.1,
+            shadowRadius: 2,
+            elevation: 2,
+          }}
         >
-          <View className="flex-row items-center gap-3">
-            <View
-              className={`w-12 h-12 rounded-full justify-center items-center ${
-                isDarkMode ? "bg-gray-800" : "bg-blue-50"
-              }`}
-            >
-              <MaterialCommunityIcons
-                name={routine.iconname as any}
-                size={24}
-                color={routine.color}
-              />
-            </View>
-            <View className="flex-1">
-              <Text
-                className={`font-bold ${
-                  isDarkMode ? "text-white" : "text-gray-800"
-                } text-lg`}
+          <TouchableOpacity
+            className="p-4 border-b border-opacity-10 border-gray-400"
+            onPress={handleOpenModal}
+          >
+            <View className="flex-row items-center gap-3">
+              <View
+                className={`w-12 h-12 rounded-full justify-center items-center ${bgColor}`}
               >
-                {routine.name}
-              </Text>
-              <View className="flex-row items-center">
-                <Text
-                  className={`${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  } text-sm`}
-                >
-                  {routine.todos.length}{" "}
-                  {routine.todos.length === 1 ? "task" : "tasks"} • Daily
-                  routine
+                <MaterialCommunityIcons
+                  name={routine.iconname as any}
+                  size={24}
+                  color={routine.color}
+                />
+              </View>
+              <View className="flex-1">
+                <Text className={`font-bold ${textColor} text-lg`}>
+                  {routine.name}
                 </Text>
-                {categoryInfo && (
-                  <View
-                    className="flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20"
-                    style={{
-                      backgroundColor: isDarkMode ? "#1e293b" : "#eff6ff",
-                    }}
-                  >
-                    <MaterialCommunityIcons
-                      name={categoryInfo.icon as any}
-                      size={12}
-                      color={isDarkMode ? "#60a5fa" : "#3b82f6"}
-                    />
-                    <Text
-                      className={`ml-1 text-xs ${
-                        isDarkMode ? "text-blue-400" : "text-blue-600"
-                      }`}
+                <View className="flex-row items-center">
+                  <Text className={`${textMutedColor} text-sm`}>
+                    {routine.todos.length}{" "}
+                    {routine.todos.length === 1 ? "task" : "tasks"} • Daily
+                    routine
+                  </Text>
+                  {categoryInfo && (
+                    <View
+                      className={`flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20 ${bgColor} `}
                     >
-                      {categoryInfo.name}
-                    </Text>
-                  </View>
-                )}
+                      <MaterialCommunityIcons
+                        name={categoryInfo.icon as any}
+                        size={12}
+                        color={isDarkMode ? "#60a5fa" : "#3b82f6"}
+                      />
+                      <Text className={`ml-1 text-xs ${textMutedColor}`}>
+                        {categoryInfo.name}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
             </View>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
 
-        <View className="px-4">
-          {visibleTodos.map((todo, todoIndex) => (
-            <View
-              key={todoIndex}
-              className={`flex-row items-center py-3.5 ${
-                todoIndex < Math.min(4, routine.todos.length - 1)
-                  ? `border-b ${
-                      isDarkMode ? "border-gray-800" : "border-gray-100"
-                    }`
-                  : ""
-              }`}
-            >
+          <View className="px-4">
+            {visibleTodos.map((todo, todoIndex) => (
               <View
-                className={`h-7 w-7 rounded-full items-center justify-center mr-3 ${
-                  isDarkMode ? "bg-gray-800" : "bg-blue-50"
+                key={todoIndex}
+                className={`flex-row items-center py-3.5 ${
+                  todoIndex < Math.min(4, routine.todos.length - 1)
+                    ? `border-b ${borderColor}`
+                    : ""
                 }`}
               >
-                <MaterialCommunityIcons
-                  name="check"
-                  color={routine.color}
-                  size={16}
-                />
-              </View>
-              <Text
-                className={`${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                } text-base flex-1`}
-              >
-                {todo.name}
-              </Text>
-            </View>
-          ))}
-
-          {routine.todos.length > 5 && (
-            <TouchableOpacity
-              className="py-3 items-center"
-              onPress={handleOpenModal}
-            >
-              <View className="flex-row items-center">
-                <Text
-                  className={`text-sm font-medium ${
-                    isDarkMode ? "text-blue-400" : "text-blue-600"
-                  }`}
+                <View
+                  className={`h-7 w-7 rounded-full items-center justify-center mr-3 ${bgColor}`}
                 >
-                  See all {routine.todos.length} tasks
+                  <MaterialCommunityIcons
+                    name="check"
+                    color={routine.color}
+                    size={16}
+                  />
+                </View>
+                <Text
+                  className={`${
+                    isDarkMode ? "text-gray-300" : "text-gray-700"
+                  } text-base flex-1`}
+                >
+                  {todo.name}
                 </Text>
-                <MaterialCommunityIcons
-                  name="chevron-down"
-                  size={18}
-                  color={isDarkMode ? "#60a5fa" : "#3b82f6"}
-                  style={{ marginLeft: 4 }}
-                />
               </View>
-            </TouchableOpacity>
-          )}
-        </View>
+            ))}
 
-        <View className="px-4 py-4">
-          <TouchableOpacity
-            onPress={addPrebuildRoutine}
-            disabled={isAdded || isLoading}
-            className={`py-3 rounded-lg justify-center items-center ${buttonStyle}`}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={routine.color} size="small" />
-            ) : (
-              <View className="flex-row items-center">
-                <MaterialCommunityIcons
-                  name={isAdded ? "check" : "plus"}
-                  color={routine.color}
-                  size={18}
-                  style={{ marginRight: 6 }}
-                />
-                <Text className={`font-semibold text-base ${textStyle}`}>
-                  {isAdded ? "Added to My Routines" : "Add to My Routines"}
-                </Text>
-              </View>
+            {routine.todos.length > 5 && (
+              <TouchableOpacity
+                className="py-3 items-center"
+                onPress={handleOpenModal}
+              >
+                <View className="flex-row items-center">
+                  <Text className={`text-sm font-medium ${textMutedColor}`}>
+                    See all {routine.todos.length} tasks
+                  </Text>
+                  <MaterialCommunityIcons
+                    name="chevron-down"
+                    size={18}
+                    color={isDarkMode ? "#60a5fa" : "#3b82f6"}
+                    style={{ marginLeft: 4 }}
+                  />
+                </View>
+              </TouchableOpacity>
             )}
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  },
-  (prevProps, nextProps) => {
-    return (
-      prevProps.routine.name === nextProps.routine.name &&
-      prevProps.isAdded === nextProps.isAdded &&
-      prevProps.isDarkMode === nextProps.isDarkMode &&
-      prevProps.isLoading === nextProps.isLoading
-    );
-  }
-);
+          </View>
 
-export default function ExploreScreen() {
-  const [colorScheme, setColorScheme] = useState<string>("dark");
+          <View className="px-4 py-4">
+            <TouchableOpacity
+              onPress={addPrebuildRoutine}
+              disabled={isAdded || isLoading}
+              className={`py-3 rounded-lg justify-center items-center ${buttonStyle}`}
+            >
+              {isLoading ? (
+                <ActivityIndicator color={routine.color} size="small" />
+              ) : (
+                <View className="flex-row items-center">
+                  <MaterialCommunityIcons
+                    name={isAdded ? "check" : "plus"}
+                    color={routine.color}
+                    size={18}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text className={`font-semibold text-base ${textStyle}`}>
+                    {isAdded ? "Added to My Routines" : "Add to My Routines"}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    },
+    (prevProps, nextProps) => {
+      return (
+        prevProps.routine.name === nextProps.routine.name &&
+        prevProps.isAdded === nextProps.isAdded &&
+        prevProps.isDarkMode === nextProps.isDarkMode &&
+        prevProps.isLoading === nextProps.isLoading
+      );
+    }
+  );
+  const [colorScheme, setcolorScheme] = useState<string>("dark");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [addedRoutineNames, setAddedRoutineNames] = useState<string[]>([]);
@@ -315,9 +282,9 @@ export default function ExploreScreen() {
     useCallback(() => {
       const loadData = async () => {
         try {
-          const colorScheme = await AsyncStorage.getItem("color");
-          if (colorScheme) {
-            setColorScheme(JSON.parse(colorScheme));
+          const colorSchemeee = await AsyncStorage.getItem("color");
+          if (colorSchemeee) {
+            setcolorScheme(JSON.parse(colorSchemeee));
           }
 
           setSearchQuery("");
@@ -410,23 +377,10 @@ export default function ExploreScreen() {
 
       return (
         <TouchableOpacity
-          className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
-            isSelected
-              ? isDarkMode
-                ? "bg-slate-700"
-                : "bg-blue-100"
-              : isDarkMode
-              ? "bg-gray-900"
-              : "bg-white"
-          } border ${
-            isSelected
-              ? isDarkMode
-                ? "border-slate-600"
-                : "border-blue-200"
-              : isDarkMode
-              ? "border-slate-700"
-              : "border-gray-200"
-          }`}
+          className={`
+    mr-3 px-4 py-2.5 rounded-full flex-row items-center
+    ${cardBgColor} ${borderColor}
+  `}
           onPress={() => handleCategoryFilter(item.name)}
         >
           <MaterialCommunityIcons
@@ -461,29 +415,159 @@ export default function ExploreScreen() {
     [selectedCategory, isDarkMode, handleCategoryFilter]
   );
 
+  const [activeTheme, setActiveTheme] = useState<string>("default");
+
+  const loadTheme = async () => {
+    const Theme = await AsyncStorage.getItem("theme");
+    if (Theme) {
+      const theme = JSON.parse(Theme);
+      setActiveTheme(theme);
+    }
+  };
+
+  useFocusEffect(() => {
+    loadTheme();
+  });
+
+  useEffect(() => {
+    loadTheme();
+  });
+
+  const themes = {
+    default: {
+      primary: {
+        main: "#7c3aed", // violet-600
+        light: "#8b5cf6", // violet-500
+        dark: "#6d28d9", // violet-700
+        text: colorScheme === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
+        bg: colorScheme === "dark" ? "1f2937" : "#f5f3ff", // violet-950 : violet-50
+      },
+      bg: colorScheme === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
+      card: colorScheme === "dark" ? "#111827" : "#ffffff", // gray-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
+      textMuted: colorScheme === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
+      border: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      tab: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+    },
+    ocean: {
+      primary: {
+        main: "#2563eb", // blue-600
+        light: "#3b82f6", // blue-500
+        dark: "#1d4ed8", // blue-700
+        text: colorScheme === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
+        bg: colorScheme === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
+      },
+      bg: colorScheme === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
+      card: colorScheme === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
+      textMuted: colorScheme === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
+      border: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      tab: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+    },
+    forest: {
+      primary: {
+        main: "#059669", // emerald-600
+        light: "#10b981", // emerald-500
+        dark: "#047857", // emerald-700
+        text: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
+        bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      },
+      bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      card: colorScheme === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
+      textMuted: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
+      border: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      tab: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+    },
+    sunset: {
+      primary: {
+        main: "#ea580c", // orange-600
+        light: "#f97316", // orange-500
+        dark: "#c2410c", // orange-700
+        text: colorScheme === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
+        bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      },
+      bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      card: colorScheme === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
+      textMuted: colorScheme === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
+      border: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      tab: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+    },
+    berry: {
+      primary: {
+        main: "#c026d3", // fuchsia-600
+        light: "#d946ef", // fuchsia-500
+        dark: "#a21caf", // fuchsia-700
+        text: colorScheme === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
+        bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      },
+      bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      card: colorScheme === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
+      textMuted: colorScheme === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
+      border: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      tab: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+    },
+    monochrome: {
+      primary: {
+        main: "#525252", // neutral-600
+        light: "#737373", // neutral-500
+        dark: "#404040", // neutral-700
+        text: colorScheme === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
+        bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      },
+      bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      card: colorScheme === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
+      text: colorScheme === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
+      textMuted: colorScheme === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
+      border: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      tab: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+    },
+  };
+  const currentTheme =
+    themes[activeTheme as keyof typeof themes] || themes.default;
+
+  const themeVars = vars({
+    "--bg-color": currentTheme.bg,
+    "--card-color": currentTheme.card,
+    "--text-color": currentTheme.text,
+    "--text-muted-color": currentTheme.textMuted,
+    "--border-color": currentTheme.border,
+    "--primary-color": currentTheme.primary.main,
+    "--primary-text-color": currentTheme.primary.text,
+    "--tab-color": currentTheme.tab,
+    "--primary-bg-color": currentTheme.primary.bg,
+  });
+
+  const bgColor = "bg-[var(--bg-color)]";
+  const cardBgColor = "bg-[var(--card-color)]";
+  const textColor = "text-[var(--text-color)]";
+  const textMutedColor = "text-[var(--text-muted-color)]";
+  const borderColor = "border-[var(--border-color)]";
+  const primaryBgColor = "bg-[var(--primary-color)]";
+  const secondaryBgColor = "bg-[var(--primary-color)]";
+
+  const iconColor = "--text-color";
+  const inputBgColor = "bg-[var(--tab-color)]";
+
   return (
-    <View className={isDarkMode ? "bg-slate-950 flex-1" : "bg-gray-50 flex-1"}>
+    <View className={`flex-1 ${bgColor}`} style={themeVars}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 mt-12 py-8 pb-6">
-          <Text
-            className={`font-bold text-4xl ${
-              isDarkMode ? "text-white" : "text-gray-800"
-            } mb-2`}
-          >
+          <Text className={`font-bold text-4xl ${textColor} mb-2`}>
             Explore
           </Text>
           <Text
-            className={`font-medium text-base ${
-              isDarkMode ? "text-gray-400" : "text-gray-500"
-            }`}
+            className={`font-medium text-base 
+              ${textMutedColor}
+            `}
           >
             Discover routines that transform your daily life
           </Text>
 
           <View
-            className={`flex-row items-center rounded-full mt-6 px-4 ${
-              isDarkMode ? "bg-gray-900" : "bg-white"
-            } border ${isDarkMode ? "border-slate-700" : "border-gray-200"}`}
+            className={`flex-row items-center rounded-full mt-6 px-4 ${cardBgColor}  ${borderColor}`}
           >
             <MaterialCommunityIcons
               name="magnify"
@@ -513,11 +597,7 @@ export default function ExploreScreen() {
         </View>
 
         <View className="mb-6">
-          <Text
-            className={`px-6 font-bold text-lg mb-3 ${
-              isDarkMode ? "text-white" : "text-gray-800"
-            }`}
-          >
+          <Text className={`px-6 font-bold text-lg mb-3 ${textColor}`}>
             Categories
           </Text>
 
@@ -544,11 +624,7 @@ export default function ExploreScreen() {
 
               {selectedCategory && (
                 <View className="flex-row items-center ml-2 mb-1">
-                  <View
-                    className={`px-3 py-1 rounded-full ${
-                      isDarkMode ? "bg-gray-900" : "bg-blue-50"
-                    }`}
-                  >
+                  <View className={`px-3 py-1 rounded-full ${cardBgColor}`}>
                     <Text
                       className={`${
                         isDarkMode ? "text-blue-400" : "text-blue-600"
@@ -645,9 +721,7 @@ export default function ExploreScreen() {
       >
         <View className="flex-1 justify-end">
           <View
-            className={`rounded-t-3xl ${
-              isDarkMode ? "bg-gray-900" : "bg-white"
-            }`}
+            className={`rounded-t-3xl ${bgColor}`}
             style={{
               shadowColor: "#000",
               shadowOffset: { width: 0, height: -2 },
@@ -666,11 +740,7 @@ export default function ExploreScreen() {
                 />
               </TouchableOpacity>
 
-              <Text
-                className={`font-bold text-xl ${
-                  isDarkMode ? "text-white" : "text-gray-800"
-                }`}
-              >
+              <Text className={`font-bold text-xl ${textColor}`}>
                 Routine Details
               </Text>
 
@@ -681,9 +751,7 @@ export default function ExploreScreen() {
               <ScrollView className="p-5">
                 <View className="flex-row items-center mb-6">
                   <View
-                    className={`w-14 h-14 rounded-full justify-center items-center ${
-                      isDarkMode ? "bg-gray-800" : "bg-blue-50"
-                    }`}
+                    className={`w-14 h-14 rounded-full justify-center items-center ${cardBgColor}`}
                   >
                     <MaterialCommunityIcons
                       name={selectedRoutine.iconname as any}
@@ -692,29 +760,18 @@ export default function ExploreScreen() {
                     />
                   </View>
                   <View className="ml-4 flex-1">
-                    <Text
-                      className={`font-bold text-2xl ${
-                        isDarkMode ? "text-white" : "text-gray-800"
-                      }`}
-                    >
+                    <Text className={`font-bold text-2xl ${textColor}`}>
                       {selectedRoutine.name}
                     </Text>
                     <View className="flex-row items-center">
-                      <Text
-                        className={`${
-                          isDarkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
+                      <Text className={`${textMutedColor}`}>
                         {selectedRoutine.todos.length}{" "}
                         {selectedRoutine.todos.length === 1 ? "task" : "tasks"}{" "}
                         • Daily routine
                       </Text>
                       {selectedRoutine.category && (
                         <View
-                          className="flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20"
-                          style={{
-                            backgroundColor: isDarkMode ? "#1e293b" : "#eff6ff",
-                          }}
+                          className={`flex-row items-center ml-2 px-2 py-0.5 rounded-full bg-opacity-20 ${cardBgColor}`}
                         >
                           <MaterialCommunityIcons
                             name={
@@ -725,11 +782,7 @@ export default function ExploreScreen() {
                             size={12}
                             color={isDarkMode ? "#60a5fa" : "#3b82f6"}
                           />
-                          <Text
-                            className={`ml-1 text-xs ${
-                              isDarkMode ? "text-blue-400" : "text-blue-600"
-                            }`}
-                          >
+                          <Text className={`ml-1 text-xs ${textMutedColor}`}>
                             {
                               categories.find(
                                 (c) => c.name === selectedRoutine.category
@@ -742,34 +795,24 @@ export default function ExploreScreen() {
                   </View>
                 </View>
 
-                <Text
-                  className={`font-bold text-lg mb-3 ${
-                    isDarkMode ? "text-white" : "text-gray-800"
-                  }`}
-                >
+                <Text className={`font-bold text-lg mb-3 ${textColor}`}>
                   All Tasks
                 </Text>
 
                 <View
-                  className={`rounded-xl overflow-hidden border ${
-                    isDarkMode ? "border-gray-800" : "border-gray-200"
-                  }`}
+                  className={`rounded-xl overflow-hidden border ${borderColor}`}
                 >
                   {selectedRoutine.todos.map((todo, todoIndex) => (
                     <View
                       key={todoIndex}
                       className={`flex-row items-center p-4 ${
                         todoIndex !== selectedRoutine.todos.length - 1
-                          ? `border-b ${
-                              isDarkMode ? "border-gray-800" : "border-gray-100"
-                            }`
+                          ? `border-b ${borderColor}`
                           : ""
                       }`}
                     >
                       <View
-                        className={`h-8 w-8 rounded-full items-center justify-center mr-3 ${
-                          isDarkMode ? "bg-gray-800" : "bg-blue-50"
-                        }`}
+                        className={`h-8 w-8 rounded-full items-center justify-center mr-3 ${cardBgColor}`}
                       >
                         <MaterialCommunityIcons
                           name="check"
@@ -777,11 +820,7 @@ export default function ExploreScreen() {
                           size={18}
                         />
                       </View>
-                      <Text
-                        className={`${
-                          isDarkMode ? "text-gray-300" : "text-gray-700"
-                        } text-base flex-1`}
-                      >
+                      <Text className={`${textColor} text-base flex-1`}>
                         {todo.name}
                       </Text>
                     </View>
@@ -802,12 +841,8 @@ export default function ExploreScreen() {
                     }
                     className={`py-3.5 rounded-lg justify-center items-center ${
                       addedRoutineNames.includes(selectedRoutine.name)
-                        ? isDarkMode
-                          ? "bg-violet-800"
-                          : "bg-violet-800"
-                        : isDarkMode
-                        ? "bg-violet-600"
-                        : "bg-violet-600"
+                        ? primaryBgColor
+                        : cardBgColor
                     }`}
                   >
                     {isLoading ? (

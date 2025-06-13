@@ -15,6 +15,7 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useFocusEffect } from "expo-router";
 import * as StoreReview from "expo-store-review";
+import { vars } from "nativewind";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -202,6 +203,7 @@ export default function HomeScreen() {
     useState<string>("");
   const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
   const [originalRoutines, setOriginalRoutines] = useState<Routine[]>([]);
+  const [themeModal, setThemeModal] = useState<boolean>(false);
 
   const GroupCategories = [
     { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
@@ -1688,6 +1690,15 @@ export default function HomeScreen() {
     loadStartScreen();
   }, []);
 
+  const [activeTheme, setActiveTheme] = useState<string>("default");
+
+  useEffect(() => {
+    const saveTheme = async () => {
+      await AsyncStorage.setItem("theme", JSON.stringify(activeTheme));
+    };
+    saveTheme();
+  }, [activeTheme]);
+
   if (!permission) {
     return <View />;
   }
@@ -1734,6 +1745,124 @@ export default function HomeScreen() {
       setCategories(upddatedCategories);
     }
   };
+
+  const themes = {
+    default: {
+      primary: {
+        main: "#7c3aed", // violet-600
+        light: "#8b5cf6", // violet-500
+        dark: "#6d28d9", // violet-700
+        text: colorScheme === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
+        bg: colorScheme === "dark" ? "1f2937" : "#f5f3ff", // violet-950 : violet-50
+      },
+      bg: colorScheme === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
+      card: colorScheme === "dark" ? "#111827" : "#ffffff", // gray-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
+      textMuted: colorScheme === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
+      border: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      tab: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+    },
+    ocean: {
+      primary: {
+        main: "#2563eb", // blue-600
+        light: "#3b82f6", // blue-500
+        dark: "#1d4ed8", // blue-700
+        text: colorScheme === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
+        bg: colorScheme === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
+      },
+      bg: colorScheme === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
+      card: colorScheme === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
+      textMuted: colorScheme === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
+      border: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      tab: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+    },
+    forest: {
+      primary: {
+        main: "#059669", // emerald-600
+        light: "#10b981", // emerald-500
+        dark: "#047857", // emerald-700
+        text: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
+        bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      },
+      bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+      card: colorScheme === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
+      textMuted: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
+      border: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      tab: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+    },
+    sunset: {
+      primary: {
+        main: "#ea580c", // orange-600
+        light: "#f97316", // orange-500
+        dark: "#c2410c", // orange-700
+        text: colorScheme === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
+        bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      },
+      bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+      card: colorScheme === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
+      textMuted: colorScheme === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
+      border: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      tab: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+    },
+    berry: {
+      primary: {
+        main: "#c026d3", // fuchsia-600
+        light: "#d946ef", // fuchsia-500
+        dark: "#a21caf", // fuchsia-700
+        text: colorScheme === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
+        bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      },
+      bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+      card: colorScheme === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
+      text: colorScheme === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
+      textMuted: colorScheme === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
+      border: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      tab: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+    },
+    monochrome: {
+      primary: {
+        main: "#525252", // neutral-600
+        light: "#737373", // neutral-500
+        dark: "#404040", // neutral-700
+        text: colorScheme === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
+        bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      },
+      bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+      card: colorScheme === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
+      text: colorScheme === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
+      textMuted: colorScheme === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
+      border: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      tab: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+    },
+  };
+
+  const currentTheme =
+    themes[activeTheme as keyof typeof themes] || themes.default;
+
+  const themeVars = vars({
+    "--bg-color": currentTheme.bg,
+    "--card-color": currentTheme.card,
+    "--text-color": currentTheme.text,
+    "--text-muted-color": currentTheme.textMuted,
+    "--border-color": currentTheme.border,
+    "--primary-color": currentTheme.primary.main,
+    "--primary-text-color": currentTheme.primary.text,
+    "--tab-color": currentTheme.tab,
+    "--primary-bg-color": currentTheme.primary.bg,
+  });
+
+  const bgColor = "bg-[var(--bg-color)]";
+  const cardBgColor = "bg-[var(--card-color)]";
+  const textColor = "text-[var(--text-color)]";
+  const textMutedColor = "text-[var(--text-muted-color)]";
+  const borderColor = "border-[var(--border-color)]";
+  const primaryColor = "bg-[var(--primary-color)]";
+  const primaryTextColor = "text-[var(--primary-text-color)]";
+  const tabBgColor = "bg-[var(--primary-bg-color)]";
+  const tabActiveBgColor = "bg-[var(--primary-color)]";
 
   if (startScreen) {
     return (
@@ -1883,32 +2012,40 @@ export default function HomeScreen() {
     );
   }
 
-  if (colorScheme === "dark") {
-    return (
-      <View className="flex-1 bg-slate-950">
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-4 py-8 pb-20"
-        >
-          <View className="flex-row justify-between w-full">
-            <View className="flex-col">
-              <TouchableOpacity
-                onPress={() => updateColor("white")}
-                className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              >
-                <Text className="font-bold text-xl">🌙</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setQuestView(!questview)}
-                className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              >
-                <MaterialCommunityIcons
-                  name="script-text"
-                  size={20}
-                  color={"white"}
-                ></MaterialCommunityIcons>
-              </TouchableOpacity>
-            </View>
+  return (
+    <View className="flex-1" style={{ backgroundColor: currentTheme.bg }}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 py-8 pb-20"
+      >
+        <View className="flex-row justify-between w-full">
+          <View className="flex-col">
+            <TouchableOpacity
+              onPress={() => {
+                if (colorScheme !== "dark") {
+                  setColorScheme("dark");
+                } else {
+                  setColorScheme("white");
+                }
+              }}
+              className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+            >
+              <Text className="font-bold text-xl">
+                {colorScheme === "dark" ? "🌙" : "☀"}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setQuestView(!questview)}
+              className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+            >
+              <MaterialCommunityIcons
+                name="script-text"
+                size={20}
+                color={"white"}
+              ></MaterialCommunityIcons>
+            </TouchableOpacity>
+          </View>
+          <View className="flex-col ">
             <TouchableOpacity
               onPress={() => setQuickView(!quickView)}
               className="bg-slate-900 h-10 border border-gray-700 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
@@ -1919,412 +2056,572 @@ export default function HomeScreen() {
                 color="white"
               ></MaterialCommunityIcons>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setThemeModal(!themeModal);
+              }}
+              className="bg-slate-900 h-10 border border-gray-700 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+            >
+              <MaterialCommunityIcons
+                size={20}
+                name="palette"
+                color="white"
+              ></MaterialCommunityIcons>
+            </TouchableOpacity>
           </View>
+        </View>
 
-          <View className="items-center mb-8 mt-12">
-            <View className="flex-row justify-between gap-3">
-              <Text className="text-5xl font-bold text-white">Loop</Text>
-              <Image
-                className="w-[50px] h-[50px] relative bottom-1"
-                source={require("../../assets/images/AppLogo-removebg-preview.png")}
-              ></Image>
-            </View>
-            <Text className="text-gray-400 mt-2 text-center font-bold">
-              Track your daily habits and build streaks
+        <View className="items-center mb-8 mt-12">
+          <View className="flex-row justify-between gap-3">
+            <Text className="text-5xl font-bold text-white">Loop</Text>
+            <Image
+              className="w-[50px] h-[50px] relative bottom-1"
+              source={require("../../assets/images/AppLogo-removebg-preview.png")}
+            ></Image>
+          </View>
+          <Text className="text-gray-400 mt-2 text-center font-bold">
+            Track your daily habits and build streaks
+          </Text>
+        </View>
+
+        <View className="flex-row mb-10 bg-gray-900 rounded-lg p-1">
+          <TouchableOpacity
+            className={`flex-1 py-2 px-4 rounded-md ${
+              activeTab === "habits" ? "bg-violet-600" : ""
+            }`}
+            onPress={() => {
+              setActiveTab("habits");
+              setExpandRoutine(false);
+            }}
+          >
+            <Text
+              className={`text-center font-medium ${
+                activeTab === "habits" ? "text-white" : "text-gray-400"
+              }`}
+            >
+              Habits
             </Text>
-          </View>
-
-          <View className="flex-row mb-10 bg-gray-900 rounded-lg p-1">
-            <TouchableOpacity
-              className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "habits" ? "bg-violet-600" : ""
+          </TouchableOpacity>
+          <TouchableOpacity
+            className={`flex-1 py-2 px-4 rounded-md ${
+              activeTab === "routines" ? "bg-violet-600" : ""
+            }`}
+            onPress={() => {
+              setActiveTab("routines");
+              setExpand(false);
+            }}
+          >
+            <Text
+              className={`text-center font-medium ${
+                activeTab === "routines" ? "text-white" : "text-gray-400"
               }`}
-              onPress={() => {
-                setActiveTab("habits");
-                setExpandRoutine(false);
-              }}
             >
-              <Text
-                className={`text-center font-medium ${
-                  activeTab === "habits" ? "text-white" : "text-gray-400"
-                }`}
+              Routines
+            </Text>
+          </TouchableOpacity>
+          {badgeAnimationVisible && badgeAnimationDays !== null && (
+            <BadgeAnimation
+              days={badgeAnimationDays}
+              visible={badgeAnimationVisible}
+            />
+          )}
+          <Modal animationType="slide" visible={questview} transparent={true}>
+            <View className="flex-1 justify-end ">
+              <View
+                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: -2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                  maxHeight: "90%",
+                }}
               >
-                Habits
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "routines" ? "bg-violet-600" : ""
-              }`}
-              onPress={() => {
-                setActiveTab("routines");
-                setExpand(false);
-              }}
-            >
-              <Text
-                className={`text-center font-medium ${
-                  activeTab === "routines" ? "text-white" : "text-gray-400"
-                }`}
-              >
-                Routines
-              </Text>
-            </TouchableOpacity>
-            {badgeAnimationVisible && badgeAnimationDays !== null && (
-              <BadgeAnimation
-                days={badgeAnimationDays}
-                visible={badgeAnimationVisible}
-              />
-            )}
-            <Modal animationType="slide" visible={questview} transparent={true}>
-              <View className="flex-1 justify-end ">
-                <View
-                  className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                    maxHeight: "90%",
-                  }}
-                >
-                  <View className="py-10">
-                    <TouchableOpacity
-                      onPress={() => setQuestView(false)}
-                      className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mb-6"
-                    >
-                      <MaterialCommunityIcons
-                        name="close"
-                        size={24}
-                        color={"#94a3b8"}
-                      />
-                    </TouchableOpacity>
+                <View className="py-10">
+                  <TouchableOpacity
+                    onPress={() => setQuestView(false)}
+                    className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mb-6"
+                  >
+                    <MaterialCommunityIcons
+                      name="close"
+                      size={24}
+                      color={"#94a3b8"}
+                    />
+                  </TouchableOpacity>
 
-                    <View className="flex justify-center items-center mb-10">
-                      <View className="bg-white/20 h-12 w-20 px-3 py-2 rounded-full justify-center items-center ">
-                        <FlameAnimation flames={QuestsDone} color="white" />
-                      </View>
+                  <View className="flex justify-center items-center mb-10">
+                    <View className="bg-white/20 h-12 w-20 px-3 py-2 rounded-full justify-center items-center ">
+                      <FlameAnimation flames={QuestsDone} color="white" />
                     </View>
+                  </View>
 
-                    <Text className="font-bold text-white text-2xl mb-5 text-center">
-                      Daily Quest:
-                    </Text>
-                    <Text className="text-white text-xl mb-8 text-center">
-                      {dailyQuests[DayQuestNumber()]}
-                    </Text>
-                    <View className="w-full h-3 bg-slate-800 rounded-full mx-auto mb-5 overflow-hidden">
-                      <View
-                        className="h-3 rounded-full"
-                        style={{
-                          width:
-                            QuestDateDone ===
-                            new Date().toLocaleDateString("de-DE")
-                              ? "100%"
-                              : "0%",
-                          backgroundColor:
-                            QuestDateDone ===
-                            new Date().toLocaleDateString("de-DE")
-                              ? "#22c55e"
-                              : "#334155",
-                        }}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      onPress={CheckQuest}
-                      className="h-12 w-12 rounded-full items-center justify-center mx-auto"
+                  <Text className="font-bold text-white text-2xl mb-5 text-center">
+                    Daily Quest:
+                  </Text>
+                  <Text className="text-white text-xl mb-8 text-center">
+                    {dailyQuests[DayQuestNumber()]}
+                  </Text>
+                  <View className="w-full h-3 bg-slate-800 rounded-full mx-auto mb-5 overflow-hidden">
+                    <View
+                      className="h-3 rounded-full"
                       style={{
+                        width:
+                          QuestDateDone ===
+                          new Date().toLocaleDateString("de-DE")
+                            ? "100%"
+                            : "0%",
                         backgroundColor:
                           QuestDateDone ===
                           new Date().toLocaleDateString("de-DE")
                             ? "#22c55e"
                             : "#334155",
                       }}
+                    />
+                  </View>
+                  <TouchableOpacity
+                    onPress={CheckQuest}
+                    className="h-12 w-12 rounded-full items-center justify-center mx-auto"
+                    style={{
+                      backgroundColor:
+                        QuestDateDone === new Date().toLocaleDateString("de-DE")
+                          ? "#22c55e"
+                          : "#334155",
+                    }}
+                  >
+                    <Text className="text-white font-bold text-xl">✓</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal animationType="slide" visible={themeModal} transparent={true}>
+            <View className="flex-1 justify-end ">
+              <View
+                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: -2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                  maxHeight: "40%",
+                }}
+              >
+                <TouchableOpacity
+                  className="mt-5 rounded-full h-10 w-10 items-center justify-center bg-gray-800"
+                  onPress={() => {
+                    setThemeModal(false);
+                  }}
+                >
+                  <MaterialCommunityIcons
+                    name="close"
+                    color={"white"}
+                    size={20}
+                  ></MaterialCommunityIcons>
+                </TouchableOpacity>
+                <View className="items-center justify-center">
+                  <Text className="font-bold text-white text-2xl">
+                    Choose your Theme
+                  </Text>
+                </View>
+                <View className="flex-row flex-wrap mb-10 mt-10 gap-5 items-center justify-center">
+                  {Object.entries(themes).map(([key, theme]) => {
+                    const isActive = key === activeTheme;
+
+                    return (
+                      <TouchableOpacity
+                        key={key}
+                        className="p-4 rounded-full h-12 w-12"
+                        style={{
+                          backgroundColor: theme.primary.main,
+                          borderWidth: isActive ? 3 : 0,
+                          borderColor: isActive ? "#71717a" : "transparent",
+                        }}
+                        onPress={() => setActiveTheme(key)}
+                      />
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </Modal>
+          <Modal animationType="slide" visible={quickView} transparent={true}>
+            <View className="flex-1 justify-end ">
+              <View
+                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: -2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3.84,
+                  elevation: 5,
+                  maxHeight: "100%",
+                }}
+              >
+                {activeTab === "habits" ? (
+                  <View>
+                    <View className="flex-row mb-10   ">
+                      <TouchableOpacity
+                        onPress={() => {
+                          setQuickView(false);
+                        }}
+                        className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                      >
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={24}
+                          color={"#94a3b8"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View className="flex justify-center items-center">
+                      <Text className="font-bold text-white text-2xl mb-5">
+                        Active Habits: {categories.length}
+                      </Text>
+                    </View>
+                    <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
+                      {categories.map((category, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
+                          style={{
+                            minWidth: 80,
+                            backgroundColor: category.archivated
+                              ? "#4b5563"
+                              : category.color,
+                          }}
+                        >
+                          <View className="flex-row gap-5 items-center">
+                            <Text className="font-bold text-lg px-3 text-white">
+                              {category.name}
+                            </Text>
+                            <View className="bg-white/20 px-3 py-2 rounded-full ">
+                              <FlameAnimation
+                                flames={category.streak}
+                                color="white"
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <View>
+                    <View className="flex-row  mb-6">
+                      <TouchableOpacity
+                        onPress={() => {
+                          setQuickView(false);
+                        }}
+                        className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                      >
+                        <MaterialCommunityIcons
+                          name="close"
+                          size={24}
+                          color={"#94a3b8"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                    <View className="flex justify-center items-center">
+                      <Text className="font-bold text-white text-2xl mb-5">
+                        Active Routines: {routines.length}
+                      </Text>
+                    </View>
+                    <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
+                      {routines.map((routines, index) => (
+                        <TouchableOpacity
+                          key={index}
+                          className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
+                          style={{
+                            minWidth: 80,
+                            backgroundColor: routines.color,
+                          }}
+                        >
+                          <View className="flex-row gap-5 items-center">
+                            <Text className="font-bold text-lg px-3 text-white">
+                              {routines.name}
+                            </Text>
+                            <View className="bg-white/20 px-3 py-2 rounded-full ">
+                              <FlameAnimation
+                                flames={routines.streak}
+                                color="white"
+                              />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+          </Modal>
+        </View>
+
+        {activeTab === "habits" ? (
+          <View className="flex-1 bg-gray-950 ">
+            <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+              <FlatList
+                data={GroupCategories}
+                renderItem={renderCategoryItem2}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingVertical: 8,
+                }}
+                className="flex-grow-0"
+              />
+            </View>
+            {categories.map((category, index) => (
+              <View
+                key={index}
+                className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
+              >
+                {category.archivated && (
+                  <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
+                )}
+
+                <View className="bg-[#101923] p-4 rounded-t-2xl">
+                  <View className="flex-row justify-between items-center mb-3  ">
+                    <View className="flex-row justify-between gap-3 ">
+                      <TouchableOpacity
+                        onPress={() => {
+                          const newCategories = [...categories];
+                          newCategories[index] = {
+                            ...newCategories[index],
+                            changeIcon: !category.changeIcon,
+                          };
+                          setCategories(newCategories);
+                        }}
+                        className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
+                      >
+                        <MaterialCommunityIcons
+                          name={category.iconname as any}
+                          size={18}
+                          color={category.color}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="font-bold text-2xl text-white"
+                        onPress={() => {
+                          const newCategories = [...categories];
+                          newCategories[index] = {
+                            ...newCategories[index],
+                            modelOpen: !category.modelOpen,
+                          };
+                          setCategories(newCategories);
+                        }}
+                      >
+                        <Text className="font-bold text-2xl text-white max-w-[100px]">
+                          {category.name}
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    <View className="flex-row  ">
+                      <TouchableOpacity
+                        onPress={() => {
+                          const newCategories = [...categories];
+                          newCategories[index] = {
+                            ...newCategories[index],
+                            camerashow: !category.camerashow,
+                          };
+                          setCategories(newCategories);
+                        }}
+                        className="bg-slate-800 h-9 w-9 mr-3 rounded-full items-center justify-center"
+                      >
+                        <MaterialCommunityIcons
+                          name="camera"
+                          size={18}
+                          color={category.color}
+                        />
+                      </TouchableOpacity>
+                      <View className="mr-3">
+                        <TouchableOpacity
+                          onPress={() => {
+                            archivateHabit(index);
+                          }}
+                          className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center z-20"
+                        >
+                          <MaterialCommunityIcons
+                            name="archive"
+                            size={18}
+                            color={category.color}
+                          />
+                        </TouchableOpacity>
+                      </View>
+
+                      <View className="bg-white/20 px-3 py-1 rounded-full ">
+                        <FlameAnimation
+                          flames={category.streak}
+                          color="white"
+                        ></FlameAnimation>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                <View className="p-3 flex-row justify-between  items-center ">
+                  <View className="flex-1 mr-3">
+                    <Streak
+                      archivated={category.archivated}
+                      addDays={(days: number) => addDays(days, index)}
+                      startDate1={category.startDate}
+                      checkedDays={category.checkedDays}
+                      color={category.color}
+                      bgcolor="[#111827]"
+                      grayColor="#1f2937"
+                      days={105}
+                      textColor="white"
+                    />
+                  </View>
+
+                  <View className="left-8 flex justify-center items-center relative">
+                    <AnimatedCircularProgress
+                      size={55}
+                      width={3}
+                      fill={
+                        (Math.min(category.checkedToday, category.amount) /
+                          category.amount) *
+                        100
+                      }
+                      tintColor={category.buttonColor}
+                      backgroundColor="#64748b"
+                      arcSweepAngle={360}
+                      rotation={0}
+                      lineCap="round"
+                    />
+
+                    <TouchableOpacity
+                      onPress={() => handleCheckIn(index, false)}
+                      className="h-12 w-12 absolute rounded-full bg"
+                      style={{
+                        backgroundColor: category.buttonColor,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.25,
+                        shadowRadius: 3.84,
+                        elevation: 5,
+                      }}
                     >
                       <Text className="text-white font-bold text-xl">✓</Text>
                     </TouchableOpacity>
                   </View>
-                </View>
-              </View>
-            </Modal>
-            <Modal animationType="slide" visible={quickView} transparent={true}>
-              <View className="flex-1 justify-end ">
-                <View
-                  className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                    maxHeight: "100%",
-                  }}
-                >
-                  {activeTab === "habits" ? (
-                    <View>
-                      <View className="flex-row mb-10   ">
-                        <TouchableOpacity
-                          onPress={() => {
-                            setQuickView(false);
-                          }}
-                          className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
-                        >
-                          <MaterialCommunityIcons
-                            name="close"
-                            size={24}
-                            color={"#94a3b8"}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex justify-center items-center">
-                        <Text className="font-bold text-white text-2xl mb-5">
-                          Active Habits: {categories.length}
-                        </Text>
-                      </View>
-                      <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                        {categories.map((category, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
-                            style={{
-                              minWidth: 80,
-                              backgroundColor: category.archivated
-                                ? "#4b5563"
-                                : category.color,
-                            }}
-                          >
-                            <View className="flex-row gap-5 items-center">
-                              <Text className="font-bold text-lg px-3 text-white">
-                                {category.name}
-                              </Text>
-                              <View className="bg-white/20 px-3 py-2 rounded-full ">
-                                <FlameAnimation
-                                  flames={category.streak}
-                                  color="white"
-                                />
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  ) : (
-                    <View>
-                      <View className="flex-row  mb-6">
-                        <TouchableOpacity
-                          onPress={() => {
-                            setQuickView(false);
-                          }}
-                          className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
-                        >
-                          <MaterialCommunityIcons
-                            name="close"
-                            size={24}
-                            color={"#94a3b8"}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex justify-center items-center">
-                        <Text className="font-bold text-white text-2xl mb-5">
-                          Active Routines: {routines.length}
-                        </Text>
-                      </View>
-                      <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                        {routines.map((routines, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
-                            style={{
-                              minWidth: 80,
-                              backgroundColor: routines.color,
-                            }}
-                          >
-                            <View className="flex-row gap-5 items-center">
-                              <Text className="font-bold text-lg px-3 text-white">
-                                {routines.name}
-                              </Text>
-                              <View className="bg-white/20 px-3 py-2 rounded-full ">
-                                <FlameAnimation
-                                  flames={routines.streak}
-                                  color="white"
-                                />
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </Modal>
-          </View>
 
-          {activeTab === "habits" ? (
-            <View className="flex-1 bg-gray-950 ">
-              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem2}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingVertical: 8,
-                  }}
-                  className="flex-grow-0"
-                />
-              </View>
-              {categories.map((category, index) => (
-                <View
-                  key={index}
-                  className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
-                >
-                  {category.archivated && (
-                    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
-                  )}
-
-                  <View className="bg-[#101923] p-4 rounded-t-2xl">
-                    <View className="flex-row justify-between items-center mb-3  ">
-                      <View className="flex-row justify-between gap-3 ">
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              changeIcon: !category.changeIcon,
-                            };
-                            setCategories(newCategories);
-                          }}
-                          className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
-                        >
-                          <MaterialCommunityIcons
-                            name={category.iconname as any}
-                            size={18}
-                            color={category.color}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          className="font-bold text-2xl text-white"
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              modelOpen: !category.modelOpen,
-                            };
-                            setCategories(newCategories);
-                          }}
-                        >
-                          <Text className="font-bold text-2xl text-white max-w-[100px]">
-                            {category.name}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex-row  ">
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              camerashow: !category.camerashow,
-                            };
-                            setCategories(newCategories);
-                          }}
-                          className="bg-slate-800 h-9 w-9 mr-3 rounded-full items-center justify-center"
-                        >
-                          <MaterialCommunityIcons
-                            name="camera"
-                            size={18}
-                            color={category.color}
-                          />
-                        </TouchableOpacity>
-                        <View className="mr-3">
-                          <TouchableOpacity
-                            onPress={() => {
-                              archivateHabit(index);
-                            }}
-                            className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center z-20"
-                          >
-                            <MaterialCommunityIcons
-                              name="archive"
-                              size={18}
-                              color={category.color}
-                            />
-                          </TouchableOpacity>
-                        </View>
-
-                        <View className="bg-white/20 px-3 py-1 rounded-full ">
-                          <FlameAnimation
-                            flames={category.streak}
-                            color="white"
-                          ></FlameAnimation>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-
-                  <View className="p-3 flex-row justify-between  items-center ">
-                    <View className="flex-1 mr-3">
-                      <Streak
-                        archivated={category.archivated}
-                        addDays={(days: number) => addDays(days, index)}
-                        startDate1={category.startDate}
-                        checkedDays={category.checkedDays}
-                        color={category.color}
-                        bgcolor="[#111827]"
-                        grayColor="#1f2937"
-                        days={105}
-                        textColor="white"
-                      />
-                    </View>
-
-                    <View className="left-8 flex justify-center items-center relative">
-                      <AnimatedCircularProgress
-                        size={55}
-                        width={3}
-                        fill={
-                          (Math.min(category.checkedToday, category.amount) /
-                            category.amount) *
-                          100
-                        }
-                        tintColor={category.buttonColor}
-                        backgroundColor="#64748b"
-                        arcSweepAngle={360}
-                        rotation={0}
-                        lineCap="round"
-                      />
-
-                      <TouchableOpacity
-                        onPress={() => handleCheckIn(index, false)}
-                        className="h-12 w-12 absolute rounded-full bg"
+                  <TouchableOpacity
+                    onPress={() => handleDeletePress(index)}
+                    className="bg-slate-800 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
+                  >
+                    <Text className="text-gray-400  text-md text-white ">
+                      ✕
+                    </Text>
+                  </TouchableOpacity>
+                  <Modal
+                    animationType="slide"
+                    visible={category.camerashow}
+                    transparent={true}
+                  >
+                    <View className="flex-1 justify-end">
+                      <View
+                        className={`rounded-t-3xl ${"bg-gray-900"}`}
                         style={{
-                          backgroundColor: category.buttonColor,
-                          alignItems: "center",
-                          justifyContent: "center",
                           shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
+                          shadowOffset: { width: 0, height: -2 },
                           shadowOpacity: 0.25,
                           shadowRadius: 3.84,
                           elevation: 5,
+                          maxHeight: "90%",
                         }}
                       >
-                        <Text className="text-white font-bold text-xl">✓</Text>
-                      </TouchableOpacity>
+                        <CameraView
+                          ref={cameraRef}
+                          facing={facing}
+                          className=""
+                        >
+                          <TouchableOpacity className=" ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center">
+                            <MaterialCommunityIcons
+                              name="close"
+                              size={20}
+                              color={"white"}
+                              onPress={() => {
+                                const newCategories = [...categories];
+                                newCategories[index] = {
+                                  ...newCategories[index],
+                                  camerashow: false,
+                                };
+                                setCategories(newCategories);
+                              }}
+                            ></MaterialCommunityIcons>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={takePhoto}
+                            className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
+                          >
+                            <MaterialCommunityIcons
+                              name="camera"
+                              size={20}
+                              color={"white"}
+                            ></MaterialCommunityIcons>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => {
+                              toggleCameraFacing();
+                            }}
+                            className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
+                          >
+                            <MaterialCommunityIcons
+                              name="camera-switch"
+                              size={20}
+                              color={"white"}
+                            ></MaterialCommunityIcons>
+                          </TouchableOpacity>
+                        </CameraView>
+                        {photoUri ? (
+                          <View>
+                            <View className="flex justify-center items-center w-full mt-10 rounded-xl">
+                              <Image
+                                className="flex justify-center items-center rounded-xl"
+                                source={{ uri: photoUri }}
+                                style={{ width: 300, height: 300 }}
+                              />
+                            </View>
+                            <View className="mt-10 mb-10 w-full flex items-center">
+                              <TouchableOpacity
+                                onPress={() => saveImages(index)}
+                                className="px-10 py-4 bg-slate-800 items-center justify-center rounded-xl"
+                              >
+                                <Text className="text-white font-bold text-xl">
+                                  Save
+                                </Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                        ) : (
+                          <View className="flex-1 items-center justify-center bg-slate-950">
+                            <Text className="text-white font-bold text-2xl">
+                              No Picture yet
+                            </Text>
+                          </View>
+                        )}
+                      </View>
                     </View>
+                  </Modal>
 
-                    <TouchableOpacity
-                      onPress={() => handleDeletePress(index)}
-                      className="bg-slate-800 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
-                    >
-                      <Text className="text-gray-400  text-md text-white ">
-                        ✕
-                      </Text>
-                    </TouchableOpacity>
-                    <Modal
-                      animationType="slide"
-                      visible={category.camerashow}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end">
+                  <Modal
+                    animationType="slide"
+                    visible={category.modelOpen}
+                    transparent={true}
+                  >
+                    <View className="flex-1 justify-end">
+                      <ScrollView
+                        scrollEnabled={true}
+                        showsVerticalScrollIndicator={true}
+                        nestedScrollEnabled={true}
+                        style={{ maxHeight: "90%" }}
+                      >
                         <View
                           className={`rounded-t-3xl ${"bg-gray-900"}`}
                           style={{
@@ -2333,614 +2630,81 @@ export default function HomeScreen() {
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
-                            maxHeight: "90%",
                           }}
                         >
-                          <CameraView
-                            ref={cameraRef}
-                            facing={facing}
-                            className=""
-                          >
-                            <TouchableOpacity className=" ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center">
-                              <MaterialCommunityIcons
-                                name="close"
-                                size={20}
-                                color={"white"}
-                                onPress={() => {
-                                  const newCategories = [...categories];
-                                  newCategories[index] = {
-                                    ...newCategories[index],
-                                    camerashow: false,
-                                  };
-                                  setCategories(newCategories);
-                                }}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={takePhoto}
-                              className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
-                            >
-                              <MaterialCommunityIcons
-                                name="camera"
-                                size={20}
-                                color={"white"}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
+                          <View className="flex-row mb-10">
                             <TouchableOpacity
                               onPress={() => {
-                                toggleCameraFacing();
-                              }}
-                              className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
-                            >
-                              <MaterialCommunityIcons
-                                name="camera-switch"
-                                size={20}
-                                color={"white"}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
-                          </CameraView>
-                          {photoUri ? (
-                            <View>
-                              <View className="flex justify-center items-center w-full mt-10 rounded-xl">
-                                <Image
-                                  className="flex justify-center items-center rounded-xl"
-                                  source={{ uri: photoUri }}
-                                  style={{ width: 300, height: 300 }}
-                                />
-                              </View>
-                              <View className="mt-10 mb-10 w-full flex items-center">
-                                <TouchableOpacity
-                                  onPress={() => saveImages(index)}
-                                  className="px-10 py-4 bg-slate-800 items-center justify-center rounded-xl"
-                                >
-                                  <Text className="text-white font-bold text-xl">
-                                    Save
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          ) : (
-                            <View className="flex-1 items-center justify-center bg-slate-950">
-                              <Text className="text-white font-bold text-2xl">
-                                No Picture yet
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    </Modal>
-
-                    <Modal
-                      animationType="slide"
-                      visible={category.modelOpen}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end">
-                        <ScrollView
-                          scrollEnabled={true}
-                          showsVerticalScrollIndicator={true}
-                          nestedScrollEnabled={true}
-                          style={{ maxHeight: "90%" }}
-                        >
-                          <View
-                            className={`rounded-t-3xl ${"bg-gray-900"}`}
-                            style={{
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: -2 },
-                              shadowOpacity: 0.25,
-                              shadowRadius: 3.84,
-                              elevation: 5,
-                            }}
-                          >
-                            <View className="flex-row mb-10">
-                              <TouchableOpacity
-                                onPress={() => {
-                                  const newCategories = [...categories];
-                                  newCategories[index] = {
-                                    ...newCategories[index],
-                                    modelOpen: false,
-                                  };
-                                  setCategories(newCategories);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="close"
-                                  size={24}
-                                  color={"#94a3b8"}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                            <View className="flex-col items-center justify-center  mb-10">
-                              <View className="flex-row gap-5 ">
-                                <Text className="mb-5 font-bold text-3xl text-white">
-                                  {category.name}
-                                </Text>
-
-                                <View className="bg-white/20 px-3 py-1 rounded-full h-9  ">
-                                  <FlameAnimation
-                                    flames={category.streak}
-                                    color="white"
-                                  ></FlameAnimation>
-                                </View>
-                              </View>
-                              <Text className="mb-5 text-gray-400 font-bold text-md">
-                                Longest Streak: {category.longestStreak}
-                              </Text>
-
-                              <Text className="mb-5 text-gray-400 font-bold text-md ">
-                                Started on:
-                                {category.startDate &&
-                                !isNaN(
-                                  Date.parse(category.startDate.toString())
-                                )
-                                  ? "  " +
-                                    new Date(
-                                      category.startDate
-                                    ).toLocaleDateString("de-DE")
-                                  : "Date not set"}
-                              </Text>
-                              <Text className="mb-5 text-gray-400 font-bold text-md ">
-                                Last Checked:
-                                {" " + category.lastCheckDate}
-                              </Text>
-                              <View className=" flex justify-center items-center">
-                                <StreakV2
-                                  archivated={category.archivated}
-                                  addDays={(days: number) =>
-                                    addDays(days, index)
-                                  }
-                                  startDate1={category.startDate}
-                                  checkedDays={category.checkedDays}
-                                  color={category.color}
-                                  bgcolor="[#0f172a]"
-                                  grayColor="#1f2937"
-                                  textColor="white"
-                                ></StreakV2>
-                              </View>
-                              <Text className="mb-3 text-white font-bold text-lg">
-                                Selected Days
-                              </Text>
-                              <View className="flex-row flex-wrap justitfy-center items-center mb-20 gap-4">
-                                {category.selectedDays.map((day, index) => (
-                                  <View key={index}>
-                                    <TouchableOpacity
-                                      className="h-12 w-12 rounded-full items-center justify-center"
-                                      style={{
-                                        backgroundColor: category.color,
-                                      }}
-                                    >
-                                      <Text className="font-bold text-white text-lg">
-                                        {day.substring(0, 2).toUpperCase()}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  </View>
-                                ))}
-                              </View>
-                              <Text className="font-bold text-white text-2xl">
-                                Images
-                              </Text>
-                              <View className="flex-row flex-wrap mt-5 gap-4 items-center justify-center">
-                                {(category.imagePaths ?? []).length > 0 ? (
-                                  (category.imagePaths ?? []).map(
-                                    (path, idx) => (
-                                      <TouchableOpacity
-                                        key={idx}
-                                        onPress={() => {
-                                          setImageIndex(idx);
-                                          const newCategories = [...categories];
-                                          newCategories[index] = {
-                                            ...newCategories[index],
-                                            galleryVisible: true,
-                                          };
-                                          setCategories(newCategories);
-                                        }}
-                                      >
-                                        <Image
-                                          source={{ uri: path }}
-                                          style={{
-                                            width: 100,
-                                            height: 100,
-                                            borderRadius: 8,
-                                          }}
-                                        />
-                                      </TouchableOpacity>
-                                    )
-                                  )
-                                ) : (
-                                  <Text className="flex justify-center items-center font-bold text-lg text-white">
-                                    No Images Found
-                                  </Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-                        </ScrollView>
-                      </View>
-                    </Modal>
-                  </View>
-                  <View>
-                    <ImageViewing
-                      images={(category.imagePaths ?? []).map((uri) => ({
-                        uri,
-                      }))}
-                      imageIndex={imageIndex}
-                      visible={category.galleryVisible}
-                      onRequestClose={() => {
-                        const newCategories = [...categories];
-                        newCategories[index] = {
-                          ...newCategories[index],
-                          galleryVisible: false,
-                        };
-                        setCategories(newCategories);
-                      }}
-                    />
-                  </View>
-                  {category.changeIcon ? (
-                    <View className="flex-col">
-                      <ScrollView
-                        className="h-72 mb-4 mt-8"
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                      >
-                        <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
-                                selectedIcon === item.value
-                                  ? "bg-violet-600 border-gray-600"
-                                  : "bg-gray-800 border-gray-800"
-                              }`}
-                              onPress={() => setSelectedIcon(item.value)}
-                            >
-                              <MaterialCommunityIcons
-                                name={item.value as any}
-                                size={24}
-                                color={
-                                  selectedIcon === item.value
-                                    ? "#FFFFFF"
-                                    : "#4B5563"
-                                }
-                              />
-                              <Text
-                                className={`text-xs mt-1 text-center ${
-                                  selectedIcon === item.value
-                                    ? "text-white"
-                                    : "text-gray-600"
-                                }`}
-                                numberOfLines={1}
-                              >
-                                {item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                      <TouchableOpacity
-                        onPress={() => {
-                          const newCategories = [...categories];
-                          newCategories[index] = {
-                            ...newCategories[index],
-                            changeIcon: false,
-                            iconname: selectedIcon,
-                          };
-                          setCategories(newCategories);
-                        }}
-                        className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                          !name || !selectedIcon
-                            ? "bg-slate-800"
-                            : "bg-gray-400"
-                        }`}
-                      >
-                        <Text className="text-white font-bold">Speichern</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View className="space-y-4 ">
-              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem3}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingVertical: 8,
-                  }}
-                  className="flex-grow-0"
-                />
-              </View>
-              {routines.map((routine, index) => (
-                <View
-                  key={index}
-                  className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
-                >
-                  {routine.archivated && (
-                    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
-                  )}
-                  <View className={`bg-[#101923] p-4`}>
-                    <View className="flex-row justify-between items-center mb-3">
-                      <View className="flex-row justify-between gap-3">
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newRoutines = [...routines];
-                            newRoutines[index] = {
-                              ...newRoutines[index],
-                              changeIcon: !routine.changeIcon,
-                            };
-                            setRoutines(newRoutines);
-                          }}
-                          className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
-                        >
-                          <MaterialCommunityIcons
-                            name={routine.iconname as any}
-                            size={18}
-                            color={routine.color}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newRoutines = [...routines];
-                            newRoutines[index] = {
-                              ...newRoutines[index],
-                              modelOpen: !routine.modelOpen,
-                            };
-                            setRoutines(newRoutines);
-                          }}
-                        >
-                          <Text className="font-bold text-2xl text-white max-w-[160px] ">
-                            {routine.name}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex-row ">
-                        <View className="mr-3">
-                          <TouchableOpacity
-                            onPress={() => {
-                              archivateroutine(index);
-                            }}
-                            className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center  z-20"
-                          >
-                            <MaterialCommunityIcons
-                              name="archive"
-                              size={18}
-                              color={routine.color}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                        <View className="bg-white/20 px-3 py-1 rounded-full ">
-                          <FlameAnimation
-                            flames={routine.streak}
-                            color="white"
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                  <View className="px-4 mb-4 mt-2">
-                    <Text className="text-white font-semibold text-base mb-3">
-                      Todos:
-                    </Text>
-                    {routine.todos && routine.todos.length > 0 ? (
-                      routine.todos.map((todoItem, todoIndex) => {
-                        const today = new Date().toLocaleDateString("de-DE");
-                        const isCheckedToday =
-                          todoItem.lastCheckedDate === today;
-
-                        return (
-                          <View key={todoIndex} className="mb-3">
-                            <View className="flex-row items-center justify-between p-3 rounded-xl bg-slate-800">
-                              <Text className="text-white flex-1 mr-3">
-                                {todoItem.name}
-                              </Text>
-                              <View className="flex-row items-center gap-2">
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    deleteTodo(index, todoIndex);
-                                  }}
-                                  className="h-8 w-8 rounded-full bg-slate-700 items-center justify-center"
-                                >
-                                  <Text className="text-white font-bold text-sm">
-                                    ✕
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    setRoutines((prevRoutines) => {
-                                      const updatedRoutines = [...prevRoutines];
-                                      const updatedTodos = [
-                                        ...updatedRoutines[index].todos,
-                                      ];
-                                      updatedTodos[todoIndex].edited =
-                                        !updatedTodos[todoIndex].edited;
-                                      updatedRoutines[index] = {
-                                        ...updatedRoutines[index],
-                                        todos: updatedTodos,
-                                      };
-                                      return updatedRoutines;
-                                    });
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
-                                >
-                                  <MaterialCommunityIcons
-                                    name="pencil"
-                                    size={16}
-                                    color="white"
-                                  />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    handleCheckInRoutine(todoIndex, index);
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center"
-                                  style={{
-                                    backgroundColor: isCheckedToday
-                                      ? routine.color
-                                      : "#334155",
-                                  }}
-                                >
-                                  <Text className="text-white font-bold">
-                                    ✓
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                            {todoItem.edited && (
-                              <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-slate-800">
-                                <TextInput
-                                  onChangeText={(text) => {
-                                    setTodoName(text);
-                                  }}
-                                  className="flex-1 bg-slate-700 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
-                                  placeholder="Edit Todo"
-                                />
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    editRoutine(index, todoIndex, newTodoName);
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
-                                >
-                                  <MaterialCommunityIcons
-                                    name="check-circle"
-                                    color="white"
-                                    size={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })
-                    ) : (
-                      <Text className="text-gray-500 italic">
-                        No todos for this routine
-                      </Text>
-                    )}
-                  </View>
-                  <View className="px-4 pb-4 flex-row justify-between items-center">
-                    <View className="flex-1">
-                      <Streak
-                        archivated={routine.archivated}
-                        addDays={(days) => addDaysRoutine(days, index)}
-                        startDate1={routine.startDate}
-                        checkedDays={routine.checkedDays}
-                        color={routine.color}
-                        bgcolor="[#111827]"
-                        grayColor="#1f2937"
-                        days={105}
-                        textColor="white"
-                      />
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => {
-                        removeRoutine(index);
-                      }}
-                      className="bg-slate-800 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
-                    >
-                      <Text className="text-white text-sm">✕</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  <Modal
-                    animationType="slide"
-                    visible={routine.modelOpen}
-                    transparent={true}
-                  >
-                    <View className="flex-1 justify-end">
-                      <ScrollView
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                        style={{ maxHeight: "90%" }}
-                      >
-                        <View
-                          className="rounded-t-3xl bg-gray-900"
-                          style={{
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: -2 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                          }}
-                        >
-                          <View className="flex-row gap-1 mb-10">
-                            <TouchableOpacity
-                              onPress={() => {
-                                const newRoutines = [...routines];
-                                newRoutines[index] = {
-                                  ...newRoutines[index],
+                                const newCategories = [...categories];
+                                newCategories[index] = {
+                                  ...newCategories[index],
                                   modelOpen: false,
                                 };
-                                setRoutines(newRoutines);
+                                setCategories(newCategories);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
+                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
                             >
                               <MaterialCommunityIcons
                                 name="close"
                                 size={24}
-                                color="#94a3b8"
+                                color={"#94a3b8"}
                               />
                             </TouchableOpacity>
                           </View>
-
-                          <View className="flex-col items-center justify-center mb-10">
-                            <View className="flex-row gap-5">
+                          <View className="flex-col items-center justify-center  mb-10">
+                            <View className="flex-row gap-5 ">
                               <Text className="mb-5 font-bold text-3xl text-white">
-                                {routine.name}
+                                {category.name}
                               </Text>
 
-                              <View className="bg-white/20 px-3 py-1 rounded-full h-10">
+                              <View className="bg-white/20 px-3 py-1 rounded-full h-9  ">
                                 <FlameAnimation
-                                  flames={routine.streak}
+                                  flames={category.streak}
                                   color="white"
-                                />
+                                ></FlameAnimation>
                               </View>
                             </View>
                             <Text className="mb-5 text-gray-400 font-bold text-md">
-                              Longest Streak:
-                              {" " + routine.longestStreak}
+                              Longest Streak: {category.longestStreak}
                             </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md">
+
+                            <Text className="mb-5 text-gray-400 font-bold text-md ">
                               Started on:
-                              {routine.startDate &&
-                              !isNaN(Date.parse(routine.startDate.toString()))
+                              {category.startDate &&
+                              !isNaN(Date.parse(category.startDate.toString()))
                                 ? "  " +
                                   new Date(
-                                    routine.startDate
+                                    category.startDate
                                   ).toLocaleDateString("de-DE")
                                 : "Date not set"}
                             </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md">
+                            <Text className="mb-5 text-gray-400 font-bold text-md ">
                               Last Checked:
-                              {" " + routine.lastCheckedDate}
+                              {" " + category.lastCheckDate}
                             </Text>
-                            <View className="flex justify-center items-center">
+                            <View className=" flex justify-center items-center">
                               <StreakV2
-                                archivated={routine.archivated}
-                                addDays={(days) => addDaysRoutine(days, index)}
-                                startDate1={routine.startDate}
-                                checkedDays={routine.checkedDays}
-                                color={routine.color}
+                                archivated={category.archivated}
+                                addDays={(days: number) => addDays(days, index)}
+                                startDate1={category.startDate}
+                                checkedDays={category.checkedDays}
+                                color={category.color}
                                 bgcolor="[#0f172a]"
                                 grayColor="#1f2937"
                                 textColor="white"
-                              />
+                              ></StreakV2>
                             </View>
-                            <Text className="mb-5 text-white font-bold text-lg">
+                            <Text className="mb-3 text-white font-bold text-lg">
                               Selected Days
                             </Text>
-                            <View className="flex-row flex-wrap justify-center items-center mb-20 gap-4">
-                              {routine.selectedDays.map((day, dayIndex) => (
-                                <View key={dayIndex}>
+                            <View className="flex-row flex-wrap justitfy-center items-center mb-20 gap-4">
+                              {category.selectedDays.map((day, index) => (
+                                <View key={index}>
                                   <TouchableOpacity
                                     className="h-12 w-12 rounded-full items-center justify-center"
-                                    style={{ backgroundColor: routine.color }}
+                                    style={{
+                                      backgroundColor: category.color,
+                                    }}
                                   >
                                     <Text className="font-bold text-white text-lg">
                                       {day.substring(0, 2).toUpperCase()}
@@ -2949,1952 +2713,846 @@ export default function HomeScreen() {
                                 </View>
                               ))}
                             </View>
+                            <Text className="font-bold text-white text-2xl">
+                              Images
+                            </Text>
+                            <View className="flex-row flex-wrap mt-5 gap-4 items-center justify-center">
+                              {(category.imagePaths ?? []).length > 0 ? (
+                                (category.imagePaths ?? []).map((path, idx) => (
+                                  <TouchableOpacity
+                                    key={idx}
+                                    onPress={() => {
+                                      setImageIndex(idx);
+                                      const newCategories = [...categories];
+                                      newCategories[index] = {
+                                        ...newCategories[index],
+                                        galleryVisible: true,
+                                      };
+                                      setCategories(newCategories);
+                                    }}
+                                  >
+                                    <Image
+                                      source={{ uri: path }}
+                                      style={{
+                                        width: 100,
+                                        height: 100,
+                                        borderRadius: 8,
+                                      }}
+                                    />
+                                  </TouchableOpacity>
+                                ))
+                              ) : (
+                                <Text className="flex justify-center items-center font-bold text-lg text-white">
+                                  No Images Found
+                                </Text>
+                              )}
+                            </View>
                           </View>
                         </View>
                       </ScrollView>
                     </View>
                   </Modal>
-
-                  {routine.changeIcon && (
-                    <View className="flex-col">
-                      <ScrollView
-                        className="h-72 mb-4 mt-8"
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                      >
-                        <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, itemIndex) => (
-                            <TouchableOpacity
-                              key={itemIndex}
-                              className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
+                </View>
+                <View>
+                  <ImageViewing
+                    images={(category.imagePaths ?? []).map((uri) => ({
+                      uri,
+                    }))}
+                    imageIndex={imageIndex}
+                    visible={category.galleryVisible}
+                    onRequestClose={() => {
+                      const newCategories = [...categories];
+                      newCategories[index] = {
+                        ...newCategories[index],
+                        galleryVisible: false,
+                      };
+                      setCategories(newCategories);
+                    }}
+                  />
+                </View>
+                {category.changeIcon ? (
+                  <View className="flex-col">
+                    <ScrollView
+                      className="h-72 mb-4 mt-8"
+                      scrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
+                    >
+                      <View className="flex-row flex-wrap justify-between mr-5 ml-5">
+                        {items.map((item, index) => (
+                          <TouchableOpacity
+                            key={index}
+                            className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
+                              selectedIcon === item.value
+                                ? "bg-violet-600 border-gray-600"
+                                : "bg-gray-800 border-gray-800"
+                            }`}
+                            onPress={() => setSelectedIcon(item.value)}
+                          >
+                            <MaterialCommunityIcons
+                              name={item.value as any}
+                              size={24}
+                              color={
                                 selectedIcon === item.value
-                                  ? "bg-violet-600 border-gray-600"
-                                  : "bg-gray-800 border-gray-800"
+                                  ? "#FFFFFF"
+                                  : "#4B5563"
+                              }
+                            />
+                            <Text
+                              className={`text-xs mt-1 text-center ${
+                                selectedIcon === item.value
+                                  ? "text-white"
+                                  : "text-gray-600"
                               }`}
-                              onPress={() => setSelectedIcon(item.value)}
+                              numberOfLines={1}
                             >
-                              <MaterialCommunityIcons
-                                name={item.value as any}
-                                size={24}
-                                color={
-                                  selectedIcon === item.value
-                                    ? "#FFFFFF"
-                                    : "#4B5563"
-                                }
-                              />
-                              <Text
-                                className={`text-xs mt-1 text-center ${
-                                  selectedIcon === item.value
-                                    ? "text-white"
-                                    : "text-gray-600"
-                                }`}
-                                numberOfLines={1}
-                              >
-                                {item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
+                              {item.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const newCategories = [...categories];
+                        newCategories[index] = {
+                          ...newCategories[index],
+                          changeIcon: false,
+                          iconname: selectedIcon,
+                        };
+                        setCategories(newCategories);
+                      }}
+                      className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
+                        !name || !selectedIcon ? "bg-slate-800" : "bg-gray-400"
+                      }`}
+                    >
+                      <Text className="text-white font-bold">Speichern</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        ) : (
+          <View className="space-y-4 ">
+            <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+              <FlatList
+                data={GroupCategories}
+                renderItem={renderCategoryItem3}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingVertical: 8,
+                }}
+                className="flex-grow-0"
+              />
+            </View>
+            {routines.map((routine, index) => (
+              <View
+                key={index}
+                className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
+              >
+                {routine.archivated && (
+                  <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
+                )}
+                <View className={`bg-[#101923] p-4`}>
+                  <View className="flex-row justify-between items-center mb-3">
+                    <View className="flex-row justify-between gap-3">
                       <TouchableOpacity
                         onPress={() => {
                           const newRoutines = [...routines];
                           newRoutines[index] = {
                             ...newRoutines[index],
-                            changeIcon: false,
-                            iconname: selectedIcon,
+                            changeIcon: !routine.changeIcon,
                           };
                           setRoutines(newRoutines);
                         }}
-                        className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                          !name || !selectedIcon
-                            ? "bg-slate-800"
-                            : "bg-gray-400"
-                        }`}
+                        className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
                       >
-                        <Text className="text-white font-bold">Speichern</Text>
+                        <MaterialCommunityIcons
+                          name={routine.iconname as any}
+                          size={18}
+                          color={routine.color}
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => {
+                          const newRoutines = [...routines];
+                          newRoutines[index] = {
+                            ...newRoutines[index],
+                            modelOpen: !routine.modelOpen,
+                          };
+                          setRoutines(newRoutines);
+                        }}
+                      >
+                        <Text className="font-bold text-2xl text-white max-w-[160px] ">
+                          {routine.name}
+                        </Text>
                       </TouchableOpacity>
                     </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View className="flex-row ">
-            {activeTab == "habits" ? (
-              <TouchableOpacity
-                onPress={() => {
-                  setExpand(!expand);
-                  setName("");
-                  setSelectedCategory("");
-                  setAmount("");
-                  setSelectedDays([]);
-                }}
-                className=" mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
-              >
-                <Text className="font-bold text-3xl text-white">+</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => {
-                  setExpandRoutine(!expandRoutine);
-                  setName("");
-                  setSelectedCategory("");
-                  setAmount("");
-                  setSelectedDays([]);
-                }}
-                className="mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
-              >
-                <Text className="font-bold text-3xl text-white">+</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {expandRoutine ? (
-            <View
-              style={{
-                backgroundColor: "#111827",
-              }}
-              className="rounded-xl p-4 shadow-sm mt-4"
-            >
-              <Text className="text-xl font-bold text-white mb-4">
-                Create a New Routine
-              </Text>
-              <TextInput
-                className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                placeholder="Enter name of Routine"
-                placeholderTextColor="#9CA3AF"
-                value={name}
-                onChangeText={setName}
-              />
-              <TextInput
-                className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-10"
-                placeholder="Enter amount"
-                placeholderTextColor="#9CA3AF"
-                value={amount}
-                onChangeText={setAmount}
-              />
-
-              <ScrollView>
-                {routineItem.map((item, index) => (
-                  <TextInput
-                    key={index}
-                    className="bg-gray-800 border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                    placeholder="Enter Routine Part"
-                    placeholderTextColor="#9CA3AF"
-                    value={item.name}
-                    onChangeText={(text) =>
-                      setRoutItem((prev) =>
-                        prev.map((el, i) =>
-                          i === index ? { ...el, name: text } : el
-                        )
-                      )
-                    }
-                  />
-                ))}
-                <TouchableOpacity
-                  className="h-10 w-10 rounded-full bg-slate-800 mx-auto flex justify-center items-center"
-                  onPress={() =>
-                    setRoutItem((prev) => [
-                      ...prev,
-                      {
-                        name: "",
-                        lastCheckedDate: "",
-                        buttoncolor: "#71717a",
-                        edited: false,
-                      },
-                    ])
-                  }
-                >
-                  <Text className="font-bold text-white text-center text-2xl ">
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </ScrollView>
-              <View className="mb-6 mt-6">
-                <Text
-                  className={` font-bold text-lg mb-3 
-                             text-white
-                          }`}
-                >
-                  Select a Category
-                </Text>
-
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
-                />
-              </View>
-              <Text className="text-white font-medium mb-5">
-                Select Weekdays
-              </Text>
-              <View className="flex-row flex-wrap gap-4 mb-5">
-                {weekdays.map((weekday, index) => {
-                  const isSelected = selectedDays.includes(weekday.value);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        setSelectedDays((prev) => {
-                          if (prev.includes(weekday.value)) {
-                            return prev.filter((day) => day !== weekday.value);
-                          } else {
-                            return [...prev, weekday.value];
-                          }
-                        });
-                      }}
-                      className={`rounded-full h-12 w-12 items-center justify-center ${
-                        isSelected ? "bg-violet-600" : "bg-slate-800"
-                      }`}
-                    >
-                      <Text className="text-gray-400 font-bold">
-                        {weekday.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <ScrollView
-                className="h-72 mb-4 mt-8"
-                scrollEnabled={true}
-                showsVerticalScrollIndicator={true}
-                nestedScrollEnabled={true}
-              >
-                <View className="flex-row flex-wrap justify-between">
-                  {items.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
-                        selectedIcon === item.value
-                          ? "bg-violet-600 border-gray-600"
-                          : "bg-gray-800 border-gray-800"
-                      }`}
-                      onPress={() => setSelectedIcon(item.value)}
-                    >
-                      <MaterialCommunityIcons
-                        name={item.value as any}
-                        size={24}
-                        color={
-                          selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
-                        }
-                      />
-                      <Text
-                        className={`text-xs mt-1 text-center ${
-                          selectedIcon === item.value
-                            ? "text-white"
-                            : "text-gray-600"
-                        }`}
-                        numberOfLines={1}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              <TouchableOpacity
-                className={`rounded-lg py-3 items-center ${
-                  !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
-                }`}
-                disabled={!name || !selectedIcon}
-                onPress={() => {
-                  addNewRoutine(
-                    name,
-                    selectedIcon,
-                    Number.parseInt(amount),
-                    selectedDays
-                  );
-                  setName("");
-                  setSelectedIcon("");
-                  setRoutItem([]);
-                }}
-              >
-                <Text className="text-white font-bold text-base">
-                  Add Routine
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-          {expand ? (
-            <View
-              style={{
-                backgroundColor: "#111827",
-              }}
-              className="rounded-xl p-4 shadow-sm mt-4"
-            >
-              <Text className="text-xl font-bold text-white mb-4 ">
-                Create New Habit
-              </Text>
-
-              <TextInput
-                className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                placeholder="Enter name of Habit"
-                placeholderTextColor="#9CA3AF"
-                value={name}
-                onChangeText={setName}
-              />
-
-              <TextInput
-                className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                placeholder="Enter amount of Habit"
-                placeholderTextColor="#9CA3AF"
-                value={amount}
-                onChangeText={setAmount}
-              />
-              <View className="mb-6 mt-6">
-                <Text
-                  className={` font-bold text-lg mb-3 
-                             text-white
-                          }`}
-                >
-                  Select a Category
-                </Text>
-
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
-                />
-              </View>
-
-              <Text className="text-white font-medium mb-3">
-                Choose an icon
-              </Text>
-
-              {selectedIcon && (
-                <View className="flex-row items-center bg-gray-800 p-3 rounded-lg mb-4">
-                  <MaterialCommunityIcons
-                    name={selectedIcon as any}
-                    size={28}
-                    color="#374151"
-                  />
-                  <Text className="ml-3 text-white font-medium">
-                    {items.find((item) => item.value === selectedIcon)?.label}
-                  </Text>
-                </View>
-              )}
-              <Text className="text-white font-medium mb-5">
-                Select Weekdays
-              </Text>
-              <View className="flex-row flex-wrap  gap-4 mb-5">
-                {weekdays.map((weekday, index) => {
-                  const isSelected = selectedDays.includes(weekday.value);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        setSelectedDays((prev) => {
-                          if (prev.includes(weekday.value)) {
-                            return prev.filter((day) => day !== weekday.value);
-                          } else {
-                            return [...prev, weekday.value];
-                          }
-                        });
-                      }}
-                      className={`rounded-full h-12 w-12 items-center justify-center ${
-                        isSelected ? "bg-violet-600" : "bg-slate-800"
-                      }`}
-                    >
-                      <Text className="text-gray-400 font-bold">
-                        {weekday.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <ScrollView
-                className="h-72 mb-4 mt-8"
-                scrollEnabled={true}
-                showsVerticalScrollIndicator={true}
-                nestedScrollEnabled={true}
-              >
-                <View className="flex-row flex-wrap justify-between">
-                  {items.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
-                        selectedIcon === item.value
-                          ? "bg-violet-600 border-gray-600"
-                          : "bg-gray-800 border-gray-800"
-                      }`}
-                      onPress={() => setSelectedIcon(item.value)}
-                    >
-                      <MaterialCommunityIcons
-                        name={item.value as any}
-                        size={24}
-                        color={
-                          selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
-                        }
-                      />
-                      <Text
-                        className={`text-xs mt-1 text-center ${
-                          selectedIcon === item.value
-                            ? "text-white"
-                            : "text-gray-600"
-                        }`}
-                        numberOfLines={1}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              <TouchableOpacity
-                className={`rounded-lg py-3 items-center ${
-                  !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
-                }`}
-                disabled={!name || !selectedIcon}
-                onPress={() => {
-                  addNewHabit(
-                    name,
-                    selectedIcon,
-                    Number.parseInt(amount),
-                    selectedDays
-                  );
-                  setAmount("1");
-                  setName("");
-                  setSelectedIcon("");
-                }}
-              >
-                <Text className="text-white font-bold text-base">
-                  Add Habit
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-        </ScrollView>
-      </View>
-    );
-  } else {
-    return (
-      <View className="flex-1 bg-gray-50">
-        <ScrollView
-          className="flex-1"
-          contentContainerClassName="px-4 py-8 pb-20"
-        >
-          <View className="flex-row justify-between w-full">
-            <View className="flex-col">
-              <TouchableOpacity
-                onPress={() => updateColor("dark")}
-                className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              >
-                <Text className="font-bold text-xl">☀</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setQuestView(!questview)}
-                className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              >
-                <MaterialCommunityIcons
-                  name="script-text"
-                  size={20}
-                  color={"white"}
-                ></MaterialCommunityIcons>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              onPress={() => setQuickView(!quickView)}
-              className="bg-violet-600 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-            >
-              <MaterialCommunityIcons
-                size={20}
-                name="view-grid-plus"
-                color="white"
-              ></MaterialCommunityIcons>
-            </TouchableOpacity>
-          </View>
-
-          <View className="items-center mb-8 mt-12">
-            <View className="flex-row justify-between gap-3">
-              <Text className="text-5xl font-bold text-gray-800">Loop</Text>
-              <Image
-                className="w-[50px] h-[50px] relative bottom-1"
-                source={require("../../assets/images/AppLogo-removebg-preview.png")}
-              ></Image>
-            </View>
-            <Text className="text-gray-500 mt-2 text-center font-bold">
-              Track your daily habits and build streaks
-            </Text>
-          </View>
-
-          <View className="flex-row mb-10 bg-gray-100 rounded-lg p-1">
-            <TouchableOpacity
-              className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "habits" ? "bg-violet-600" : ""
-              }`}
-              onPress={() => {
-                setActiveTab("habits");
-                setExpandRoutine(false);
-              }}
-            >
-              <Text
-                className={`text-center font-medium ${
-                  activeTab === "habits" ? "text-white" : "text-gray-700"
-                }`}
-              >
-                Habits
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className={`flex-1 py-2 px-4 rounded-md ${
-                activeTab === "routines" ? "bg-violet-600" : ""
-              }`}
-              onPress={() => {
-                setActiveTab("routines");
-                setExpand(false);
-              }}
-            >
-              <Text
-                className={`text-center font-medium ${
-                  activeTab === "routines" ? "text-white" : "text-gray-700"
-                }`}
-              >
-                Routines
-              </Text>
-            </TouchableOpacity>
-            {badgeAnimationVisible && badgeAnimationDays !== null && (
-              <BadgeAnimation
-                days={badgeAnimationDays}
-                visible={badgeAnimationVisible}
-              />
-            )}
-            <Modal animationType="slide" visible={questview} transparent={true}>
-              <View className="flex-1 justify-end ">
-                <View
-                  className={`rounded-t-3xl  px-6 ${"bg-white"}`}
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                    maxHeight: "90%",
-                  }}
-                >
-                  <View className="py-10">
-                    <TouchableOpacity
-                      onPress={() => setQuestView(false)}
-                      className="p-2 h-11 w-11 rounded-full bg-zinc-500 items-center justify-center mb-6"
-                    >
-                      <MaterialCommunityIcons
-                        name="close"
-                        size={24}
-                        color={"#94a3b8"}
-                      />
-                    </TouchableOpacity>
-
-                    <View className="flex justify-center items-center mb-10">
-                      <View className="bg-zinc-500 h-12 w-20 px-3 py-2 rounded-full justify-center items-center ">
-                        <FlameAnimation flames={QuestsDone} color="white" />
-                      </View>
-                    </View>
-
-                    <Text className="font-bold text-black text-2xl mb-5 text-center">
-                      Daily Quest:
-                    </Text>
-                    <Text className="text-black text-xl mb-8 text-center">
-                      {dailyQuests[DayQuestNumber()]}
-                    </Text>
-                    <View className="w-full h-3 bg-zinc-500 rounded-full mx-auto mb-5 overflow-hidden">
-                      <View
-                        className="h-3 rounded-full"
-                        style={{
-                          width:
-                            QuestDateDone ===
-                            new Date().toLocaleDateString("de-DE")
-                              ? "100%"
-                              : "0%",
-                          backgroundColor:
-                            QuestDateDone ===
-                            new Date().toLocaleDateString("de-DE")
-                              ? "#22c55e"
-                              : "#71717a",
-                        }}
-                      />
-                    </View>
-                    <TouchableOpacity
-                      onPress={CheckQuest}
-                      className="h-12 w-12 rounded-full items-center justify-center mx-auto"
-                      style={{
-                        backgroundColor:
-                          QuestDateDone ===
-                          new Date().toLocaleDateString("de-DE")
-                            ? "#22c55e"
-                            : "#71717a",
-                      }}
-                    >
-                      <Text className="text-white font-bold text-xl">✓</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </Modal>
-            <Modal animationType="slide" visible={quickView} transparent={true}>
-              <View className="flex-1 justify-end">
-                <View
-                  className={`rounded-t-3xl  px-6 ${"bg-violet-600"}`}
-                  style={{
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: -2 },
-                    shadowOpacity: 0.25,
-                    shadowRadius: 3.84,
-                    elevation: 5,
-                    maxHeight: "100%",
-                  }}
-                >
-                  {activeTab === "habits" ? (
-                    <View>
-                      <View className="flex-row  mb-6">
+                    <View className="flex-row ">
+                      <View className="mr-3">
                         <TouchableOpacity
                           onPress={() => {
-                            setQuickView(false);
+                            archivateroutine(index);
                           }}
-                          className="p-2 h-11 w-11 rounded-full bg-gray-400 items-center justify-center mt-3 ml-3 "
+                          className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center  z-20"
                         >
                           <MaterialCommunityIcons
-                            name="close"
-                            size={24}
-                            color={"white"}
+                            name="archive"
+                            size={18}
+                            color={routine.color}
                           />
                         </TouchableOpacity>
                       </View>
-                      <View className="flex justify-center items-center">
-                        <Text className="font-bold text-white text-2xl mb-5">
-                          Active Habits: {categories.length}
-                        </Text>
-                      </View>
-                      <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                        {categories.map((category, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
-                            style={{
-                              minWidth: 80,
-                              backgroundColor: category.color,
-                            }}
-                          >
-                            <View className="flex-row gap-5 items-center">
-                              <TouchableOpacity
-                                className="font-bold text-2xl text-white"
-                                onPress={() => {
-                                  const newCategories = [...categories];
-                                  newCategories[index] = {
-                                    ...newCategories[index],
-                                    modelOpen: !category.modelOpen,
-                                  };
-                                  setCategories(newCategories);
-                                }}
-                              >
-                                <Text className="font-bold text-lg px-3 text-white">
-                                  {category.name}
-                                </Text>
-                              </TouchableOpacity>
-                              <View className="bg-white/20 px-3 py-2 rounded-full ">
-                                <FlameAnimation
-                                  flames={category.streak}
-                                  color="#52525b"
-                                />
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
+                      <View className="bg-white/20 px-3 py-1 rounded-full ">
+                        <FlameAnimation flames={routine.streak} color="white" />
                       </View>
                     </View>
+                  </View>
+                </View>
+                <View className="px-4 mb-4 mt-2">
+                  <Text className="text-white font-semibold text-base mb-3">
+                    Todos:
+                  </Text>
+                  {routine.todos && routine.todos.length > 0 ? (
+                    routine.todos.map((todoItem, todoIndex) => {
+                      const today = new Date().toLocaleDateString("de-DE");
+                      const isCheckedToday = todoItem.lastCheckedDate === today;
+
+                      return (
+                        <View key={todoIndex} className="mb-3">
+                          <View className="flex-row items-center justify-between p-3 rounded-xl bg-slate-800">
+                            <Text className="text-white flex-1 mr-3">
+                              {todoItem.name}
+                            </Text>
+                            <View className="flex-row items-center gap-2">
+                              <TouchableOpacity
+                                onPress={() => {
+                                  deleteTodo(index, todoIndex);
+                                }}
+                                className="h-8 w-8 rounded-full bg-slate-700 items-center justify-center"
+                              >
+                                <Text className="text-white font-bold text-sm">
+                                  ✕
+                                </Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setRoutines((prevRoutines) => {
+                                    const updatedRoutines = [...prevRoutines];
+                                    const updatedTodos = [
+                                      ...updatedRoutines[index].todos,
+                                    ];
+                                    updatedTodos[todoIndex].edited =
+                                      !updatedTodos[todoIndex].edited;
+                                    updatedRoutines[index] = {
+                                      ...updatedRoutines[index],
+                                      todos: updatedTodos,
+                                    };
+                                    return updatedRoutines;
+                                  });
+                                }}
+                                className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
+                              >
+                                <MaterialCommunityIcons
+                                  name="pencil"
+                                  size={16}
+                                  color="white"
+                                />
+                              </TouchableOpacity>
+                              <TouchableOpacity
+                                onPress={() => {
+                                  handleCheckInRoutine(todoIndex, index);
+                                }}
+                                className="h-8 w-8 rounded-full items-center justify-center"
+                                style={{
+                                  backgroundColor: isCheckedToday
+                                    ? routine.color
+                                    : "#334155",
+                                }}
+                              >
+                                <Text className="text-white font-bold">✓</Text>
+                              </TouchableOpacity>
+                            </View>
+                          </View>
+                          {todoItem.edited && (
+                            <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-slate-800">
+                              <TextInput
+                                onChangeText={(text) => {
+                                  setTodoName(text);
+                                }}
+                                className="flex-1 bg-slate-700 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
+                                placeholder="Edit Todo"
+                              />
+                              <TouchableOpacity
+                                onPress={() => {
+                                  editRoutine(index, todoIndex, newTodoName);
+                                }}
+                                className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
+                              >
+                                <MaterialCommunityIcons
+                                  name="check-circle"
+                                  color="white"
+                                  size={16}
+                                />
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })
                   ) : (
-                    <View>
-                      <View className="flex-row  mb-6">
-                        <TouchableOpacity
-                          onPress={() => {
-                            setQuickView(false);
-                          }}
-                          className="p-2 h-11 w-11 rounded-full bg-gray-400 items-center justify-center mt-3 ml-3 "
-                        >
-                          <MaterialCommunityIcons
-                            name="close"
-                            size={24}
-                            color={"white"}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex justify-center items-center">
-                        <Text className="font-bold text-white text-2xl mb-5">
-                          Active Routines: {routines.length}
-                        </Text>
-                      </View>
-                      <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                        {routines.map((routine, index) => (
-                          <TouchableOpacity
-                            key={index}
-                            className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
-                            style={{
-                              minWidth: 80,
-                              backgroundColor: routine.color,
-                            }}
-                          >
-                            <View className="flex-row gap-5 items-center">
-                              <TouchableOpacity
-                                onPress={() => {
-                                  const newRoutines = [...routines];
-                                  newRoutines[index] = {
-                                    ...newRoutines[index],
-                                    modelOpen: !routine.modelOpen,
-                                  };
-                                  setRoutines(newRoutines);
-                                }}
-                              >
-                                <Text className="font-bold text-2xl text-white max-w-[160px] ">
-                                  {routine.name}
-                                </Text>
-                              </TouchableOpacity>
-                              <View className="bg-white/20 px-3 py-2 rounded-full ">
-                                <FlameAnimation
-                                  flames={routine.streak}
-                                  color="#52525b"
-                                />
-                              </View>
-                            </View>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
+                    <Text className="text-gray-500 italic">
+                      No todos for this routine
+                    </Text>
                   )}
                 </View>
-              </View>
-            </Modal>
-          </View>
-
-          {activeTab === "habits" ? (
-            <View className="space-y-4 ">
-              <View className="mb-8">
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem2}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
-                />
-              </View>
-              {categories.map((category, index) => (
-                <View
-                  key={index}
-                  className="overflow-hidden rounded-2xl bg-white backdrop-blur-lg border border-gray-200 mb-10 shadow-sm"
-                >
-                  {category.archivated && (
-                    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
-                  )}
-                  <View className="bg-gray-100 p-4 rounded-t-2xl">
-                    <View className="flex-row justify-between items-center mb-3">
-                      <View className="flex-row justify-between gap-3">
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              changeIcon: !category.changeIcon,
-                            };
-                            setCategories(newCategories);
-                          }}
-                          className="h-8 w-8 shadow-lg bg-gray-200 rounded-full items-center justify-center"
-                        >
-                          <MaterialCommunityIcons
-                            name={category.iconname as any}
-                            size={18}
-                            color={category.color}
-                          />
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          className="font-bold text-2xl text-gray-800"
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              modelOpen: !category.modelOpen,
-                            };
-                            setCategories(newCategories);
-                          }}
-                        >
-                          <Text className="font-bold text-2xl text-gray-800  max-w-[100px]">
-                            {category.name}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex-row">
-                        <Text className="font-bold text-xl text-gray-600 mr-3 mt-1">
-                          {category.amount > 1 ? category.amount + "x" : null}
-                        </Text>
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newCategories = [...categories];
-                            newCategories[index] = {
-                              ...newCategories[index],
-                              camerashow: !category.camerashow,
-                            };
-                            setCategories(newCategories);
-                          }}
-                          className="bg-gray-200 h-9 w-9 mr-3 rounded-full items-center justify-center shadow-lg  z-20"
-                        >
-                          <MaterialCommunityIcons
-                            name="camera"
-                            size={18}
-                            color={category.color}
-                          />
-                        </TouchableOpacity>
-                        <View className="mr-3">
-                          <TouchableOpacity
-                            onPress={() => {
-                              archivateHabit(index);
-                            }}
-                            className="bg-gray-200 h-9 w-9 rounded-full items-center justify-center shadow-lg z-20"
-                          >
-                            <MaterialCommunityIcons
-                              name="archive"
-                              size={18}
-                              color={category.color}
-                            />
-                          </TouchableOpacity>
-                        </View>
-                        <View className="bg-white/80 px-3 py-1 rounded-full">
-                          <FlameAnimation
-                            flames={category.streak}
-                            color="#52525b"
-                          ></FlameAnimation>
-                        </View>
-                      </View>
-                    </View>
+                <View className="px-4 pb-4 flex-row justify-between items-center">
+                  <View className="flex-1">
+                    <Streak
+                      archivated={routine.archivated}
+                      addDays={(days) => addDaysRoutine(days, index)}
+                      startDate1={routine.startDate}
+                      checkedDays={routine.checkedDays}
+                      color={routine.color}
+                      bgcolor="[#111827]"
+                      grayColor="#1f2937"
+                      days={105}
+                      textColor="white"
+                    />
                   </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      removeRoutine(index);
+                    }}
+                    className="bg-slate-800 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
+                  >
+                    <Text className="text-white text-sm">✕</Text>
+                  </TouchableOpacity>
+                </View>
 
-                  <View className="p-3 flex-row justify-between  items-center">
-                    <View className="flex-1 mr-3">
-                      <Streak
-                        archivated={category.archivated}
-                        addDays={(days: number) => addDays(days, index)}
-                        startDate1={category.startDate}
-                        checkedDays={category.checkedDays}
-                        color={category.color}
-                        bgcolor="#6b7280"
-                        grayColor="#6b7280"
-                        days={105}
-                        textColor="#71717a"
-                      />
-                    </View>
-
-                    <View className="left-8 flex justify-center items-center relative">
-                      <AnimatedCircularProgress
-                        size={55}
-                        width={3}
-                        fill={
-                          (Math.min(category.checkedToday, category.amount) /
-                            category.amount) *
-                          100
-                        }
-                        tintColor={category.buttonColor}
-                        backgroundColor="#a3a3a3"
-                        arcSweepAngle={360}
-                        rotation={0}
-                        lineCap="round"
-                      />
-
-                      <TouchableOpacity
-                        onPress={() => handleCheckIn(index, false)}
-                        className="h-12 w-12 absolute rounded-full"
+                <Modal
+                  animationType="slide"
+                  visible={routine.modelOpen}
+                  transparent={true}
+                >
+                  <View className="flex-1 justify-end">
+                    <ScrollView
+                      scrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
+                      style={{ maxHeight: "90%" }}
+                    >
+                      <View
+                        className="rounded-t-3xl bg-gray-900"
                         style={{
-                          backgroundColor: category.buttonColor,
-                          alignItems: "center",
-                          justifyContent: "center",
                           shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
+                          shadowOffset: { width: 0, height: -2 },
                           shadowOpacity: 0.25,
                           shadowRadius: 3.84,
                           elevation: 5,
                         }}
                       >
-                        <Text className="text-white font-bold text-xl">✓</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    <TouchableOpacity
-                      onPress={() => handleDeletePress(index)}
-                      className="bg-gray-200 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
-                    >
-                      <Text className="text-gray-600 text-md">✕</Text>
-                    </TouchableOpacity>
-                    <Modal
-                      animationType="slide"
-                      visible={category.camerashow}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end">
-                        <View
-                          className={`rounded-t-3xl ${"bg-white"}`}
-                          style={{
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: -2 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                            maxHeight: "90%",
-                          }}
-                        >
-                          <CameraView ref={cameraRef} facing={facing}>
-                            <TouchableOpacity className=" ml-3 mb-3 rounded-full flex bg-violet-600 h-11 w-11 items-center justify-center">
-                              <MaterialCommunityIcons
-                                name="close"
-                                size={20}
-                                color={"white"}
-                                onPress={() => {
-                                  const newCategories = [...categories];
-                                  newCategories[index] = {
-                                    ...newCategories[index],
-                                    camerashow: false,
-                                  };
-                                  setCategories(newCategories);
-                                }}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={takePhoto}
-                              className="ml-3 mb-3 rounded-full flex bg-violet-600 h-11 w-11 items-center justify-center"
-                            >
-                              <MaterialCommunityIcons
-                                name="camera"
-                                size={20}
-                                color={"white"}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              onPress={() => {
-                                toggleCameraFacing();
-                              }}
-                              className="ml-3 mb-3 rounded-full flex bg-violet-600 h-11 w-11 items-center justify-center"
-                            >
-                              <MaterialCommunityIcons
-                                name="camera-switch"
-                                size={20}
-                                color={"white"}
-                              ></MaterialCommunityIcons>
-                            </TouchableOpacity>
-                          </CameraView>
-
-                          {photoUri ? (
-                            <View>
-                              <View className="flex justify-center items-center w-full mt-10 rounded-xl">
-                                <Image
-                                  className="flex justify-center items-center rounded-xl"
-                                  source={{ uri: photoUri }}
-                                  style={{ width: 300, height: 300 }}
-                                />
-                              </View>
-                              <View className="mt-10 mb-10 w-full flex items-center">
-                                <TouchableOpacity
-                                  onPress={() => saveImages(index)}
-                                  className="px-10 py-4 bg-violet-600 items-center justify-center rounded-xl"
-                                >
-                                  <Text className="text-white font-bold text-xl">
-                                    Save
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                          ) : (
-                            <View className="flex-1 items-center justify-center bg-slate-950">
-                              <Text className="text-white font-bold text-2xl">
-                                No Picture yet
-                              </Text>
-                            </View>
-                          )}
-                        </View>
-                      </View>
-                    </Modal>
-                    <Modal
-                      animationType="slide"
-                      visible={category.modelOpen}
-                      transparent={true}
-                    >
-                      <View className="flex-1 justify-end">
-                        <ScrollView
-                          scrollEnabled={true}
-                          showsVerticalScrollIndicator={true}
-                          nestedScrollEnabled={true}
-                          style={{ maxHeight: "90%" }}
-                        >
-                          <View
-                            className={`rounded-t-3xl ${"bg-white"}`}
-                            style={{
-                              shadowColor: "#000",
-                              shadowOffset: { width: 0, height: -2 },
-                              shadowOpacity: 0.25,
-                              shadowRadius: 3.84,
-                              elevation: 5,
-                            }}
-                          >
-                            <View className="flex-row  mb-10">
-                              <TouchableOpacity
-                                onPress={() => {
-                                  const newCategories = [...categories];
-                                  newCategories[index] = {
-                                    ...newCategories[index],
-                                    modelOpen: false,
-                                  };
-                                  setCategories(newCategories);
-                                }}
-                                className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3 "
-                              >
-                                <MaterialCommunityIcons
-                                  name="close"
-                                  size={24}
-                                  color={"white"}
-                                />
-                              </TouchableOpacity>
-                            </View>
-                            <View className="flex-col items-center justify-center  mb-10">
-                              <View className="flex-row gap-5 ">
-                                <Text className="mb-5 font-bold text-3xl text-gray-500">
-                                  {category.name}
-                                </Text>
-
-                                <View className="bg-gray-300 px-3 py-1 rounded-full h-9  ">
-                                  <FlameAnimation
-                                    flames={category.streak}
-                                    color="black"
-                                  ></FlameAnimation>
-                                </View>
-                              </View>
-                              <Text className="mb-5 text-gray-300 font-bold text-md">
-                                Longest Streak: {category.longestStreak}
-                              </Text>
-                              <Text className="mb-5 text-gray-300 font-bold text-md ">
-                                Started on:
-                                {category.startDate &&
-                                !isNaN(
-                                  Date.parse(category.startDate.toString())
-                                )
-                                  ? "  " +
-                                    new Date(
-                                      category.startDate
-                                    ).toLocaleDateString("de-DE")
-                                  : "Date not set"}
-                              </Text>
-                              <Text className="mb-5 text-gray-300 font-bold text-md ">
-                                Last Checked:
-                                {" " + category.lastCheckDate}
-                              </Text>
-                              <View className=" flex justify-center items-center">
-                                <StreakV2
-                                  archivated={category.archivated}
-                                  addDays={(days: number) =>
-                                    addDays(days, index)
-                                  }
-                                  startDate1={category.startDate}
-                                  checkedDays={category.checkedDays}
-                                  color={category.color}
-                                  bgcolor="[#0f172a]"
-                                  grayColor="#71717a"
-                                  textColor="#71717a"
-                                ></StreakV2>
-                              </View>
-                              <Text className="mb-3 text-white font-bold text-lg">
-                                Selected Days
-                              </Text>
-                              <View className="flex-row flex-wrap justitfy-center items-center mb-20 gap-4">
-                                {category.selectedDays.map((day, index) => (
-                                  <View key={index}>
-                                    <TouchableOpacity
-                                      className="h-12 w-12 rounded-full items-center justify-center"
-                                      style={{
-                                        backgroundColor: category.color,
-                                      }}
-                                    >
-                                      <Text className="font-bold text-white text-lg">
-                                        {day.substring(0, 2).toUpperCase()}
-                                      </Text>
-                                    </TouchableOpacity>
-                                  </View>
-                                ))}
-                              </View>
-                              <Text className="flex items-center justify-center font-bold text-white text-lg">
-                                Images
-                              </Text>
-                              <View className="flex-row flex-wrap mt-5 gap-4 items-center justify-center">
-                                {(category.imagePaths ?? []).length > 0 ? (
-                                  (category.imagePaths ?? []).map(
-                                    (path, idx) => (
-                                      <TouchableOpacity
-                                        key={idx}
-                                        onPress={() => {
-                                          setImageIndex(idx);
-                                          const newCategories = [...categories];
-                                          newCategories[index] = {
-                                            ...newCategories[index],
-                                            galleryVisible: true,
-                                          };
-                                          setCategories(newCategories);
-                                        }}
-                                      >
-                                        <Image
-                                          source={{ uri: path }}
-                                          style={{
-                                            width: 100,
-                                            height: 100,
-                                            borderRadius: 8,
-                                          }}
-                                        />
-                                      </TouchableOpacity>
-                                    )
-                                  )
-                                ) : (
-                                  <Text className="flex justify-center items-center font-bold text-lg text-white">
-                                    No Images Found
-                                  </Text>
-                                )}
-                              </View>
-                            </View>
-                          </View>
-                        </ScrollView>
-                      </View>
-                    </Modal>
-                    <View>
-                      <ImageViewing
-                        images={(category.imagePaths ?? []).map((uri) => ({
-                          uri,
-                        }))}
-                        imageIndex={imageIndex}
-                        visible={category.galleryVisible}
-                        onRequestClose={() => {
-                          const newCategories = [...categories];
-                          newCategories[index] = {
-                            ...newCategories[index],
-                            galleryVisible: false,
-                          };
-                          setCategories(newCategories);
-                        }}
-                      />
-                    </View>
-                  </View>
-                  {category.changeIcon ? (
-                    <View className="flex-col">
-                      <ScrollView
-                        className="h-72 mb-4 mt-8"
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                      >
-                        <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, index) => (
-                            <TouchableOpacity
-                              key={index}
-                              className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
-                                selectedIcon === item.value
-                                  ? "bg-violet-600 border-violet-600"
-                                  : "bg-gray-100 border-gray-200"
-                              }`}
-                              onPress={() => setSelectedIcon(item.value)}
-                            >
-                              <MaterialCommunityIcons
-                                name={item.value as any}
-                                size={24}
-                                color={
-                                  selectedIcon === item.value
-                                    ? "#FFFFFF"
-                                    : "#6b7280"
-                                }
-                              />
-                              <Text
-                                className={`text-xs mt-1 text-center ${
-                                  selectedIcon === item.value
-                                    ? "text-white"
-                                    : "text-gray-700"
-                                }`}
-                                numberOfLines={1}
-                              >
-                                {item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                      <TouchableOpacity
-                        onPress={() => {
-                          const newCategories = [...categories];
-                          newCategories[index] = {
-                            ...newCategories[index],
-                            changeIcon: false,
-                            iconname: selectedIcon,
-                          };
-                          setCategories(newCategories);
-                        }}
-                        className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                          !name || !selectedIcon
-                            ? "bg-gray-300"
-                            : "bg-violet-600"
-                        }`}
-                      >
-                        <Text className="text-white font-bold">Save</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : null}
-                </View>
-              ))}
-            </View>
-          ) : (
-            <View className="space-y-4 ">
-              <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem3}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{
-                    paddingVertical: 8,
-                  }}
-                  className="flex-grow-0"
-                />
-              </View>
-              {routines.map((routine, index) => (
-                <View
-                  key={index}
-                  className="overflow-hidden rounded-2xl bg-white backdrop-blur-lg border border-gray-200 mb-10"
-                >
-                  {routine.archivated && (
-                    <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
-                  )}
-                  <View className={`bg-gray-100 p-4`}>
-                    <View className="flex-row justify-between items-center mb-3">
-                      <View className="flex-row justify-between gap-3">
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newRoutines = [...routines];
-                            newRoutines[index] = {
-                              ...newRoutines[index],
-                              changeIcon: !routine.changeIcon,
-                            };
-                            setRoutines(newRoutines);
-                          }}
-                          className="h-8 w-8 shadow-lg bg-gray-200 rounded-full items-center justify-center"
-                        >
-                          <MaterialCommunityIcons
-                            name={routine.iconname as any}
-                            size={18}
-                            color={routine.color}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          onPress={() => {
-                            const newRoutines = [...routines];
-                            newRoutines[index] = {
-                              ...newRoutines[index],
-                              modelOpen: !routine.modelOpen,
-                            };
-                            setRoutines(newRoutines);
-                          }}
-                        >
-                          <Text className="font-bold text-2xl text-black max-w-[160px] ">
-                            {routine.name}
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                      <View className="flex-row ">
-                        <View className="mr-3">
+                        <View className="flex-row gap-1 mb-10">
                           <TouchableOpacity
                             onPress={() => {
-                              archivateroutine(index);
+                              const newRoutines = [...routines];
+                              newRoutines[index] = {
+                                ...newRoutines[index],
+                                modelOpen: false,
+                              };
+                              setRoutines(newRoutines);
                             }}
-                            className="bg-slate-200 h-9 w-9 rounded-full items-center justify-center shadow-lg z-20"
+                            className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
                           >
                             <MaterialCommunityIcons
-                              name="archive"
-                              size={18}
-                              color={routine.color}
+                              name="close"
+                              size={24}
+                              color="#94a3b8"
                             />
                           </TouchableOpacity>
                         </View>
-                        <View className="bg-white px-3 py-1 rounded-full ">
-                          <FlameAnimation
-                            flames={routine.streak}
-                            color="black"
-                          />
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                  <View className="px-4 mb-4 mt-2">
-                    <Text className="text-gray-600 font-semibold text-base mb-3">
-                      Todos:
-                    </Text>
-                    {routine.todos && routine.todos.length > 0 ? (
-                      routine.todos.map((todoItem, todoIndex) => {
-                        const today = new Date().toLocaleDateString("de-DE");
-                        const isCheckedToday =
-                          todoItem.lastCheckedDate === today;
 
-                        return (
-                          <View key={todoIndex} className="mb-3">
-                            <View className="flex-row items-center justify-between p-3 rounded-xl bg-gray-200">
-                              <Text className="text-gray-500 flex-1 mr-3">
-                                {todoItem.name}
-                              </Text>
-                              <View className="flex-row items-center gap-2">
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    deleteTodo(index, todoIndex);
-                                  }}
-                                  className="h-8 w-8 rounded-full bg-gray-300 items-center justify-center"
-                                >
-                                  <Text className="text-white font-bold text-sm">
-                                    ✕
-                                  </Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    setRoutines((prevRoutines) => {
-                                      const updatedRoutines = [...prevRoutines];
-                                      const updatedTodos = [
-                                        ...updatedRoutines[index].todos,
-                                      ];
-                                      updatedTodos[todoIndex].edited =
-                                        !updatedTodos[todoIndex].edited;
-                                      updatedRoutines[index] = {
-                                        ...updatedRoutines[index],
-                                        todos: updatedTodos,
-                                      };
-                                      return updatedRoutines;
-                                    });
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center bg-gray-300"
-                                >
-                                  <MaterialCommunityIcons
-                                    name="pencil"
-                                    size={16}
-                                    color="white"
-                                  />
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    handleCheckInRoutine(todoIndex, index);
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center"
-                                  style={{
-                                    backgroundColor: isCheckedToday
-                                      ? routine.color
-                                      : "#d1d5db",
-                                  }}
-                                >
-                                  <Text className="text-white font-bold">
-                                    ✓
-                                  </Text>
-                                </TouchableOpacity>
-                              </View>
-                            </View>
-                            {todoItem.edited && (
-                              <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-gray-200">
-                                <TextInput
-                                  onChangeText={(text) => {
-                                    setTodoName(text);
-                                  }}
-                                  className="flex-1 bg-gray-300 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
-                                  placeholder="Edit Todo"
-                                />
-                                <TouchableOpacity
-                                  onPress={() => {
-                                    editRoutine(index, todoIndex, newTodoName);
-                                  }}
-                                  className="h-8 w-8 rounded-full items-center justify-center bg-gray-300"
-                                >
-                                  <MaterialCommunityIcons
-                                    name="check-circle"
-                                    color="white"
-                                    size={16}
-                                  />
-                                </TouchableOpacity>
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })
-                    ) : (
-                      <Text className="text-gray-500 italic">
-                        No todos for this routine
-                      </Text>
-                    )}
-                  </View>
-                  <View className="px-4 pb-4 flex-row justify-between items-center">
-                    <View className="flex-1">
-                      <Streak
-                        archivated={routine.archivated}
-                        addDays={(days) => addDaysRoutine(days, index)}
-                        startDate1={routine.startDate}
-                        checkedDays={routine.checkedDays}
-                        color={routine.color}
-                        bgcolor="[#111827]"
-                        grayColor="#6b7280"
-                        days={105}
-                        textColor="#6b7280"
-                      />
-                    </View>
-                    <TouchableOpacity
-                      onPress={() => {
-                        removeRoutine(index);
-                      }}
-                      className="bg-gray-500 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
-                    >
-                      <Text className="text-white text-sm">✕</Text>
-                    </TouchableOpacity>
-                  </View>
+                        <View className="flex-col items-center justify-center mb-10">
+                          <View className="flex-row gap-5">
+                            <Text className="mb-5 font-bold text-3xl text-white">
+                              {routine.name}
+                            </Text>
 
-                  <Modal
-                    animationType="slide"
-                    visible={routine.modelOpen}
-                    transparent={true}
-                  >
-                    <View className="flex-1 justify-end">
-                      <ScrollView
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                        style={{ maxHeight: "90%" }}
-                      >
-                        <View
-                          className="rounded-t-3xl bg-white"
-                          style={{
-                            shadowColor: "#000",
-                            shadowOffset: { width: 0, height: -2 },
-                            shadowOpacity: 0.25,
-                            shadowRadius: 3.84,
-                            elevation: 5,
-                          }}
-                        >
-                          <View className="flex-row gap-1 mb-10">
-                            <TouchableOpacity
-                              onPress={() => {
-                                const newRoutines = [...routines];
-                                newRoutines[index] = {
-                                  ...newRoutines[index],
-                                  modelOpen: false,
-                                };
-                                setRoutines(newRoutines);
-                              }}
-                              className="p-2 h-11 w-11 rounded-full bg-gray-500 items-center justify-center mt-3 ml-3"
-                            >
-                              <MaterialCommunityIcons
-                                name="close"
-                                size={24}
+                            <View className="bg-white/20 px-3 py-1 rounded-full h-10">
+                              <FlameAnimation
+                                flames={routine.streak}
                                 color="white"
                               />
-                            </TouchableOpacity>
+                            </View>
                           </View>
-
-                          <View className="flex-col items-center justify-center mb-10">
-                            <View className="flex-row gap-5">
-                              <Text className="mb-5 font-bold text-3xl text-black">
-                                {routine.name}
-                              </Text>
-
-                              <View className="bg-gray-200 px-3 py-1 rounded-full h-10">
-                                <FlameAnimation
-                                  flames={routine.streak}
-                                  color="black"
-                                />
+                          <Text className="mb-5 text-gray-400 font-bold text-md">
+                            Longest Streak:
+                            {" " + routine.longestStreak}
+                          </Text>
+                          <Text className="mb-5 text-gray-400 font-bold text-md">
+                            Started on:
+                            {routine.startDate &&
+                            !isNaN(Date.parse(routine.startDate.toString()))
+                              ? "  " +
+                                new Date(routine.startDate).toLocaleDateString(
+                                  "de-DE"
+                                )
+                              : "Date not set"}
+                          </Text>
+                          <Text className="mb-5 text-gray-400 font-bold text-md">
+                            Last Checked:
+                            {" " + routine.lastCheckedDate}
+                          </Text>
+                          <View className="flex justify-center items-center">
+                            <StreakV2
+                              archivated={routine.archivated}
+                              addDays={(days) => addDaysRoutine(days, index)}
+                              startDate1={routine.startDate}
+                              checkedDays={routine.checkedDays}
+                              color={routine.color}
+                              bgcolor="[#0f172a]"
+                              grayColor="#1f2937"
+                              textColor="white"
+                            />
+                          </View>
+                          <Text className="mb-5 text-white font-bold text-lg">
+                            Selected Days
+                          </Text>
+                          <View className="flex-row flex-wrap justify-center items-center mb-20 gap-4">
+                            {routine.selectedDays.map((day, dayIndex) => (
+                              <View key={dayIndex}>
+                                <TouchableOpacity
+                                  className="h-12 w-12 rounded-full items-center justify-center"
+                                  style={{ backgroundColor: routine.color }}
+                                >
+                                  <Text className="font-bold text-white text-lg">
+                                    {day.substring(0, 2).toUpperCase()}
+                                  </Text>
+                                </TouchableOpacity>
                               </View>
-                            </View>
-                            <Text className="mb-5 text-gray-400 font-bold text-md">
-                              Longest Streak:
-                              {" " + routine.longestStreak}
-                            </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md">
-                              Started on:
-                              {routine.startDate &&
-                              !isNaN(Date.parse(routine.startDate.toString()))
-                                ? "  " +
-                                  new Date(
-                                    routine.startDate
-                                  ).toLocaleDateString("de-DE")
-                                : "Date not set"}
-                            </Text>
-                            <Text className="mb-5 text-gray-400 font-bold text-md">
-                              Last Checked:
-                              {" " + routine.lastCheckedDate}
-                            </Text>
-                            <View className="flex justify-center items-center">
-                              <StreakV2
-                                archivated={routine.archivated}
-                                addDays={(days) => addDaysRoutine(days, index)}
-                                startDate1={routine.startDate}
-                                checkedDays={routine.checkedDays}
-                                color={routine.color}
-                                bgcolor="[#0f172a]"
-                                grayColor="#71717a"
-                                textColor="#71717a"
-                              />
-                            </View>
-                            <Text className="mb-5 text-gray-500 font-bold text-lg">
-                              Selected Days
-                            </Text>
-                            <View className="flex-row flex-wrap justify-center items-center mb-20 gap-4">
-                              {routine.selectedDays.map((day, dayIndex) => (
-                                <View key={dayIndex}>
-                                  <TouchableOpacity
-                                    className="h-12 w-12 rounded-full items-center justify-center"
-                                    style={{ backgroundColor: routine.color }}
-                                  >
-                                    <Text className="font-bold text-white text-lg">
-                                      {day.substring(0, 2).toUpperCase()}
-                                    </Text>
-                                  </TouchableOpacity>
-                                </View>
-                              ))}
-                            </View>
+                            ))}
                           </View>
                         </View>
-                      </ScrollView>
-                    </View>
-                  </Modal>
+                      </View>
+                    </ScrollView>
+                  </View>
+                </Modal>
 
-                  {routine.changeIcon && (
-                    <View className="flex-col">
-                      <ScrollView
-                        className="h-72 mb-4 mt-8"
-                        scrollEnabled={true}
-                        showsVerticalScrollIndicator={true}
-                        nestedScrollEnabled={true}
-                      >
-                        <View className="flex-row flex-wrap justify-between mr-5 ml-5">
-                          {items.map((item, itemIndex) => (
-                            <TouchableOpacity
-                              key={itemIndex}
-                              className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
+                {routine.changeIcon && (
+                  <View className="flex-col">
+                    <ScrollView
+                      className="h-72 mb-4 mt-8"
+                      scrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
+                    >
+                      <View className="flex-row flex-wrap justify-between mr-5 ml-5">
+                        {items.map((item, itemIndex) => (
+                          <TouchableOpacity
+                            key={itemIndex}
+                            className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
+                              selectedIcon === item.value
+                                ? "bg-violet-600 border-gray-600"
+                                : "bg-gray-800 border-gray-800"
+                            }`}
+                            onPress={() => setSelectedIcon(item.value)}
+                          >
+                            <MaterialCommunityIcons
+                              name={item.value as any}
+                              size={24}
+                              color={
                                 selectedIcon === item.value
-                                  ? "bg-violet-600 border-gray-600"
-                                  : "bg-gray-800 border-gray-800"
+                                  ? "#FFFFFF"
+                                  : "#4B5563"
+                              }
+                            />
+                            <Text
+                              className={`text-xs mt-1 text-center ${
+                                selectedIcon === item.value
+                                  ? "text-white"
+                                  : "text-gray-600"
                               }`}
-                              onPress={() => setSelectedIcon(item.value)}
+                              numberOfLines={1}
                             >
-                              <MaterialCommunityIcons
-                                name={item.value as any}
-                                size={24}
-                                color={
-                                  selectedIcon === item.value
-                                    ? "#FFFFFF"
-                                    : "#4B5563"
-                                }
-                              />
-                              <Text
-                                className={`text-xs mt-1 text-center ${
-                                  selectedIcon === item.value
-                                    ? "text-white"
-                                    : "text-gray-600"
-                                }`}
-                                numberOfLines={1}
-                              >
-                                {item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </View>
-                      </ScrollView>
-                      <TouchableOpacity
-                        onPress={() => {
-                          const newRoutines = [...routines];
-                          newRoutines[index] = {
-                            ...newRoutines[index],
-                            changeIcon: false,
-                            iconname: selectedIcon,
-                          };
-                          setRoutines(newRoutines);
-                        }}
-                        className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                          !name || !selectedIcon
-                            ? "bg-slate-800"
-                            : "bg-gray-400"
-                        }`}
-                      >
-                        <Text className="text-white font-bold">Speichern</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View className="flex-row">
-            {activeTab == "habits" ? (
-              <TouchableOpacity
-                onPress={() => {
-                  setExpand(!expand);
-                  setName("");
-                  setSelectedCategory("");
-                  setAmount("");
-                  setSelectedDays([]);
-                }}
-                className="mt-8 mx-auto bg-violet-600 rounded-full w-16 h-16 items-center justify-center mb-4"
-              >
-                <Text className="font-bold text-3xl text-white">+</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={() => {
-                  setExpandRoutine(!expandRoutine);
-                  setName("");
-                  setSelectedCategory("");
-                  setAmount("");
-                  setSelectedDays([]);
-                }}
-                className="mt-8 mx-auto bg-violet-600 rounded-full w-16 h-16 items-center justify-center mb-4"
-              >
-                <Text className="font-bold text-3xl text-white">+</Text>
-              </TouchableOpacity>
-            )}
+                              {item.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </ScrollView>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const newRoutines = [...routines];
+                        newRoutines[index] = {
+                          ...newRoutines[index],
+                          changeIcon: false,
+                          iconname: selectedIcon,
+                        };
+                        setRoutines(newRoutines);
+                      }}
+                      className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
+                        !name || !selectedIcon ? "bg-slate-800" : "bg-gray-400"
+                      }`}
+                    >
+                      <Text className="text-white font-bold">Speichern</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
+        )}
 
-          {expandRoutine ? (
-            <View
-              style={{
-                backgroundColor: "#f9fafb",
+        <View className="flex-row ">
+          {activeTab == "habits" ? (
+            <TouchableOpacity
+              onPress={() => {
+                setExpand(!expand);
+                setName("");
+                setSelectedCategory("");
+                setAmount("");
+                setSelectedDays([]);
               }}
-              className="rounded-xl p-4 shadow-sm mt-4"
+              className=" mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
             >
-              <Text className="text-xl font-bold text-gray-800 mb-4">
-                Create a New Routine
-              </Text>
-              <TextInput
-                className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-base mb-4"
-                placeholder="Enter name of Routine"
-                placeholderTextColor="#9CA3AF"
-                value={name}
-                onChangeText={setName}
-              />
-              <TextInput
-                className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-base mb-10"
-                placeholder="Enter amount"
-                placeholderTextColor="#9CA3AF"
-                value={amount}
-                onChangeText={setAmount}
-              />
-              <View className="mb-6 mt-6">
-                <Text
-                  className={` font-bold text-lg mb-3 
-                             text-black
-                          }`}
-                >
-                  Select a Category
-                </Text>
+              <Text className="font-bold text-3xl text-white">+</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                setExpandRoutine(!expandRoutine);
+                setName("");
+                setSelectedCategory("");
+                setAmount("");
+                setSelectedDays([]);
+              }}
+              className="mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
+            >
+              <Text className="font-bold text-3xl text-white">+</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
-                />
-              </View>
+        {expandRoutine ? (
+          <View
+            style={{
+              backgroundColor: "#111827",
+            }}
+            className="rounded-xl p-4 shadow-sm mt-4"
+          >
+            <Text className="text-xl font-bold text-white mb-4">
+              Create a New Routine
+            </Text>
+            <TextInput
+              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              placeholder="Enter name of Routine"
+              placeholderTextColor="#9CA3AF"
+              value={name}
+              onChangeText={setName}
+            />
+            <TextInput
+              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-10"
+              placeholder="Enter amount"
+              placeholderTextColor="#9CA3AF"
+              value={amount}
+              onChangeText={setAmount}
+            />
 
-              <ScrollView>
-                {routineItem.map((item, index) => (
-                  <TextInput
-                    key={index}
-                    className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-base mb-4"
-                    placeholder="Enter Routine Part"
-                    placeholderTextColor="#9CA3AF"
-                    value={item.name}
-                    onChangeText={(text) =>
-                      setRoutItem((prev) =>
-                        prev.map((el, i) =>
-                          i === index ? { ...el, name: text } : el
-                        )
+            <ScrollView>
+              {routineItem.map((item, index) => (
+                <TextInput
+                  key={index}
+                  className="bg-gray-800 border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                  placeholder="Enter Routine Part"
+                  placeholderTextColor="#9CA3AF"
+                  value={item.name}
+                  onChangeText={(text) =>
+                    setRoutItem((prev) =>
+                      prev.map((el, i) =>
+                        i === index ? { ...el, name: text } : el
                       )
-                    }
-                  />
-                ))}
-                <TouchableOpacity
-                  className="h-10 w-10 rounded-full bg-gray-500 mx-auto flex justify-center items-center"
-                  onPress={() =>
-                    setRoutItem((prev) => [
-                      ...prev,
-                      {
-                        name: "",
-                        lastCheckedDate: "",
-                        buttoncolor: "#6b7280",
-                        edited: false,
-                      },
-                    ])
+                    )
                   }
-                >
-                  <Text className="font-bold text-white text-center text-2xl">
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </ScrollView>
-              <Text className="text-gray-800 font-medium mb-5 mt-5">
-                Select Weekdays
-              </Text>
-              <View className="flex-row flex-wrap gap-4 mb-5">
-                {weekdays.map((weekday, index) => {
-                  const isSelected = selectedDays.includes(weekday.value);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        setSelectedDays((prev) => {
-                          if (prev.includes(weekday.value)) {
-                            return prev.filter((day) => day !== weekday.value);
-                          } else {
-                            return [...prev, weekday.value];
-                          }
-                        });
-                      }}
-                      className={`rounded-full h-12 w-12 items-center justify-center ${
-                        isSelected ? "bg-violet-600" : "bg-gray-100"
-                      }`}
-                    >
-                      <Text
-                        className={`font-bold ${
-                          isSelected ? "text-white" : "text-gray-700"
-                        }`}
-                      >
-                        {weekday.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <ScrollView
-                className="h-72 mb-4 mt-8"
-                scrollEnabled={true}
-                showsVerticalScrollIndicator={true}
-                nestedScrollEnabled={true}
-              >
-                <View className="flex-row flex-wrap justify-between">
-                  {items.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
-                        selectedIcon === item.value
-                          ? "bg-violet-600 border-violet-600"
-                          : "bg-gray-100 border-gray-200"
-                      }`}
-                      onPress={() => setSelectedIcon(item.value)}
-                    >
-                      <MaterialCommunityIcons
-                        name={item.value as any}
-                        size={24}
-                        color={
-                          selectedIcon === item.value ? "#FFFFFF" : "#6b7280"
-                        }
-                      />
-                      <Text
-                        className={`text-xs mt-1 text-center ${
-                          selectedIcon === item.value
-                            ? "text-white"
-                            : "text-gray-700"
-                        }`}
-                        numberOfLines={1}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
-              <TouchableOpacity
-                className={`rounded-lg py-3 items-center ${
-                  !name || !selectedIcon ? "bg-gray-300" : "bg-violet-600"
-                }`}
-                disabled={!name || !selectedIcon}
-                onPress={() => {
-                  addNewRoutine(
-                    name,
-                    selectedIcon,
-                    Number.parseInt(amount),
-                    selectedDays
-                  );
-                  setName("");
-                  setSelectedIcon("");
-                  setRoutItem([]);
-                }}
-              >
-                <Text className="text-white font-bold text-base">
-                  Add Routine
-                </Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-          {expand ? (
-            <View
-              style={{
-                backgroundColor: "#f9fafb",
-              }}
-              className="rounded-xl p-4 shadow-sm mt-4"
-            >
-              <Text className="text-xl font-bold text-gray-800 mb-4">
-                Create New Habit
-              </Text>
-
-              <TextInput
-                className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-base mb-4"
-                placeholder="Enter name of Habit"
-                placeholderTextColor="#9CA3AF"
-                value={name}
-                onChangeText={setName}
-              />
-
-              <TextInput
-                className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-800 text-base mb-4"
-                placeholder="Enter amount of Habit"
-                placeholderTextColor="#9CA3AF"
-                value={amount}
-                onChangeText={setAmount}
-              />
-              <View className="mb-6 mt-6">
-                <Text
-                  className={` font-bold text-lg mb-3 
-                             text-black
-                          }`}
-                >
-                  Select a Category
-                </Text>
-
-                <FlatList
-                  data={GroupCategories}
-                  renderItem={renderCategoryItem}
-                  keyExtractor={(item) => item.id}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{}}
                 />
-              </View>
-
-              <Text className="text-gray-800 font-medium mb-3">
-                Choose an icon
-              </Text>
-
-              {selectedIcon && (
-                <View className="flex-row items-center bg-white border border-gray-200 p-3 rounded-lg mb-4">
-                  <MaterialCommunityIcons
-                    name={selectedIcon as any}
-                    size={28}
-                    color="#6b7280"
-                  />
-                  <Text className="ml-3 text-gray-800 font-medium">
-                    {items.find((item) => item.value === selectedIcon)?.label}
-                  </Text>
-                </View>
-              )}
-              <Text className="text-gray-800 font-medium mb-5">
-                Select Weekdays
-              </Text>
-              <View className="flex-row flex-wrap gap-4 mb-5">
-                {weekdays.map((weekday, index) => {
-                  const isSelected = selectedDays.includes(weekday.value);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => {
-                        setSelectedDays((prev) => {
-                          if (prev.includes(weekday.value)) {
-                            return prev.filter((day) => day !== weekday.value);
-                          } else {
-                            return [...prev, weekday.value];
-                          }
-                        });
-                      }}
-                      className={`rounded-full h-12 w-12 items-center justify-center ${
-                        isSelected ? "bg-violet-600" : "bg-gray-100"
-                      }`}
-                    >
-                      <Text
-                        className={`font-bold ${
-                          isSelected ? "text-white" : "text-gray-700"
-                        }`}
-                      >
-                        {weekday.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <ScrollView
-                className="h-72 mb-4 mt-8"
-                scrollEnabled={true}
-                showsVerticalScrollIndicator={true}
-                nestedScrollEnabled={true}
-              >
-                <View className="flex-row flex-wrap justify-between">
-                  {items.map((item, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
-                        selectedIcon === item.value
-                          ? "bg-violet-600 border-violet-600"
-                          : "bg-gray-100 border-gray-200"
-                      }`}
-                      onPress={() => setSelectedIcon(item.value)}
-                    >
-                      <MaterialCommunityIcons
-                        name={item.value as any}
-                        size={24}
-                        color={
-                          selectedIcon === item.value ? "#FFFFFF" : "#6b7280"
-                        }
-                      />
-                      <Text
-                        className={`text-xs mt-1 text-center ${
-                          selectedIcon === item.value
-                            ? "text-white"
-                            : "text-gray-700"
-                        }`}
-                        numberOfLines={1}
-                      >
-                        {item.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </ScrollView>
-
+              ))}
               <TouchableOpacity
-                className={`rounded-lg py-3 items-center ${
-                  !name || !selectedIcon ? "bg-gray-300" : "bg-violet-600"
-                }`}
-                disabled={!name || !selectedIcon}
-                onPress={() => {
-                  addNewHabit(
-                    name,
-                    selectedIcon,
-                    Number.parseInt(amount),
-                    selectedDays
-                  );
-                  setAmount("1");
-                  setName("");
-                  setSelectedIcon("");
-                }}
+                className="h-10 w-10 rounded-full bg-slate-800 mx-auto flex justify-center items-center"
+                onPress={() =>
+                  setRoutItem((prev) => [
+                    ...prev,
+                    {
+                      name: "",
+                      lastCheckedDate: "",
+                      buttoncolor: "#71717a",
+                      edited: false,
+                    },
+                  ])
+                }
               >
-                <Text className="text-white font-bold text-base">
-                  Add Habit
+                <Text className="font-bold text-white text-center text-2xl ">
+                  +
                 </Text>
               </TouchableOpacity>
+            </ScrollView>
+            <View className="mb-6 mt-6">
+              <Text
+                className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+              >
+                Select a Category
+              </Text>
+
+              <FlatList
+                data={GroupCategories}
+                renderItem={renderCategoryItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{}}
+              />
             </View>
-          ) : null}
-        </ScrollView>
-      </View>
-    );
-  }
+            <Text className="text-white font-medium mb-5">Select Weekdays</Text>
+            <View className="flex-row flex-wrap gap-4 mb-5">
+              {weekdays.map((weekday, index) => {
+                const isSelected = selectedDays.includes(weekday.value);
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedDays((prev) => {
+                        if (prev.includes(weekday.value)) {
+                          return prev.filter((day) => day !== weekday.value);
+                        } else {
+                          return [...prev, weekday.value];
+                        }
+                      });
+                    }}
+                    className={`rounded-full h-12 w-12 items-center justify-center ${
+                      isSelected ? "bg-violet-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <Text className="text-gray-400 font-bold">
+                      {weekday.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <ScrollView
+              className="h-72 mb-4 mt-8"
+              scrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              <View className="flex-row flex-wrap justify-between">
+                {items.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
+                      selectedIcon === item.value
+                        ? "bg-violet-600 border-gray-600"
+                        : "bg-gray-800 border-gray-800"
+                    }`}
+                    onPress={() => setSelectedIcon(item.value)}
+                  >
+                    <MaterialCommunityIcons
+                      name={item.value as any}
+                      size={24}
+                      color={
+                        selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
+                      }
+                    />
+                    <Text
+                      className={`text-xs mt-1 text-center ${
+                        selectedIcon === item.value
+                          ? "text-white"
+                          : "text-gray-600"
+                      }`}
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              className={`rounded-lg py-3 items-center ${
+                !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
+              }`}
+              disabled={!name || !selectedIcon}
+              onPress={() => {
+                addNewRoutine(
+                  name,
+                  selectedIcon,
+                  Number.parseInt(amount),
+                  selectedDays
+                );
+                setName("");
+                setSelectedIcon("");
+                setRoutItem([]);
+              }}
+            >
+              <Text className="text-white font-bold text-base">
+                Add Routine
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+        {expand ? (
+          <View
+            style={{
+              backgroundColor: "#111827",
+            }}
+            className="rounded-xl p-4 shadow-sm mt-4"
+          >
+            <Text className="text-xl font-bold text-white mb-4 ">
+              Create New Habit
+            </Text>
+
+            <TextInput
+              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              placeholder="Enter name of Habit"
+              placeholderTextColor="#9CA3AF"
+              value={name}
+              onChangeText={setName}
+            />
+
+            <TextInput
+              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              placeholder="Enter amount of Habit"
+              placeholderTextColor="#9CA3AF"
+              value={amount}
+              onChangeText={setAmount}
+            />
+            <View className="mb-6 mt-6">
+              <Text
+                className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+              >
+                Select a Category
+              </Text>
+
+              <FlatList
+                data={GroupCategories}
+                renderItem={renderCategoryItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{}}
+              />
+            </View>
+
+            <Text className="text-white font-medium mb-3">Choose an icon</Text>
+
+            {selectedIcon && (
+              <View className="flex-row items-center bg-gray-800 p-3 rounded-lg mb-4">
+                <MaterialCommunityIcons
+                  name={selectedIcon as any}
+                  size={28}
+                  color="#374151"
+                />
+                <Text className="ml-3 text-white font-medium">
+                  {items.find((item) => item.value === selectedIcon)?.label}
+                </Text>
+              </View>
+            )}
+            <Text className="text-white font-medium mb-5">Select Weekdays</Text>
+            <View className="flex-row flex-wrap  gap-4 mb-5">
+              {weekdays.map((weekday, index) => {
+                const isSelected = selectedDays.includes(weekday.value);
+
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedDays((prev) => {
+                        if (prev.includes(weekday.value)) {
+                          return prev.filter((day) => day !== weekday.value);
+                        } else {
+                          return [...prev, weekday.value];
+                        }
+                      });
+                    }}
+                    className={`rounded-full h-12 w-12 items-center justify-center ${
+                      isSelected ? "bg-violet-600" : "bg-slate-800"
+                    }`}
+                  >
+                    <Text className="text-gray-400 font-bold">
+                      {weekday.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <ScrollView
+              className="h-72 mb-4 mt-8"
+              scrollEnabled={true}
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              <View className="flex-row flex-wrap justify-between">
+                {items.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
+                      selectedIcon === item.value
+                        ? "bg-violet-600 border-gray-600"
+                        : "bg-gray-800 border-gray-800"
+                    }`}
+                    onPress={() => setSelectedIcon(item.value)}
+                  >
+                    <MaterialCommunityIcons
+                      name={item.value as any}
+                      size={24}
+                      color={
+                        selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
+                      }
+                    />
+                    <Text
+                      className={`text-xs mt-1 text-center ${
+                        selectedIcon === item.value
+                          ? "text-white"
+                          : "text-gray-600"
+                      }`}
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+
+            <TouchableOpacity
+              className={`rounded-lg py-3 items-center ${
+                !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
+              }`}
+              disabled={!name || !selectedIcon}
+              onPress={() => {
+                addNewHabit(
+                  name,
+                  selectedIcon,
+                  Number.parseInt(amount),
+                  selectedDays
+                );
+                setAmount("1");
+                setName("");
+                setSelectedIcon("");
+              }}
+            >
+              <Text className="text-white font-bold text-base">Add Habit</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
 }
