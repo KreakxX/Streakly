@@ -8,6 +8,7 @@ import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { useCallback, useState } from "react";
 import {
+  Linking,
   ScrollView,
   Switch,
   Text,
@@ -45,6 +46,16 @@ export default function Tab() {
         );
       }
     } catch {}
+  };
+
+  const sendEmail = () => {
+    const to = "Henrik.standke@web.de";
+    const subject = "Loop Feedback";
+    const url = `mailto:${to}?subject=${encodeURIComponent(subject)}`;
+
+    Linking.openURL(url).catch((err) => {
+      console.error(err);
+    });
   };
 
   useFocusEffect(
@@ -451,7 +462,10 @@ export default function Tab() {
               />
             </View>
             <View className="w-full">
-              <TouchableOpacity className="flex-row items-center justify-center gap-3 bg-gray-950 rounded-full  h-14">
+              <TouchableOpacity
+                className="flex-row items-center justify-center gap-3 bg-gray-950 rounded-full  h-14"
+                onPress={sendEmail}
+              >
                 <MaterialCommunityIcons
                   name="gmail"
                   size={20}

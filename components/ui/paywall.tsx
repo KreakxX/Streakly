@@ -47,6 +47,11 @@ const PaywallModal = ({ visible, onClose }: PaywallModalProps) => {
       title: "Auto Check with Github",
       description: "Access to auto Check with Github",
     },
+    {
+      icon: "palet",
+      title: "Custom Themes",
+      description: "Access to custom themes",
+    },
   ];
   const [colorScheme, setColorScheme] = useState<string>("dark");
   useFocusEffect(

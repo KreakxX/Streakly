@@ -4,6 +4,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { RadarChart } from "@salmonco/react-native-radar-chart";
+import { vars } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   Dimensions,
@@ -83,7 +84,7 @@ export default function ProfileScreen() {
   const [longest_streak_habbit, setlongest_streak_habbit] = useState<number>(0);
   const [highestStreak, setHighestStreak] = useState<string>("");
   const [badges, setBadges] = useState<StreakBadge[]>([]);
-  const [colorSchem, setColorScheme] = useState<String>("dark");
+  const [colorSchem, setcolorSchem] = useState<String>("dark");
   const [activeTab, setActiveTab] = useState<string>("weekly");
   const [analysis, setAnalysis] = useState<boolean>(true);
   const weekdays = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
@@ -480,9 +481,9 @@ export default function ProfileScreen() {
     useCallback(() => {
       const getcolor = async () => {
         try {
-          const colorScheme = await AsyncStorage.getItem("color");
-          if (colorScheme) {
-            setColorScheme(JSON.parse(colorScheme));
+          const colorSchem = await AsyncStorage.getItem("color");
+          if (colorSchem) {
+            setcolorSchem(JSON.parse(colorSchem));
           }
         } catch (e) {
           console.error("Laden fehlgeschlagen", e);
@@ -508,6 +509,7 @@ export default function ProfileScreen() {
     for (let i = 0; i < categories.length; i++) {
       if (categories[i].longestStreak > o) {
         o = categories[i].longestStreak;
+        console.log(o);
       }
     }
     setlongest_streak_habbit(o);
@@ -519,6 +521,7 @@ export default function ProfileScreen() {
     for (let i = 0; i < routines.length; i++) {
       if (routines[i].longestStreak > o) {
         o = routines[i].longestStreak;
+        console.log(o);
       }
     }
     setlongest_streak_routine(o);
@@ -815,19 +818,122 @@ export default function ProfileScreen() {
     }, [])
   );
 
+  const [activeTheme, setActiveTheme] = useState<string>("default");
+
+  const updateTheme = async (newTheme: string) => {
+    try {
+      setActiveTheme(newTheme);
+      await AsyncStorage.setItem("theme", JSON.stringify(newTheme));
+    } catch (e) {
+      console.error("Failed to save theme", e);
+    }
+  };
+
+  const themes = {
+    default: {
+      primary: {
+        main: "124 58 237", // violet-600 as RGB values
+        light: "139 92 246", // violet-500
+        dark: "109 40 217", // violet-700
+        text: colorSchem === "dark" ? "196 181 253" : "124 58 237", // violet-400 : violet-600
+        bg: colorSchem === "dark" ? "24 24 27" : "245 243 255", // violet-950 : violet-50
+      },
+      bg: colorSchem === "dark" ? "3 7 18" : "249 250 251", // gray-950 : gray-50
+      card: colorSchem === "dark" ? "17 24 39" : "255 255 255", // gray-900 : white
+      text: colorSchem === "dark" ? "255 255 255" : "31 41 55", // white : gray-800
+      textMuted: colorSchem === "dark" ? "156 163 175" : "107 114 128", // gray-400 : gray-500
+      border: colorSchem === "dark" ? "31 41 55" : "229 231 235", // gray-800 : gray-200
+      tab: colorSchem === "dark" ? "31 41 55" : "229 231 235", // gray-800 : gray-200
+    },
+    ocean: {
+      primary: {
+        main: "37 99 235", // blue-600
+        light: "59 130 246", // blue-500
+        dark: "29 78 216", // blue-700
+        text: colorSchem === "dark" ? "96 165 250" : "37 99 235", // blue-400 : blue-600
+        bg: colorSchem === "dark" ? "12 10 9" : "239 246 255", // blue-950 : blue-50
+      },
+      bg: colorSchem === "dark" ? "2 6 23" : "248 250 252", // slate-950 : slate-50
+      card: colorSchem === "dark" ? "15 23 42" : "255 255 255", // slate-900 : white
+      text: colorSchem === "dark" ? "255 255 255" : "30 41 59", // white : slate-800
+      textMuted: colorSchem === "dark" ? "148 163 184" : "100 116 139", // slate-400 : slate-500
+      border: colorSchem === "dark" ? "30 41 59" : "226 232 240", // slate-800 : slate-200
+      tab: colorSchem === "dark" ? "30 41 59" : "226 232 240", // slate-800 : slate-200
+    },
+    forest: {
+      primary: {
+        main: "5 150 105", // emerald-600
+        light: "16 185 129", // emerald-500
+        dark: "4 120 87", // emerald-700
+        text: colorSchem === "dark" ? "52 211 153" : "5 150 105", // emerald-400 : emerald-600
+        bg: colorSchem === "dark" ? "2 44 34" : "236 253 245", // emerald-950 : emerald-50
+      },
+      bg: colorSchem === "dark" ? "2 44 34" : "236 253 245", // emerald-950 : emerald-50
+      card: colorSchem === "dark" ? "6 78 59" : "255 255 255", // emerald-900 : white
+      text: colorSchem === "dark" ? "255 255 255" : "6 78 59", // white : emerald-800
+      textMuted: colorSchem === "dark" ? "52 211 153" : "5 150 105", // emerald-400 : emerald-500
+      border: colorSchem === "dark" ? "6 78 59" : "167 243 208", // emerald-800 : emerald-200
+      tab: colorSchem === "dark" ? "6 78 59" : "167 243 208", // emerald-800 : emerald-200
+    },
+    sunset: {
+      primary: {
+        main: "234 88 12", // orange-600
+        light: "249 115 22", // orange-500
+        dark: "194 65 12", // orange-700
+        text: colorSchem === "dark" ? "251 146 60" : "234 88 12", // orange-400 : orange-600
+        bg: colorSchem === "dark" ? "67 20 7" : "255 247 237", // orange-950 : orange-50
+      },
+      bg: colorSchem === "dark" ? "67 20 7" : "255 247 237", // orange-950 : orange-50
+      card: colorSchem === "dark" ? "124 45 18" : "255 255 255", // orange-900 : white
+      text: colorSchem === "dark" ? "255 255 255" : "154 52 18", // white : orange-800
+      textMuted: colorSchem === "dark" ? "251 146 60" : "251 146 60", // orange-400 : orange-500
+      border: colorSchem === "dark" ? "154 52 18" : "254 215 170", // orange-800 : orange-200
+      tab: colorSchem === "dark" ? "154 52 18" : "254 215 170", // orange-800 : orange-200
+    },
+    berry: {
+      primary: {
+        main: "192 38 211",
+        light: "217 70 239",
+        dark: "162 28 175",
+        text: colorSchem === "dark" ? "240 171 252" : "192 38 211", // fuchsia-400 : fuchsia-600
+        bg: colorSchem === "dark" ? "74 4 78" : "253 244 255", // fuchsia-950 : fuchsia-50
+      },
+      bg: colorSchem === "dark" ? "74 4 78" : "253 244 255", // fuchsia-950 : fuchsia-50
+      card: colorSchem === "dark" ? "134 25 143" : "255 255 255", // fuchsia-900 : white
+      text: colorSchem === "dark" ? "255 255 255" : "112 26 117", // white : fuchsia-800
+      textMuted: colorSchem === "dark" ? "240 171 252" : "240 171 252", // fuchsia-400 : fuchsia-500
+      border: colorSchem === "dark" ? "112 26 117" : "250 209 255", // fuchsia-800 : fuchsia-200
+      tab: colorSchem === "dark" ? "112 26 117" : "250 209 255", // fuchsia-800 : fuchsia-200
+    },
+  };
   const isDark = colorSchem === "dark";
-  const bgColor = isDark ? "bg-gray-950" : "bg-gray-50";
-  const cardBgColor = isDark ? "bg-gray-900" : "bg-white";
-  const textColor = isDark ? "text-white" : "text-gray-800";
-  const textMutedColor = isDark ? "text-gray-400" : "text-gray-500";
-  const borderColor = isDark ? "border-gray-800" : "border-gray-200";
-  const primaryColor = isDark ? "bg-violet-600" : "bg-violet-600";
-  const primaryTextColor = isDark ? "text-violet-400" : "text-violet-600";
-  const tabBgColor = isDark ? "bg-gray-800" : "bg-gray-200";
-  const tabActiveBgColor = isDark ? "bg-violet-600" : "bg-violet-600";
+  const currentTheme =
+    themes[activeTheme as keyof typeof themes] || themes.default;
+
+  const themeVars = vars({
+    "--bg-color": currentTheme.bg,
+    "--card-color": currentTheme.card,
+    "--text-color": currentTheme.text,
+    "--text-muted-color": currentTheme.textMuted,
+    "--border-color": currentTheme.border,
+    "--primary-color": currentTheme.primary.main,
+    "--primary-text-color": currentTheme.primary.text,
+    "--tab-color": currentTheme.tab,
+    "--primary-bg-color": currentTheme.primary.bg,
+  });
+
+  const bgColor = "bg-[rgb(var(--bg-color))]";
+  const cardBgColor = "bg-[rgb(var(--card-color))]";
+  const textColor = "text-[rgb(var(--text-color))]";
+  const textMutedColor = "text-[rgb(var(--text-muted-color))]";
+  const borderColor = "border-[rgb(var(--border-color))]";
+  const primaryColor = "bg-[rgb(var(--primary-color))]";
+  const primaryTextColor = "text-[rgb(var(--primary-text-color))]";
+  const tabBgColor = "bg-[rgb(var(--tab-color))]";
+  const tabActiveBgColor = "bg-[rgb(var(--primary-color))]";
 
   return (
-    <ScrollView className={`flex-1 ${bgColor}`}>
+    <ScrollView className={`flex-1 ${bgColor}`} style={themeVars}>
       <View className={`flex-1 ${bgColor} py-8 px-5`}>
         <View className="mt-12 mb-6 ">
           <Text className={`${textColor} text-4xl font-bold mb-2`}>

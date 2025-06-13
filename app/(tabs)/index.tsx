@@ -563,6 +563,11 @@ export default function HomeScreen() {
             streak: widgetDayStatus
               ? currentCategory.streak + 1
               : currentCategory.streak - 1,
+            longestStreak:
+              widgetDayStatus &&
+              currentCategory.streak + 1 > currentCategory.longestStreak
+                ? currentCategory.streak + 1
+                : currentCategory.longestStreak,
             checkedToday: widgetDayStatus ? currentCategory.amount : 0,
             buttonColor: widgetDayStatus
               ? currentCategory.color
