@@ -226,23 +226,12 @@ export default function HomeScreen() {
 
     return (
       <TouchableOpacity
-        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
-          isSelected
-            ? isDarkMode
-              ? "bg-violet-600"
-              : "bg-violet-600"
-            : isDarkMode
-            ? "bg-gray-900"
-            : "bg-white"
-        } border ${
-          isSelected
-            ? isDarkMode
-              ? "border-violet-800"
-              : "border-violet-800"
-            : isDarkMode
-            ? "border-slate-700"
-            : "border-gray-200"
-        }`}
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center `}
+        style={{
+          backgroundColor: isSelected
+            ? currentTheme.primary.main
+            : currentTheme.bg,
+        }}
         onPress={() => setSelectedCategory(item.name)}
       >
         <MaterialCommunityIcons
@@ -314,23 +303,12 @@ export default function HomeScreen() {
 
     return (
       <TouchableOpacity
-        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
-          isSelected
-            ? isDarkMode
-              ? "bg-violet-600"
-              : "bg-violet-600"
-            : isDarkMode
-            ? "bg-gray-900"
-            : "bg-white"
-        } border ${
-          isSelected
-            ? isDarkMode
-              ? "border-violet-800"
-              : "border-violet-800"
-            : isDarkMode
-            ? "border-slate-700"
-            : "border-gray-200"
-        }`}
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center `}
+        style={{
+          backgroundColor: isSelected
+            ? currentTheme.primary.main
+            : currentTheme.card,
+        }}
         onPress={() => {
           sortByCategory(item.name);
         }}
@@ -374,23 +352,12 @@ export default function HomeScreen() {
 
     return (
       <TouchableOpacity
-        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center ${
-          isSelected
-            ? isDarkMode
-              ? "bg-violet-600"
-              : "bg-violet-600"
-            : isDarkMode
-            ? "bg-gray-900"
-            : "bg-white"
-        } border ${
-          isSelected
-            ? isDarkMode
-              ? "border-violet-800"
-              : "border-violet-800"
-            : isDarkMode
-            ? "border-slate-700"
-            : "border-gray-200"
-        }`}
+        className={`mr-3 px-4 py-2.5 rounded-full flex-row items-center `}
+        style={{
+          backgroundColor: isSelected
+            ? currentTheme.primary.main
+            : currentTheme.card,
+        }}
         onPress={() => {
           sortByRoutines(item.name);
         }}
@@ -760,7 +727,7 @@ export default function HomeScreen() {
             processedCategory.lastCheckDate != todayFormatted &&
             processedCategory.lastCheckDate != "" &&
             processedCategory.streak > 1 &&
-            !processedCategory.selectedDays.includes(dayName)
+            !processedCategory.selectedDays.includes(dayName) // maybe wrong idk yet, viewing tomorrow
           ) {
             if (!processedCategory.archivated) {
               return { ...processedCategory, streak: 0 };
@@ -818,13 +785,13 @@ export default function HomeScreen() {
         const today = new Date();
         const todayFormatted = today.toLocaleDateString("de-DE");
         const days = [
-          "Sonntag",
-          "Montag",
-          "Dienstag",
-          "Mittwoch",
-          "Donnerstag",
-          "Freitag",
-          "Samstag",
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Saturday",
+          "Sunday",
         ];
         const dayOfWeek = today.getDay();
         const dayName = days[dayOfWeek];
@@ -1201,11 +1168,6 @@ export default function HomeScreen() {
 
       return date1.getTime() === date2.getTime();
     };
-
-    // durch Todo durchloopen
-    // onClick geht der Counter hoch und das Date wird angepasst
-    // wenn counter hoch genug ist dann full check machen und mit uncheck genau das gleich also wir kriegen kann den index der todo
-    // unchecken erstmal gucken selbst ausdenken
 
     const RoutineIndex = Routine.checkedDays.findIndex((day) =>
       isSameDay(new Date(day.date), todayDate)
@@ -2013,7 +1975,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1" style={{ backgroundColor: currentTheme.bg }}>
+    <View className={`flex-1 `} style={{ backgroundColor: currentTheme.bg }}>
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-4 py-8 pb-20"
@@ -2023,12 +1985,16 @@ export default function HomeScreen() {
             <TouchableOpacity
               onPress={() => {
                 if (colorScheme !== "dark") {
-                  setColorScheme("dark");
+                  updateColor("dark");
                 } else {
-                  setColorScheme("white");
+                  updateColor("white");
                 }
               }}
-              className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              className=" h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              style={{
+                backgroundColor: currentTheme.card,
+                borderColor: currentTheme.textMuted,
+              }}
             >
               <Text className="font-bold text-xl">
                 {colorScheme === "dark" ? "🌙" : "☀"}
@@ -2036,7 +2002,11 @@ export default function HomeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setQuestView(!questview)}
-              className="bg-slate-900 border border-gray-700 h-10 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              className=" h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              style={{
+                backgroundColor: currentTheme.card,
+                borderColor: currentTheme.textMuted,
+              }}
             >
               <MaterialCommunityIcons
                 name="script-text"
@@ -2048,7 +2018,11 @@ export default function HomeScreen() {
           <View className="flex-col ">
             <TouchableOpacity
               onPress={() => setQuickView(!quickView)}
-              className="bg-slate-900 h-10 border border-gray-700 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              className="h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              style={{
+                backgroundColor: currentTheme.card,
+                borderColor: currentTheme.textMuted,
+              }}
             >
               <MaterialCommunityIcons
                 size={20}
@@ -2060,7 +2034,11 @@ export default function HomeScreen() {
               onPress={() => {
                 setThemeModal(!themeModal);
               }}
-              className="bg-slate-900 h-10 border border-gray-700 w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              className="h-10 border w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
+              style={{
+                backgroundColor: currentTheme.card,
+                borderColor: currentTheme.textMuted,
+              }}
             >
               <MaterialCommunityIcons
                 size={20}
@@ -2073,22 +2051,39 @@ export default function HomeScreen() {
 
         <View className="items-center mb-8 mt-12">
           <View className="flex-row justify-between gap-3">
-            <Text className="text-5xl font-bold text-white">Loop</Text>
+            <Text
+              style={{ color: currentTheme.text }}
+              className="text-5xl font-bold "
+            >
+              Streakly
+            </Text>
             <Image
               className="w-[50px] h-[50px] relative bottom-1"
               source={require("../../assets/images/AppLogo-removebg-preview.png")}
             ></Image>
           </View>
-          <Text className="text-gray-400 mt-2 text-center font-bold">
+          <Text
+            style={{ color: currentTheme.textMuted }}
+            className="mt-2 text-center font-bold"
+          >
             Track your daily habits and build streaks
           </Text>
         </View>
 
-        <View className="flex-row mb-10 bg-gray-900 rounded-lg p-1">
+        <View
+          style={{
+            backgroundColor: currentTheme.card,
+          }}
+          className="flex-row mb-10  rounded-lg p-1"
+        >
           <TouchableOpacity
-            className={`flex-1 py-2 px-4 rounded-md ${
-              activeTab === "habits" ? "bg-violet-600" : ""
-            }`}
+            className={`flex-1 py-2 px-4 rounded-md $`}
+            style={{
+              backgroundColor:
+                activeTab === "habits"
+                  ? currentTheme.primary.main
+                  : currentTheme.card,
+            }}
             onPress={() => {
               setActiveTab("habits");
               setExpandRoutine(false);
@@ -2103,9 +2098,15 @@ export default function HomeScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`flex-1 py-2 px-4 rounded-md ${
-              activeTab === "routines" ? "bg-violet-600" : ""
-            }`}
+            className={`flex-1 py-2 px-4 rounded-md 
+             
+            `}
+            style={{
+              backgroundColor:
+                activeTab === "routines"
+                  ? currentTheme.primary.main
+                  : currentTheme.card,
+            }}
             onPress={() => {
               setActiveTab("routines");
               setExpand(false);
@@ -2128,7 +2129,7 @@ export default function HomeScreen() {
           <Modal animationType="slide" visible={questview} transparent={true}>
             <View className="flex-1 justify-end ">
               <View
-                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                className={`rounded-t-3xl  px-6 `}
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: -2 },
@@ -2136,12 +2137,14 @@ export default function HomeScreen() {
                   shadowRadius: 3.84,
                   elevation: 5,
                   maxHeight: "90%",
+                  backgroundColor: currentTheme.bg,
                 }}
               >
                 <View className="py-10">
                   <TouchableOpacity
                     onPress={() => setQuestView(false)}
-                    className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mb-6"
+                    className="p-2 h-11 w-11 rounded-full  items-center justify-center mb-6"
+                    style={{ backgroundColor: currentTheme.card }}
                   >
                     <MaterialCommunityIcons
                       name="close"
@@ -2162,7 +2165,10 @@ export default function HomeScreen() {
                   <Text className="text-white text-xl mb-8 text-center">
                     {dailyQuests[DayQuestNumber()]}
                   </Text>
-                  <View className="w-full h-3 bg-slate-800 rounded-full mx-auto mb-5 overflow-hidden">
+                  <View
+                    className="w-full h-3 rounded-full mx-auto mb-5 overflow-hidden"
+                    style={{ backgroundColor: currentTheme.card }}
+                  >
                     <View
                       className="h-3 rounded-full"
                       style={{
@@ -2186,7 +2192,7 @@ export default function HomeScreen() {
                       backgroundColor:
                         QuestDateDone === new Date().toLocaleDateString("de-DE")
                           ? "#22c55e"
-                          : "#334155",
+                          : currentTheme.card,
                     }}
                   >
                     <Text className="text-white font-bold text-xl">✓</Text>
@@ -2198,7 +2204,7 @@ export default function HomeScreen() {
           <Modal animationType="slide" visible={themeModal} transparent={true}>
             <View className="flex-1 justify-end ">
               <View
-                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                className={`rounded-t-3xl  px-6 `}
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: -2 },
@@ -2206,10 +2212,12 @@ export default function HomeScreen() {
                   shadowRadius: 3.84,
                   elevation: 5,
                   maxHeight: "40%",
+                  backgroundColor: currentTheme.bg,
                 }}
               >
                 <TouchableOpacity
-                  className="mt-5 rounded-full h-10 w-10 items-center justify-center bg-gray-800"
+                  className="mt-5 rounded-full h-10 w-10 items-center justify-center "
+                  style={{ backgroundColor: currentTheme.card }}
                   onPress={() => {
                     setThemeModal(false);
                   }}
@@ -2249,7 +2257,7 @@ export default function HomeScreen() {
           <Modal animationType="slide" visible={quickView} transparent={true}>
             <View className="flex-1 justify-end ">
               <View
-                className={`rounded-t-3xl  px-6 ${"bg-gray-900"}`}
+                className={`rounded-t-3xl  px-6 `}
                 style={{
                   shadowColor: "#000",
                   shadowOffset: { width: 0, height: -2 },
@@ -2257,6 +2265,7 @@ export default function HomeScreen() {
                   shadowRadius: 3.84,
                   elevation: 5,
                   maxHeight: "100%",
+                  backgroundColor: currentTheme.bg,
                 }}
               >
                 {activeTab === "habits" ? (
@@ -2266,7 +2275,8 @@ export default function HomeScreen() {
                         onPress={() => {
                           setQuickView(false);
                         }}
-                        className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                        className="p-2 h-11 w-11 rounded-full  items-center justify-center mt-3 ml-3 "
+                        style={{ backgroundColor: currentTheme.card }}
                       >
                         <MaterialCommunityIcons
                           name="close"
@@ -2314,7 +2324,8 @@ export default function HomeScreen() {
                         onPress={() => {
                           setQuickView(false);
                         }}
-                        className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                        className="p-2 h-11 w-11 rounded-full  items-center justify-center mt-3 ml-3 "
+                        style={{ backgroundColor: currentTheme.card }}
                       >
                         <MaterialCommunityIcons
                           name="close"
@@ -2332,7 +2343,7 @@ export default function HomeScreen() {
                       {routines.map((routines, index) => (
                         <TouchableOpacity
                           key={index}
-                          className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
+                          className="rounded-full h-10   items-center justify-center mb-3"
                           style={{
                             minWidth: 80,
                             backgroundColor: routines.color,
@@ -2360,7 +2371,10 @@ export default function HomeScreen() {
         </View>
 
         {activeTab === "habits" ? (
-          <View className="flex-1 bg-gray-950 ">
+          <View
+            className="flex-1 "
+            style={{ backgroundColor: currentTheme.bg }}
+          >
             <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
               <FlatList
                 data={GroupCategories}
@@ -2377,13 +2391,17 @@ export default function HomeScreen() {
             {categories.map((category, index) => (
               <View
                 key={index}
-                className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
+                className="overflow-hidden rounded-2xl  backdrop-blur-lg border border-gray-800 mb-10"
+                style={{ backgroundColor: currentTheme.card }}
               >
                 {category.archivated && (
                   <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
                 )}
 
-                <View className="bg-[#101923] p-4 rounded-t-2xl">
+                <View
+                  className=" p-4 rounded-t-2xl"
+                  style={{ backgroundColor: currentTheme.primary.main }}
+                >
                   <View className="flex-row justify-between items-center mb-3  ">
                     <View className="flex-row justify-between gap-3 ">
                       <TouchableOpacity
@@ -2395,7 +2413,8 @@ export default function HomeScreen() {
                           };
                           setCategories(newCategories);
                         }}
-                        className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
+                        className="h-8 w-8  rounded-full items-center justify-center"
+                        style={{ backgroundColor: currentTheme.card }}
                       >
                         <MaterialCommunityIcons
                           name={category.iconname as any}
@@ -2429,7 +2448,8 @@ export default function HomeScreen() {
                           };
                           setCategories(newCategories);
                         }}
-                        className="bg-slate-800 h-9 w-9 mr-3 rounded-full items-center justify-center"
+                        className=" h-9 w-9 mr-3 rounded-full items-center justify-center"
+                        style={{ backgroundColor: currentTheme.card }}
                       >
                         <MaterialCommunityIcons
                           name="camera"
@@ -2442,7 +2462,8 @@ export default function HomeScreen() {
                           onPress={() => {
                             archivateHabit(index);
                           }}
-                          className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center z-20"
+                          className=" h-9 w-9 rounded-full items-center justify-center z-20"
+                          style={{ backgroundColor: currentTheme.card }}
                         >
                           <MaterialCommunityIcons
                             name="archive"
@@ -2513,7 +2534,8 @@ export default function HomeScreen() {
 
                   <TouchableOpacity
                     onPress={() => handleDeletePress(index)}
-                    className="bg-slate-800 h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
+                    className=" h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
+                    style={{ backgroundColor: currentTheme.bg }}
                   >
                     <Text className="text-gray-400  text-md text-white ">
                       ✕
@@ -2526,7 +2548,7 @@ export default function HomeScreen() {
                   >
                     <View className="flex-1 justify-end">
                       <View
-                        className={`rounded-t-3xl ${"bg-gray-900"}`}
+                        className={`rounded-t-3xl `}
                         style={{
                           shadowColor: "#000",
                           shadowOffset: { width: 0, height: -2 },
@@ -2534,6 +2556,7 @@ export default function HomeScreen() {
                           shadowRadius: 3.84,
                           elevation: 5,
                           maxHeight: "90%",
+                          backgroundColor: currentTheme.bg,
                         }}
                       >
                         <CameraView
@@ -2541,7 +2564,10 @@ export default function HomeScreen() {
                           facing={facing}
                           className=""
                         >
-                          <TouchableOpacity className=" ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center">
+                          <TouchableOpacity
+                            className=" ml-3 mb-3 rounded-full flex h-11 w-11 items-center justify-center"
+                            style={{ backgroundColor: currentTheme.card }}
+                          >
                             <MaterialCommunityIcons
                               name="close"
                               size={20}
@@ -2558,7 +2584,8 @@ export default function HomeScreen() {
                           </TouchableOpacity>
                           <TouchableOpacity
                             onPress={takePhoto}
-                            className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
+                            className="ml-3 mb-3 rounded-full flex  h-11 w-11 items-center justify-center"
+                            style={{ backgroundColor: currentTheme.card }}
                           >
                             <MaterialCommunityIcons
                               name="camera"
@@ -2570,7 +2597,8 @@ export default function HomeScreen() {
                             onPress={() => {
                               toggleCameraFacing();
                             }}
-                            className="ml-3 mb-3 rounded-full flex bg-slate-800 h-11 w-11 items-center justify-center"
+                            className="ml-3 mb-3 rounded-full flex  h-11 w-11 items-center justify-center"
+                            style={{ backgroundColor: currentTheme.card }}
                           >
                             <MaterialCommunityIcons
                               name="camera-switch"
@@ -2591,7 +2619,8 @@ export default function HomeScreen() {
                             <View className="mt-10 mb-10 w-full flex items-center">
                               <TouchableOpacity
                                 onPress={() => saveImages(index)}
-                                className="px-10 py-4 bg-slate-800 items-center justify-center rounded-xl"
+                                className="px-10 py-4 items-center justify-center rounded-xl"
+                                style={{ backgroundColor: currentTheme.card }}
                               >
                                 <Text className="text-white font-bold text-xl">
                                   Save
@@ -2600,7 +2629,10 @@ export default function HomeScreen() {
                             </View>
                           </View>
                         ) : (
-                          <View className="flex-1 items-center justify-center bg-slate-950">
+                          <View
+                            className="flex-1 items-center justify-center "
+                            style={{ backgroundColor: currentTheme.bg }}
+                          >
                             <Text className="text-white font-bold text-2xl">
                               No Picture yet
                             </Text>
@@ -2623,13 +2655,14 @@ export default function HomeScreen() {
                         style={{ maxHeight: "90%" }}
                       >
                         <View
-                          className={`rounded-t-3xl ${"bg-gray-900"}`}
+                          className={`rounded-t-3xl `}
                           style={{
                             shadowColor: "#000",
                             shadowOffset: { width: 0, height: -2 },
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
+                            backgroundColor: currentTheme.bg,
                           }}
                         >
                           <View className="flex-row mb-10">
@@ -2642,7 +2675,8 @@ export default function HomeScreen() {
                                 };
                                 setCategories(newCategories);
                               }}
-                              className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3 "
+                              className="p-2 h-11 w-11 rounded-full items-center justify-center mt-3 ml-3 "
+                              style={{ backgroundColor: currentTheme.card }}
                             >
                               <MaterialCommunityIcons
                                 name="close"
@@ -2782,11 +2816,13 @@ export default function HomeScreen() {
                         {items.map((item, index) => (
                           <TouchableOpacity
                             key={index}
-                            className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
-                              selectedIcon === item.value
-                                ? "bg-violet-600 border-gray-600"
-                                : "bg-gray-800 border-gray-800"
-                            }`}
+                            className="w-[30%] items-center p-3 rounded-lg mb-2  "
+                            style={{
+                              backgroundColor:
+                                selectedIcon === item.value
+                                  ? currentTheme.primary.main
+                                  : currentTheme.bg,
+                            }}
                             onPress={() => setSelectedIcon(item.value)}
                           >
                             <MaterialCommunityIcons
@@ -2822,9 +2858,13 @@ export default function HomeScreen() {
                         };
                         setCategories(newCategories);
                       }}
-                      className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                        !name || !selectedIcon ? "bg-slate-800" : "bg-gray-400"
-                      }`}
+                      className="rounded-lg py-3 items-center ml-5 mr-5 mb-5"
+                      style={{
+                        backgroundColor:
+                          !name || !selectedIcon
+                            ? currentTheme.bg
+                            : currentTheme.primary.main,
+                      }}
                     >
                       <Text className="text-white font-bold">Speichern</Text>
                     </TouchableOpacity>
@@ -2835,7 +2875,10 @@ export default function HomeScreen() {
           </View>
         ) : (
           <View className="space-y-4 ">
-            <View className="bg-gradient-to-b from-gray-900 to-gray-950 pb-6 pt-4">
+            <View
+              className=" pb-6 pt-4"
+              style={{ backgroundColor: currentTheme.bg }}
+            >
               <FlatList
                 data={GroupCategories}
                 renderItem={renderCategoryItem3}
@@ -2851,12 +2894,16 @@ export default function HomeScreen() {
             {routines.map((routine, index) => (
               <View
                 key={index}
-                className="overflow-hidden rounded-2xl bg-gray-900 backdrop-blur-lg border border-gray-800 mb-10"
+                className="overflow-hidden rounded-2xl backdrop-blur-lg border border-gray-800 mb-10"
+                style={{ backgroundColor: currentTheme.card }}
               >
                 {routine.archivated && (
                   <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
                 )}
-                <View className={`bg-[#101923] p-4`}>
+                <View
+                  className={` p-4`}
+                  style={{ backgroundColor: currentTheme.primary.main }}
+                >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row justify-between gap-3">
                       <TouchableOpacity
@@ -2868,7 +2915,8 @@ export default function HomeScreen() {
                           };
                           setRoutines(newRoutines);
                         }}
-                        className="h-8 w-8  bg-gray-800 rounded-full items-center justify-center"
+                        className="h-8 w-8  rounded-full items-center justify-center"
+                        style={{ backgroundColor: currentTheme.card }}
                       >
                         <MaterialCommunityIcons
                           name={routine.iconname as any}
@@ -2897,7 +2945,8 @@ export default function HomeScreen() {
                           onPress={() => {
                             archivateroutine(index);
                           }}
-                          className="bg-slate-800 h-9 w-9 rounded-full items-center justify-center  z-20"
+                          className=" h-9 w-9 rounded-full items-center justify-center  z-20"
+                          style={{ backgroundColor: currentTheme.card }}
                         >
                           <MaterialCommunityIcons
                             name="archive"
@@ -2923,7 +2972,10 @@ export default function HomeScreen() {
 
                       return (
                         <View key={todoIndex} className="mb-3">
-                          <View className="flex-row items-center justify-between p-3 rounded-xl bg-slate-800">
+                          <View
+                            className="flex-row items-center justify-between p-3 rounded-xl"
+                            style={{ backgroundColor: currentTheme.bg }}
+                          >
                             <Text className="text-white flex-1 mr-3">
                               {todoItem.name}
                             </Text>
@@ -2932,7 +2984,10 @@ export default function HomeScreen() {
                                 onPress={() => {
                                   deleteTodo(index, todoIndex);
                                 }}
-                                className="h-8 w-8 rounded-full bg-slate-700 items-center justify-center"
+                                className="h-8 w-8 rounded-full items-center justify-center"
+                                style={{
+                                  backgroundColor: currentTheme.primary.main,
+                                }}
                               >
                                 <Text className="text-white font-bold text-sm">
                                   ✕
@@ -2954,7 +3009,10 @@ export default function HomeScreen() {
                                     return updatedRoutines;
                                   });
                                 }}
-                                className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
+                                className="h-8 w-8 rounded-full items-center justify-center "
+                                style={{
+                                  backgroundColor: currentTheme.primary.main,
+                                }}
                               >
                                 <MaterialCommunityIcons
                                   name="pencil"
@@ -2970,7 +3028,7 @@ export default function HomeScreen() {
                                 style={{
                                   backgroundColor: isCheckedToday
                                     ? routine.color
-                                    : "#334155",
+                                    : currentTheme.primary.main,
                                 }}
                               >
                                 <Text className="text-white font-bold">✓</Text>
@@ -2978,19 +3036,30 @@ export default function HomeScreen() {
                             </View>
                           </View>
                           {todoItem.edited && (
-                            <View className="mt-2 flex-row items-center gap-2 p-3 rounded-xl bg-slate-800">
+                            <View
+                              className="mt-2 flex-row items-center gap-2 p-3 rounded-xl "
+                              style={{
+                                backgroundColor: currentTheme.bg,
+                              }}
+                            >
                               <TextInput
                                 onChangeText={(text) => {
                                   setTodoName(text);
                                 }}
-                                className="flex-1 bg-slate-700 text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
+                                className="flex-1  text-white placeholder:text-gray-400 rounded-lg px-3 py-2"
+                                style={{
+                                  backgroundColor: currentTheme.card,
+                                }}
                                 placeholder="Edit Todo"
                               />
                               <TouchableOpacity
                                 onPress={() => {
                                   editRoutine(index, todoIndex, newTodoName);
                                 }}
-                                className="h-8 w-8 rounded-full items-center justify-center bg-slate-700"
+                                className="h-8 w-8 rounded-full items-center justify-center "
+                                style={{
+                                  backgroundColor: currentTheme.card,
+                                }}
                               >
                                 <MaterialCommunityIcons
                                   name="check-circle"
@@ -3027,7 +3096,10 @@ export default function HomeScreen() {
                     onPress={() => {
                       removeRoutine(index);
                     }}
-                    className="bg-slate-800 h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
+                    className=" h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
+                    style={{
+                      backgroundColor: currentTheme.bg,
+                    }}
                   >
                     <Text className="text-white text-sm">✕</Text>
                   </TouchableOpacity>
@@ -3046,13 +3118,14 @@ export default function HomeScreen() {
                       style={{ maxHeight: "90%" }}
                     >
                       <View
-                        className="rounded-t-3xl bg-gray-900"
+                        className="rounded-t-3xl "
                         style={{
                           shadowColor: "#000",
                           shadowOffset: { width: 0, height: -2 },
                           shadowOpacity: 0.25,
                           shadowRadius: 3.84,
                           elevation: 5,
+                          backgroundColor: currentTheme.bg,
                         }}
                       >
                         <View className="flex-row gap-1 mb-10">
@@ -3065,7 +3138,10 @@ export default function HomeScreen() {
                               };
                               setRoutines(newRoutines);
                             }}
-                            className="p-2 h-11 w-11 rounded-full bg-slate-800 items-center justify-center mt-3 ml-3"
+                            className="p-2 h-11 w-11 rounded-full items-center justify-center mt-3 ml-3"
+                            style={{
+                              backgroundColor: currentTheme.card,
+                            }}
                           >
                             <MaterialCommunityIcons
                               name="close"
@@ -3153,11 +3229,13 @@ export default function HomeScreen() {
                         {items.map((item, itemIndex) => (
                           <TouchableOpacity
                             key={itemIndex}
-                            className={`w-[30%] items-center p-3 rounded-lg mb-2 border ${
-                              selectedIcon === item.value
-                                ? "bg-violet-600 border-gray-600"
-                                : "bg-gray-800 border-gray-800"
-                            }`}
+                            className={`w-[30%] items-center p-3 rounded-lg mb-2  `}
+                            style={{
+                              backgroundColor:
+                                selectedIcon === item.value
+                                  ? currentTheme.primary.main
+                                  : currentTheme.bg,
+                            }}
                             onPress={() => setSelectedIcon(item.value)}
                           >
                             <MaterialCommunityIcons
@@ -3196,6 +3274,12 @@ export default function HomeScreen() {
                       className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
                         !name || !selectedIcon ? "bg-slate-800" : "bg-gray-400"
                       }`}
+                      style={{
+                        backgroundColor:
+                          !name || !selectedIcon
+                            ? currentTheme.bg
+                            : currentTheme.primary.main,
+                      }}
                     >
                       <Text className="text-white font-bold">Speichern</Text>
                     </TouchableOpacity>
@@ -3216,7 +3300,8 @@ export default function HomeScreen() {
                 setAmount("");
                 setSelectedDays([]);
               }}
-              className=" mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
+              className=" mt-8 mx-auto  rounded-full w-16 h-16 items-center justify-center mb-4"
+              style={{ backgroundColor: currentTheme.card }}
             >
               <Text className="font-bold text-3xl text-white">+</Text>
             </TouchableOpacity>
@@ -3229,7 +3314,8 @@ export default function HomeScreen() {
                 setAmount("");
                 setSelectedDays([]);
               }}
-              className="mt-8 mx-auto bg-slate-800 rounded-full w-16 h-16 items-center justify-center mb-4"
+              className="mt-8 mx-auto  rounded-full w-16 h-16 items-center justify-center mb-4"
+              style={{ backgroundColor: currentTheme.card }}
             >
               <Text className="font-bold text-3xl text-white">+</Text>
             </TouchableOpacity>
@@ -3239,7 +3325,7 @@ export default function HomeScreen() {
         {expandRoutine ? (
           <View
             style={{
-              backgroundColor: "#111827",
+              backgroundColor: currentTheme.card,
             }}
             className="rounded-xl p-4 shadow-sm mt-4"
           >
@@ -3247,14 +3333,16 @@ export default function HomeScreen() {
               Create a New Routine
             </Text>
             <TextInput
-              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              style={{ backgroundColor: currentTheme.bg }}
               placeholder="Enter name of Routine"
               placeholderTextColor="#9CA3AF"
               value={name}
               onChangeText={setName}
             />
             <TextInput
-              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-10"
+              className=" border-none rounded-lg px-4 py-3 text-white text-base mb-10"
+              style={{ backgroundColor: currentTheme.bg }}
               placeholder="Enter amount"
               placeholderTextColor="#9CA3AF"
               value={amount}
@@ -3265,7 +3353,8 @@ export default function HomeScreen() {
               {routineItem.map((item, index) => (
                 <TextInput
                   key={index}
-                  className="bg-gray-800 border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                  className="border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                  style={{ backgroundColor: currentTheme.bg }}
                   placeholder="Enter Routine Part"
                   placeholderTextColor="#9CA3AF"
                   value={item.name}
@@ -3279,7 +3368,8 @@ export default function HomeScreen() {
                 />
               ))}
               <TouchableOpacity
-                className="h-10 w-10 rounded-full bg-slate-800 mx-auto flex justify-center items-center"
+                className="h-10 w-10 rounded-full  mx-auto flex justify-center items-center"
+                style={{ backgroundColor: currentTheme.bg }}
                 onPress={() =>
                   setRoutItem((prev) => [
                     ...prev,
@@ -3335,6 +3425,11 @@ export default function HomeScreen() {
                     className={`rounded-full h-12 w-12 items-center justify-center ${
                       isSelected ? "bg-violet-600" : "bg-slate-800"
                     }`}
+                    style={{
+                      backgroundColor: isSelected
+                        ? currentTheme.primary.main
+                        : currentTheme.bg,
+                    }}
                   >
                     <Text className="text-gray-400 font-bold">
                       {weekday.label}
@@ -3353,11 +3448,17 @@ export default function HomeScreen() {
                 {items.map((item, index) => (
                   <TouchableOpacity
                     key={index}
-                    className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
+                    className={`w-[31%] items-center p-3 rounded-lg mb-2 ${
                       selectedIcon === item.value
                         ? "bg-violet-600 border-gray-600"
                         : "bg-gray-800 border-gray-800"
                     }`}
+                    style={{
+                      backgroundColor:
+                        selectedIcon === item.value
+                          ? currentTheme.primary.main
+                          : currentTheme.bg,
+                    }}
                     onPress={() => setSelectedIcon(item.value)}
                   >
                     <MaterialCommunityIcons
@@ -3386,6 +3487,12 @@ export default function HomeScreen() {
               className={`rounded-lg py-3 items-center ${
                 !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
               }`}
+              style={{
+                backgroundColor:
+                  !name || !selectedIcon
+                    ? currentTheme.bg
+                    : currentTheme.primary.main,
+              }}
               disabled={!name || !selectedIcon}
               onPress={() => {
                 addNewRoutine(
@@ -3408,7 +3515,7 @@ export default function HomeScreen() {
         {expand ? (
           <View
             style={{
-              backgroundColor: "#111827",
+              backgroundColor: currentTheme.card,
             }}
             className="rounded-xl p-4 shadow-sm mt-4"
           >
@@ -3417,7 +3524,8 @@ export default function HomeScreen() {
             </Text>
 
             <TextInput
-              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              className=" border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              style={{ backgroundColor: currentTheme.bg }}
               placeholder="Enter name of Habit"
               placeholderTextColor="#9CA3AF"
               value={name}
@@ -3425,7 +3533,8 @@ export default function HomeScreen() {
             />
 
             <TextInput
-              className="bg-gray-800  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+              style={{ backgroundColor: currentTheme.bg }}
               placeholder="Enter amount of Habit"
               placeholderTextColor="#9CA3AF"
               value={amount}
@@ -3453,7 +3562,10 @@ export default function HomeScreen() {
             <Text className="text-white font-medium mb-3">Choose an icon</Text>
 
             {selectedIcon && (
-              <View className="flex-row items-center bg-gray-800 p-3 rounded-lg mb-4">
+              <View
+                className="flex-row items-center  p-3 rounded-lg mb-4"
+                style={{ backgroundColor: currentTheme.bg }}
+              >
                 <MaterialCommunityIcons
                   name={selectedIcon as any}
                   size={28}
@@ -3484,6 +3596,11 @@ export default function HomeScreen() {
                     className={`rounded-full h-12 w-12 items-center justify-center ${
                       isSelected ? "bg-violet-600" : "bg-slate-800"
                     }`}
+                    style={{
+                      backgroundColor: isSelected
+                        ? currentTheme.primary.main
+                        : currentTheme.bg,
+                    }}
                   >
                     <Text className="text-gray-400 font-bold">
                       {weekday.label}
@@ -3502,11 +3619,13 @@ export default function HomeScreen() {
                 {items.map((item, index) => (
                   <TouchableOpacity
                     key={index}
-                    className={`w-[31%] items-center p-3 rounded-lg mb-2 border ${
-                      selectedIcon === item.value
-                        ? "bg-violet-600 border-gray-600"
-                        : "bg-gray-800 border-gray-800"
-                    }`}
+                    className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
+                    style={{
+                      backgroundColor:
+                        selectedIcon === item.value
+                          ? currentTheme.primary.main
+                          : currentTheme.bg,
+                    }}
                     onPress={() => setSelectedIcon(item.value)}
                   >
                     <MaterialCommunityIcons
@@ -3535,6 +3654,12 @@ export default function HomeScreen() {
               className={`rounded-lg py-3 items-center ${
                 !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
               }`}
+              style={{
+                backgroundColor:
+                  !name || !selectedIcon
+                    ? currentTheme.bg
+                    : currentTheme.primary.main,
+              }}
               disabled={!name || !selectedIcon}
               onPress={() => {
                 addNewHabit(

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "loop",
-    "slug": "loop",
+    "name": "Streakly",
+    "slug": "Streakly",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/Good.png",
-    "scheme": "loop",
+    "scheme": "Streakly",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

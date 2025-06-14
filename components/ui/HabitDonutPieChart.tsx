@@ -1,4 +1,3 @@
-import { vars } from "nativewind";
 import React from "react";
 import { Dimensions, Text, View } from "react-native";
 
@@ -37,18 +36,6 @@ const PieChart: React.FC<PieChartProps> = ({
 
   const currentTheme = theme;
 
-  const themeVars = vars({
-    "--bg-color": currentTheme.bg,
-    "--card-color": currentTheme.card,
-    "--text-color": currentTheme.text,
-    "--text-muted-color": currentTheme.textMuted,
-    "--border-color": currentTheme.border,
-    "--primary-color": currentTheme.primary.main,
-    "--primary-text-color": currentTheme.primary.text,
-    "--tab-color": currentTheme.tab,
-    "--primary-bg-color": currentTheme.primary.bg,
-  });
-
   const createSegments = () => {
     const segments = [];
     const totalSegments = 100;
@@ -82,7 +69,7 @@ const PieChart: React.FC<PieChartProps> = ({
   };
 
   return (
-    <View className="items-center justify-center p-4" {...themeVars}>
+    <View className="items-center justify-center p-4">
       <View className="relative">
         <View
           className="rounded-full overflow-hidden"

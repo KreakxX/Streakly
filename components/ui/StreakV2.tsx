@@ -33,7 +33,7 @@ const StreakV2 = ({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const weekdays = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"];
+  const weekdays = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
   const [selectedDay, setSelectedDay] = useState<Date>();
   const [periodOffset, setPeriodOffset] = useState(0);
   const [i, setI] = useState<number>(10);
