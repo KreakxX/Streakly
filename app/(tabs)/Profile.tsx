@@ -4,6 +4,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { RadarChart } from "@salmonco/react-native-radar-chart";
+import { initLlama } from "llama.rn";
 import { vars } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -13,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import RNFS from "react-native-fs";
 import { FlatList } from "react-native-gesture-handler";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -122,6 +124,88 @@ export default function ProfileScreen() {
   >([]);
 
   const [activeTab2, setActiveTab2] = useState<string>("analysis");
+  const stopWords = [
+    "</s>",
+    "<|end|>",
+    "<|eot_id|>",
+    "<|end_of_text|>",
+    "<|im_end|>",
+    "<|EOT|>",
+    "<|END_OF_TURN_TOKEN|>",
+    "<|end_of_turn|>",
+    "<|endoftext|>",
+  ];
+
+  const downloadModel = async () => {
+    const modelPath = `${RNFS.DocumentDirectoryPath}/tiny-vicuna-1b.q2_k.gguf`;
+
+    if (!(await RNFS.exists(modelPath))) {
+      console.log("Downloading model...");
+      const download = RNFS.downloadFile({
+        fromUrl:
+          "https://huggingface.co/afrideva/Tiny-Vicuna-1B-GGUF/resolve/main/tiny-vicuna-1b.q2_k.gguf",
+        toFile: modelPath,
+        progressDivider: 10,
+        progress: (res) => {
+          const percent = (res.bytesWritten / res.contentLength) * 100;
+          console.log(`Download progress: ${percent.toFixed(2)}%`);
+        },
+      });
+
+      await download.promise;
+      console.log("Model downloaded");
+    } else {
+      console.log("Model already exists");
+    }
+
+    return modelPath;
+  };
+
+  const initializeTinyLlama = async () => {
+    try {
+      console.log("Starting model initialization...");
+
+      // Erst das Modell downloaden
+      const modelPath = await downloadModel();
+      console.log("Model path:", modelPath);
+
+      // Dann mit dem lokalen Pfad initialisieren
+      const llamaContext = await initLlama(
+        {
+          model: modelPath, // <-- Hier den lokalen Pfad verwenden!
+          n_ctx: 128,
+          n_threads: 1,
+          use_mlock: false,
+          n_gpu_layers: 0,
+        },
+        (progress) => {
+          console.log(`Loading progress: ${Math.round(progress * 100)}%`);
+        }
+      );
+
+      console.log("TinyLlama initialized successfully");
+
+      const completionResponse = await llamaContext.completion(
+        {
+          prompt: "Hello! ",
+          n_predict: 5,
+          temperature: 0.5,
+          stop: stopWords,
+        },
+        (data) => {
+          const { token } = data;
+          console.log("Token:", token);
+        }
+      );
+      console.log(completionResponse.text);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    initializeTinyLlama();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
