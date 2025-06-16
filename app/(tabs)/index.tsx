@@ -230,7 +230,7 @@ export default function HomeScreen() {
         style={{
           backgroundColor: isSelected
             ? currentTheme.primary.main
-            : currentTheme.bg,
+            : currentTheme.border,
         }}
         onPress={() => setSelectedCategory(item.name)}
       >
@@ -725,7 +725,7 @@ export default function HomeScreen() {
           if (
             processedCategory.lastCheckDate != yesterdayFormatted &&
             processedCategory.lastCheckDate != todayFormatted &&
-            processedCategory.lastCheckDate != "" &&
+            //processedCategory.lastCheckDate != "" &&
             processedCategory.streak > 1 &&
             !processedCategory.selectedDays.includes(dayName) // maybe wrong idk yet, viewing tomorrow
           ) {
@@ -746,7 +746,7 @@ export default function HomeScreen() {
             return {
               ...category,
               checkedToday: 0,
-              buttonColor: colorScheme === "dark" ? "#1e293b" : "#71717a",
+              buttonColor: currentTheme.border,
             };
           }
           return category;
@@ -915,7 +915,7 @@ export default function HomeScreen() {
         category.checkedDays[index].status = false;
       }
 
-      category.buttonColor = colorScheme === "dark" ? "#1e293b" : "#71717a";
+      category.buttonColor = currentTheme.border;
       category.streak -= 1;
       category.lastCheckDate = "";
       category.days -= 1;
@@ -1119,7 +1119,7 @@ export default function HomeScreen() {
       lastCheckDate: "",
       days: 0,
       startDate: startDate,
-      buttonColor: colorScheme === "dark" ? "#1e293b" : "#71717a",
+      buttonColor: currentTheme.border,
       iconname: iconName,
       archivated: false,
       changeIcon: false,
@@ -1265,7 +1265,7 @@ export default function HomeScreen() {
       github: false,
       todoschecked: 0,
       color: getRandomColor(),
-      buttonColor: colorScheme === "dark" ? "#1e293b" : "#71717a",
+      buttonColor: currentTheme.border,
       iconname: iconName,
       todos: routineItem,
       selectedDays: selectedDays,
@@ -1374,23 +1374,6 @@ export default function HomeScreen() {
       ],
       { cancelable: true }
     );
-  };
-  const updateColor = async (newColor: string) => {
-    try {
-      setColorScheme(newColor);
-      await AsyncStorage.setItem("color", JSON.stringify(newColor));
-      const updatedCategories = [...categories];
-
-      updatedCategories.forEach((category) => {
-        if (!category.lastCheckDate) {
-          category.buttonColor = newColor !== "dark" ? "#71717a" : "#1e293b";
-        }
-      });
-
-      setCategories(updatedCategories);
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   const GetRandomUncheckedHabbit = () => {
@@ -1653,11 +1636,45 @@ export default function HomeScreen() {
   }, []);
 
   const [activeTheme, setActiveTheme] = useState<string>("default");
+  const isSameDay = (date1: Date, date2: Date) => {
+    const d1 = new Date(date1);
+    const d2 = new Date(date2);
+    d1.setHours(0, 0, 0, 0);
+    d2.setHours(0, 0, 0, 0);
+    return d1.getTime() === d2.getTime();
+  };
 
+  useEffect(() => {
+    const loadTheme = async () => {
+      const theme = await AsyncStorage.getItem("theme");
+      if (theme) {
+        setActiveTheme(theme);
+      }
+    };
+    loadTheme();
+  }, []);
   useEffect(() => {
     const saveTheme = async () => {
       await AsyncStorage.setItem("theme", JSON.stringify(activeTheme));
+
+      const today = new Date();
+
+      const updatedCategories = categories.map((category) => {
+        const hasCheckedToday = category.checkedDays.some((day) => {
+          const dayDate =
+            day.date instanceof Date ? day.date : new Date(day.date);
+          return isSameDay(dayDate, today) && day.status;
+        });
+
+        return {
+          ...category,
+          buttonColor: hasCheckedToday ? category.color : currentTheme.border,
+        };
+      });
+
+      setCategories(updatedCategories);
     };
+
     saveTheme();
   }, [activeTheme]);
 
@@ -1711,93 +1728,108 @@ export default function HomeScreen() {
   const themes = {
     default: {
       primary: {
-        main: "#7c3aed", // violet-600
-        light: "#8b5cf6", // violet-500
-        dark: "#6d28d9", // violet-700
-        text: colorScheme === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
-        bg: colorScheme === "dark" ? "1f2937" : "#f5f3ff", // violet-950 : violet-50
+        main: "#7c3aed",
+        light: "#8b5cf6",
+        dark: "#6d28d9",
+        text: "#c4b5fd",
+        bg: "#1f2937",
       },
-      bg: colorScheme === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
-      card: colorScheme === "dark" ? "#111827" : "#ffffff", // gray-900 : white
-      text: colorScheme === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
-      textMuted: colorScheme === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
-      border: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
-      tab: colorScheme === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      bg: "#030712",
+      card: "#111827",
+      text: "#ffffff",
+      textMuted: "#9ca3af",
+      border: "#1f2937",
+      tab: "#151422",
     },
     ocean: {
       primary: {
-        main: "#2563eb", // blue-600
-        light: "#3b82f6", // blue-500
-        dark: "#1d4ed8", // blue-700
-        text: colorScheme === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
-        bg: colorScheme === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
+        main: "#2563eb",
+        light: "#3b82f6",
+        dark: "#1d4ed8",
+        text: "#60a5fa",
+        bg: "#0c0a09",
       },
-      bg: colorScheme === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
-      card: colorScheme === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
-      text: colorScheme === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
-      textMuted: colorScheme === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
-      border: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
-      tab: colorScheme === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      bg: "#020617",
+      card: "#0f172a",
+      text: "#ffffff",
+      textMuted: "#94a3b8",
+      border: "#1e293b",
+      tab: "#1e293b",
     },
     forest: {
       primary: {
-        main: "#059669", // emerald-600
-        light: "#10b981", // emerald-500
-        dark: "#047857", // emerald-700
-        text: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
-        bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+        main: "#059669",
+        light: "#10b981",
+        dark: "#047857",
+        text: "#34d399",
+        bg: "#022c22",
       },
-      bg: colorScheme === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
-      card: colorScheme === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
-      text: colorScheme === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
-      textMuted: colorScheme === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
-      border: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
-      tab: colorScheme === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      bg: "#022c22",
+      card: "#064e3b",
+      text: "#ffffff",
+      textMuted: "#34d399",
+      border: "#022c22",
+      tab: "#065f46",
     },
     sunset: {
       primary: {
-        main: "#ea580c", // orange-600
-        light: "#f97316", // orange-500
-        dark: "#c2410c", // orange-700
-        text: colorScheme === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
-        bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+        main: "#ea580c",
+        light: "#f97316",
+        dark: "#c2410c",
+        text: "#fb923c",
+        bg: "#431407",
       },
-      bg: colorScheme === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
-      card: colorScheme === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
-      text: colorScheme === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
-      textMuted: colorScheme === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
-      border: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
-      tab: colorScheme === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      bg: "#431407",
+      card: "#7c2d12",
+      text: "#ffffff",
+      textMuted: "#fb923c",
+      border: "#ea580c",
+      tab: "#9a3412",
     },
     berry: {
       primary: {
-        main: "#c026d3", // fuchsia-600
-        light: "#d946ef", // fuchsia-500
-        dark: "#a21caf", // fuchsia-700
-        text: colorScheme === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
-        bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+        main: "#c026d3",
+        light: "#d946ef",
+        dark: "#a21caf",
+        text: "#f0abfc",
+        bg: "#4a044e",
       },
-      bg: colorScheme === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
-      card: colorScheme === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
-      text: colorScheme === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
-      textMuted: colorScheme === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
-      border: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
-      tab: colorScheme === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      bg: "#4a044e",
+      card: "#86198f",
+      text: "#ffffff",
+      textMuted: "#f0abfc",
+      border: "#4a044e",
+      tab: "#701a75",
     },
     monochrome: {
       primary: {
-        main: "#525252", // neutral-600
-        light: "#737373", // neutral-500
-        dark: "#404040", // neutral-700
-        text: colorScheme === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
-        bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+        main: "#525252",
+        light: "#737373",
+        dark: "#404040",
+        text: "#A3A3A3",
+        bg: "#0A0A0A",
       },
-      bg: colorScheme === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
-      card: colorScheme === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
-      text: colorScheme === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
-      textMuted: colorScheme === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
-      border: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
-      tab: colorScheme === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      bg: "#0A0A0A",
+      card: "#171717",
+      text: "#FFFFFF",
+      textMuted: "#A3A3A3",
+      border: "#1f1f1f",
+      tab: "#262626",
+    },
+    white: {
+      primary: {
+        main: "#3b82f6",
+        light: "#60a5fa",
+        dark: "#1d4ed8",
+        text: "#1d4ed8",
+        bg: "#ffffff",
+      },
+      bg: "#ffffff",
+      card: "#f9fafb",
+      text: "#111827",
+      textMuted: "#6b7280",
+      border: "#e5e7eb",
+      tab: "#f3f4f6",
     },
   };
 
@@ -1982,24 +2014,6 @@ export default function HomeScreen() {
       >
         <View className="flex-row justify-between w-full">
           <View className="flex-col">
-            <TouchableOpacity
-              onPress={() => {
-                if (colorScheme !== "dark") {
-                  updateColor("dark");
-                } else {
-                  updateColor("white");
-                }
-              }}
-              className=" h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              style={{
-                backgroundColor: currentTheme.card,
-                borderColor: currentTheme.textMuted,
-              }}
-            >
-              <Text className="font-bold text-xl">
-                {colorScheme === "dark" ? "🌙" : "☀"}
-              </Text>
-            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setQuestView(!questview)}
               className=" h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
@@ -2212,7 +2226,7 @@ export default function HomeScreen() {
                   shadowRadius: 3.84,
                   elevation: 5,
                   maxHeight: "40%",
-                  backgroundColor: currentTheme.bg,
+                  backgroundColor: currentTheme.card,
                 }}
               >
                 <TouchableOpacity
@@ -2265,7 +2279,7 @@ export default function HomeScreen() {
                   shadowRadius: 3.84,
                   elevation: 5,
                   maxHeight: "100%",
-                  backgroundColor: currentTheme.bg,
+                  backgroundColor: currentTheme.card,
                 }}
               >
                 {activeTab === "habits" ? (
@@ -2391,8 +2405,11 @@ export default function HomeScreen() {
             {categories.map((category, index) => (
               <View
                 key={index}
-                className="overflow-hidden rounded-2xl  backdrop-blur-lg border border-gray-800 mb-10"
-                style={{ backgroundColor: currentTheme.card }}
+                className="overflow-hidden rounded-2xl  backdrop-blur-lg border  mb-10"
+                style={{
+                  backgroundColor: currentTheme.card,
+                  borderColor: currentTheme.border,
+                }}
               >
                 {category.archivated && (
                   <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
@@ -2400,7 +2417,7 @@ export default function HomeScreen() {
 
                 <View
                   className=" p-4 rounded-t-2xl"
-                  style={{ backgroundColor: currentTheme.primary.main }}
+                  style={{ backgroundColor: currentTheme.tab }}
                 >
                   <View className="flex-row justify-between items-center mb-3  ">
                     <View className="flex-row justify-between gap-3 ">
@@ -2414,7 +2431,7 @@ export default function HomeScreen() {
                           setCategories(newCategories);
                         }}
                         className="h-8 w-8  rounded-full items-center justify-center"
-                        style={{ backgroundColor: currentTheme.card }}
+                        style={{ backgroundColor: currentTheme.border }}
                       >
                         <MaterialCommunityIcons
                           name={category.iconname as any}
@@ -2449,7 +2466,7 @@ export default function HomeScreen() {
                           setCategories(newCategories);
                         }}
                         className=" h-9 w-9 mr-3 rounded-full items-center justify-center"
-                        style={{ backgroundColor: currentTheme.card }}
+                        style={{ backgroundColor: currentTheme.border }}
                       >
                         <MaterialCommunityIcons
                           name="camera"
@@ -2463,7 +2480,7 @@ export default function HomeScreen() {
                             archivateHabit(index);
                           }}
                           className=" h-9 w-9 rounded-full items-center justify-center z-20"
-                          style={{ backgroundColor: currentTheme.card }}
+                          style={{ backgroundColor: currentTheme.border }}
                         >
                           <MaterialCommunityIcons
                             name="archive"
@@ -2491,8 +2508,8 @@ export default function HomeScreen() {
                       startDate1={category.startDate}
                       checkedDays={category.checkedDays}
                       color={category.color}
-                      bgcolor="[#111827]"
-                      grayColor="#1f2937"
+                      bgcolor={currentTheme.tab}
+                      grayColor={currentTheme.border}
                       days={105}
                       textColor="white"
                     />
@@ -2535,7 +2552,7 @@ export default function HomeScreen() {
                   <TouchableOpacity
                     onPress={() => handleDeletePress(index)}
                     className=" h-7 w-7 rounded-full items-center justify-center shadow-lg relative top-12 mt-20 z-20"
-                    style={{ backgroundColor: currentTheme.bg }}
+                    style={{ backgroundColor: currentTheme.border }}
                   >
                     <Text className="text-gray-400  text-md text-white ">
                       ✕
@@ -2662,7 +2679,7 @@ export default function HomeScreen() {
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
-                            backgroundColor: currentTheme.bg,
+                            backgroundColor: currentTheme.card,
                           }}
                         >
                           <View className="flex-row mb-10">
@@ -2676,7 +2693,7 @@ export default function HomeScreen() {
                                 setCategories(newCategories);
                               }}
                               className="p-2 h-11 w-11 rounded-full items-center justify-center mt-3 ml-3 "
-                              style={{ backgroundColor: currentTheme.card }}
+                              style={{ backgroundColor: currentTheme.border }}
                             >
                               <MaterialCommunityIcons
                                 name="close"
@@ -2723,8 +2740,8 @@ export default function HomeScreen() {
                                 startDate1={category.startDate}
                                 checkedDays={category.checkedDays}
                                 color={category.color}
-                                bgcolor="[#0f172a]"
-                                grayColor="#1f2937"
+                                bgcolor={currentTheme.tab}
+                                grayColor={currentTheme.border}
                                 textColor="white"
                               ></StreakV2>
                             </View>
@@ -2821,7 +2838,7 @@ export default function HomeScreen() {
                               backgroundColor:
                                 selectedIcon === item.value
                                   ? currentTheme.primary.main
-                                  : currentTheme.bg,
+                                  : currentTheme.border,
                             }}
                             onPress={() => setSelectedIcon(item.value)}
                           >
@@ -2862,7 +2879,7 @@ export default function HomeScreen() {
                       style={{
                         backgroundColor:
                           !name || !selectedIcon
-                            ? currentTheme.bg
+                            ? currentTheme.border
                             : currentTheme.primary.main,
                       }}
                     >
@@ -2894,15 +2911,18 @@ export default function HomeScreen() {
             {routines.map((routine, index) => (
               <View
                 key={index}
-                className="overflow-hidden rounded-2xl backdrop-blur-lg border border-gray-800 mb-10"
-                style={{ backgroundColor: currentTheme.card }}
+                className="overflow-hidden rounded-2xl backdrop-blur-lg border  mb-10"
+                style={{
+                  backgroundColor: currentTheme.card,
+                  borderColor: currentTheme.border,
+                }}
               >
                 {routine.archivated && (
                   <View className="absolute top-0 left-0 right-0 bottom-0 bg-gray-500 opacity-50 z-10" />
                 )}
                 <View
                   className={` p-4`}
-                  style={{ backgroundColor: currentTheme.primary.main }}
+                  style={{ backgroundColor: currentTheme.tab }}
                 >
                   <View className="flex-row justify-between items-center mb-3">
                     <View className="flex-row justify-between gap-3">
@@ -2916,7 +2936,7 @@ export default function HomeScreen() {
                           setRoutines(newRoutines);
                         }}
                         className="h-8 w-8  rounded-full items-center justify-center"
-                        style={{ backgroundColor: currentTheme.card }}
+                        style={{ backgroundColor: currentTheme.border }}
                       >
                         <MaterialCommunityIcons
                           name={routine.iconname as any}
@@ -2946,7 +2966,7 @@ export default function HomeScreen() {
                             archivateroutine(index);
                           }}
                           className=" h-9 w-9 rounded-full items-center justify-center  z-20"
-                          style={{ backgroundColor: currentTheme.card }}
+                          style={{ backgroundColor: currentTheme.border }}
                         >
                           <MaterialCommunityIcons
                             name="archive"
@@ -2974,7 +2994,7 @@ export default function HomeScreen() {
                         <View key={todoIndex} className="mb-3">
                           <View
                             className="flex-row items-center justify-between p-3 rounded-xl"
-                            style={{ backgroundColor: currentTheme.bg }}
+                            style={{ backgroundColor: currentTheme.border }}
                           >
                             <Text className="text-white flex-1 mr-3">
                               {todoItem.name}
@@ -2986,7 +3006,7 @@ export default function HomeScreen() {
                                 }}
                                 className="h-8 w-8 rounded-full items-center justify-center"
                                 style={{
-                                  backgroundColor: currentTheme.primary.main,
+                                  backgroundColor: currentTheme.card,
                                 }}
                               >
                                 <Text className="text-white font-bold text-sm">
@@ -3011,7 +3031,7 @@ export default function HomeScreen() {
                                 }}
                                 className="h-8 w-8 rounded-full items-center justify-center "
                                 style={{
-                                  backgroundColor: currentTheme.primary.main,
+                                  backgroundColor: currentTheme.card,
                                 }}
                               >
                                 <MaterialCommunityIcons
@@ -3028,7 +3048,7 @@ export default function HomeScreen() {
                                 style={{
                                   backgroundColor: isCheckedToday
                                     ? routine.color
-                                    : currentTheme.primary.main,
+                                    : currentTheme.card,
                                 }}
                               >
                                 <Text className="text-white font-bold">✓</Text>
@@ -3039,7 +3059,7 @@ export default function HomeScreen() {
                             <View
                               className="mt-2 flex-row items-center gap-2 p-3 rounded-xl "
                               style={{
-                                backgroundColor: currentTheme.bg,
+                                backgroundColor: currentTheme.border,
                               }}
                             >
                               <TextInput
@@ -3058,7 +3078,7 @@ export default function HomeScreen() {
                                 }}
                                 className="h-8 w-8 rounded-full items-center justify-center "
                                 style={{
-                                  backgroundColor: currentTheme.card,
+                                  backgroundColor: currentTheme.tab,
                                 }}
                               >
                                 <MaterialCommunityIcons
@@ -3086,8 +3106,8 @@ export default function HomeScreen() {
                       startDate1={routine.startDate}
                       checkedDays={routine.checkedDays}
                       color={routine.color}
-                      bgcolor="[#111827]"
-                      grayColor="#1f2937"
+                      bgcolor={currentTheme.card}
+                      grayColor={currentTheme.border}
                       days={105}
                       textColor="white"
                     />
@@ -3098,7 +3118,7 @@ export default function HomeScreen() {
                     }}
                     className=" h-8 w-8 rounded-full items-center justify-center shadow-lg ml-4"
                     style={{
-                      backgroundColor: currentTheme.bg,
+                      backgroundColor: currentTheme.border,
                     }}
                   >
                     <Text className="text-white text-sm">✕</Text>
@@ -3125,7 +3145,7 @@ export default function HomeScreen() {
                           shadowOpacity: 0.25,
                           shadowRadius: 3.84,
                           elevation: 5,
-                          backgroundColor: currentTheme.bg,
+                          backgroundColor: currentTheme.card,
                         }}
                       >
                         <View className="flex-row gap-1 mb-10">
@@ -3140,7 +3160,7 @@ export default function HomeScreen() {
                             }}
                             className="p-2 h-11 w-11 rounded-full items-center justify-center mt-3 ml-3"
                             style={{
-                              backgroundColor: currentTheme.card,
+                              backgroundColor: currentTheme.border,
                             }}
                           >
                             <MaterialCommunityIcons
@@ -3189,8 +3209,8 @@ export default function HomeScreen() {
                               startDate1={routine.startDate}
                               checkedDays={routine.checkedDays}
                               color={routine.color}
-                              bgcolor="[#0f172a]"
-                              grayColor="#1f2937"
+                              bgcolor={currentTheme.tab}
+                              grayColor={currentTheme.border}
                               textColor="white"
                             />
                           </View>
@@ -3334,7 +3354,7 @@ export default function HomeScreen() {
             </Text>
             <TextInput
               className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.bg }}
+              style={{ backgroundColor: currentTheme.border }}
               placeholder="Enter name of Routine"
               placeholderTextColor="#9CA3AF"
               value={name}
@@ -3342,7 +3362,7 @@ export default function HomeScreen() {
             />
             <TextInput
               className=" border-none rounded-lg px-4 py-3 text-white text-base mb-10"
-              style={{ backgroundColor: currentTheme.bg }}
+              style={{ backgroundColor: currentTheme.border }}
               placeholder="Enter amount"
               placeholderTextColor="#9CA3AF"
               value={amount}
@@ -3354,7 +3374,7 @@ export default function HomeScreen() {
                 <TextInput
                   key={index}
                   className="border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                  style={{ backgroundColor: currentTheme.bg }}
+                  style={{ backgroundColor: currentTheme.border }}
                   placeholder="Enter Routine Part"
                   placeholderTextColor="#9CA3AF"
                   value={item.name}
@@ -3369,7 +3389,7 @@ export default function HomeScreen() {
               ))}
               <TouchableOpacity
                 className="h-10 w-10 rounded-full  mx-auto flex justify-center items-center"
-                style={{ backgroundColor: currentTheme.bg }}
+                style={{ backgroundColor: currentTheme.border }}
                 onPress={() =>
                   setRoutItem((prev) => [
                     ...prev,
@@ -3428,7 +3448,7 @@ export default function HomeScreen() {
                     style={{
                       backgroundColor: isSelected
                         ? currentTheme.primary.main
-                        : currentTheme.bg,
+                        : currentTheme.border,
                     }}
                   >
                     <Text className="text-gray-400 font-bold">
@@ -3457,7 +3477,7 @@ export default function HomeScreen() {
                       backgroundColor:
                         selectedIcon === item.value
                           ? currentTheme.primary.main
-                          : currentTheme.bg,
+                          : currentTheme.border,
                     }}
                     onPress={() => setSelectedIcon(item.value)}
                   >
@@ -3490,7 +3510,7 @@ export default function HomeScreen() {
               style={{
                 backgroundColor:
                   !name || !selectedIcon
-                    ? currentTheme.bg
+                    ? currentTheme.border
                     : currentTheme.primary.main,
               }}
               disabled={!name || !selectedIcon}
@@ -3525,7 +3545,7 @@ export default function HomeScreen() {
 
             <TextInput
               className=" border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.bg }}
+              style={{ backgroundColor: currentTheme.border }}
               placeholder="Enter name of Habit"
               placeholderTextColor="#9CA3AF"
               value={name}
@@ -3534,7 +3554,7 @@ export default function HomeScreen() {
 
             <TextInput
               className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.bg }}
+              style={{ backgroundColor: currentTheme.border }}
               placeholder="Enter amount of Habit"
               placeholderTextColor="#9CA3AF"
               value={amount}
@@ -3564,7 +3584,7 @@ export default function HomeScreen() {
             {selectedIcon && (
               <View
                 className="flex-row items-center  p-3 rounded-lg mb-4"
-                style={{ backgroundColor: currentTheme.bg }}
+                style={{ backgroundColor: currentTheme.border }}
               >
                 <MaterialCommunityIcons
                   name={selectedIcon as any}
@@ -3599,7 +3619,7 @@ export default function HomeScreen() {
                     style={{
                       backgroundColor: isSelected
                         ? currentTheme.primary.main
-                        : currentTheme.bg,
+                        : currentTheme.border,
                     }}
                   >
                     <Text className="text-gray-400 font-bold">
@@ -3624,7 +3644,7 @@ export default function HomeScreen() {
                       backgroundColor:
                         selectedIcon === item.value
                           ? currentTheme.primary.main
-                          : currentTheme.bg,
+                          : currentTheme.border,
                     }}
                     onPress={() => setSelectedIcon(item.value)}
                   >
@@ -3657,7 +3677,7 @@ export default function HomeScreen() {
               style={{
                 backgroundColor:
                   !name || !selectedIcon
-                    ? currentTheme.bg
+                    ? currentTheme.border
                     : currentTheme.primary.main,
               }}
               disabled={!name || !selectedIcon}

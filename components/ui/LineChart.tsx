@@ -34,7 +34,7 @@ const LineChart: React.FC<LineChartProps> = ({
   title = "Weekly Check-ins",
   theme,
 }) => {
-  const chartWidth = Math.min(Math.max(screenWidth * 0.6, 200), 300);
+  const chartWidth = Math.min(Math.max(screenWidth * 0.63, 200), 300);
   const chartHeight = Math.min(chartWidth * 0.6, 180);
   const padding = Math.max(15, chartWidth * 0.08);
 

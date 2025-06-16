@@ -30,7 +30,7 @@ const PieChart: React.FC<PieChartProps> = ({
   isDarkMode,
   theme,
 }) => {
-  const chartSize = Math.min(Math.max(screenWidth * 0.35, 120), 200);
+  const chartSize = Math.min(Math.max(screenWidth * 0.45, 120), 200);
   const innerSize = chartSize * 0.6;
   const segmentWidth = Math.max(1.5, chartSize * 0.01);
 

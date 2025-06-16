@@ -4,7 +4,6 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { RadarChart } from "@salmonco/react-native-radar-chart";
-import { initLlama } from "llama.rn";
 import { vars } from "nativewind";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -14,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import RNFS from "react-native-fs";
 import { FlatList } from "react-native-gesture-handler";
 
 const { width: screenWidth } = Dimensions.get("window");
@@ -124,88 +122,108 @@ export default function ProfileScreen() {
   >([]);
 
   const [activeTab2, setActiveTab2] = useState<string>("analysis");
-  const stopWords = [
-    "</s>",
-    "<|end|>",
-    "<|eot_id|>",
-    "<|end_of_text|>",
-    "<|im_end|>",
-    "<|EOT|>",
-    "<|END_OF_TURN_TOKEN|>",
-    "<|end_of_turn|>",
-    "<|endoftext|>",
-  ];
 
-  const downloadModel = async () => {
-    const modelPath = `${RNFS.DocumentDirectoryPath}/tiny-vicuna-1b.q2_k.gguf`;
+  // type LlamaContext = {
+  //   completion: (options: {
+  //     prompt: string;
+  //     n_predict: number;
+  //     temperature: number;
+  //     top_k: number;
+  //     top_p: number;
+  //     stop: string[];
+  //   }) => Promise<{ text: string }>;
+  // };
+  // let globalLlamaContext: LlamaContext | null = null;
 
-    if (!(await RNFS.exists(modelPath))) {
-      console.log("Downloading model...");
-      const download = RNFS.downloadFile({
-        fromUrl:
-          "https://huggingface.co/afrideva/Tiny-Vicuna-1B-GGUF/resolve/main/tiny-vicuna-1b.q2_k.gguf",
-        toFile: modelPath,
-        progressDivider: 10,
-        progress: (res) => {
-          const percent = (res.bytesWritten / res.contentLength) * 100;
-          console.log(`Download progress: ${percent.toFixed(2)}%`);
-        },
-      });
+  // const MODEL_CONFIG = {
+  //   url: "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf",
+  //   filename: "llama-3.2-1b-instruct-q4_k_m.gguf",
+  //   promptTemplate: (message: any) =>
+  //     `<|start_header_id|>user<|end_header_id|>\n${message}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`,
+  // };
 
-      await download.promise;
-      console.log("Model downloaded");
-    } else {
-      console.log("Model already exists");
-    }
+  // const stopWords = [
+  //   "</s>",
+  //   "<|end|>",
+  //   "<|eot_id|>",
+  //   "<|end_of_text|>",
+  //   "<|im_end|>",
+  //   "<|EOT|>",
+  //   "<|END_OF_TURN_TOKEN|>",
+  //   "<|end_of_turn|>",
+  //   "<|endoftext|>",
+  // ];
 
-    return modelPath;
-  };
+  // const downloadModel = async () => {
+  //   const modelPath = `${RNFS.DocumentDirectoryPath}/${MODEL_CONFIG.filename}`;
 
-  const initializeTinyLlama = async () => {
-    try {
-      console.log("Starting model initialization...");
+  //   if (!(await RNFS.exists(modelPath))) {
+  //     console.log("Downloading model...");
+  //     const download = RNFS.downloadFile({
+  //       fromUrl: MODEL_CONFIG.url,
+  //       toFile: modelPath,
+  //       progressDivider: 10,
+  //       progress: (res) => {
+  //         const percent = (res.bytesWritten / res.contentLength) * 100;
+  //         console.log(`Download progress: ${percent.toFixed(2)}%`);
+  //       },
+  //     });
 
-      // Erst das Modell downloaden
-      const modelPath = await downloadModel();
-      console.log("Model path:", modelPath);
+  //     await download.promise;
+  //     console.log("Model downloaded");
+  //   } else {
+  //     console.log("Model already exists");
+  //   }
 
-      // Dann mit dem lokalen Pfad initialisieren
-      const llamaContext = await initLlama(
-        {
-          model: modelPath, // <-- Hier den lokalen Pfad verwenden!
-          n_ctx: 128,
-          n_threads: 1,
-          use_mlock: false,
-          n_gpu_layers: 0,
-        },
-        (progress) => {
-          console.log(`Loading progress: ${Math.round(progress * 100)}%`);
-        }
-      );
+  //   return modelPath;
+  // };
 
-      console.log("TinyLlama initialized successfully");
+  // const initializeTinyLlama = async () => {
+  //   try {
+  //     if (globalLlamaContext != null) {
+  //       console.log("Model already loaded");
+  //       return;
+  //     }
 
-      const completionResponse = await llamaContext.completion(
-        {
-          prompt: "Hello! ",
-          n_predict: 5,
-          temperature: 0.5,
-          stop: stopWords,
-        },
-        (data) => {
-          const { token } = data;
-          console.log("Token:", token);
-        }
-      );
-      console.log(completionResponse.text);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
+  //     console.log("Starting model initialization...");
 
-  useEffect(() => {
-    initializeTinyLlama();
-  }, []);
+  //     const modelPath = await downloadModel();
+  //     console.log("Model path:", modelPath);
+
+  //     globalLlamaContext = await initLlama(
+  //       {
+  //         model: modelPath,
+  //         n_ctx: 1024,
+  //         n_threads: 1,
+  //         use_mlock: false,
+  //         n_gpu_layers: 0,
+  //       },
+  //       (progress) => {
+  //         console.log(`Loading progress: ${Math.round(progress * 100)}%`);
+  //       }
+  //     );
+
+  //     console.log("TinyLlama initialized successfully");
+
+  //     const completionResponse = await globalLlamaContext.completion({
+  //       prompt: MODEL_CONFIG.promptTemplate(
+  //         "Kannst du mir Tipps geben wie ich meine Habits einhalten kann, z.B. täglich Coden kriege ich einfach nicht hin."
+  //       ),
+  //       n_predict: 512,
+  //       temperature: 0.7,
+  //       top_k: 40,
+  //       top_p: 0.95,
+  //       stop: stopWords,
+  //     });
+  //     console.log(completionResponse.text);
+  //   } catch (error) {
+  //     console.error("Error:", error);
+  //   }
+  // };
+
+  // useEffect(() => {
+  //   initializeTinyLlama();
+  // }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -929,93 +947,108 @@ export default function ProfileScreen() {
   const themes = {
     default: {
       primary: {
-        main: "#7c3aed", // violet-600
-        light: "#8b5cf6", // violet-500
-        dark: "#6d28d9", // violet-700
-        text: colorSchem === "dark" ? "#c4b5fd" : "#7c3aed", // violet-400 : violet-600
-        bg: colorSchem === "dark" ? "#1f2937" : "#f5f3ff", // violet-950 : violet-50
+        main: "#7c3aed",
+        light: "#8b5cf6",
+        dark: "#6d28d9",
+        text: "#c4b5fd",
+        bg: "#1f2937",
       },
-      bg: colorSchem === "dark" ? "#030712" : "#f9fafb", // gray-950 : gray-50
-      card: colorSchem === "dark" ? "#111827" : "#ffffff", // gray-900 : white
-      text: colorSchem === "dark" ? "#ffffff" : "#1f2937", // white : gray-800
-      textMuted: colorSchem === "dark" ? "#9ca3af" : "#6b7280", // gray-400 : gray-500
-      border: colorSchem === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
-      tab: colorSchem === "dark" ? "#1f2937" : "#e5e7eb", // gray-800 : gray-200
+      bg: "#030712",
+      card: "#111827",
+      text: "#ffffff",
+      textMuted: "#9ca3af",
+      border: "#1f2937",
+      tab: "#151422",
     },
     ocean: {
       primary: {
-        main: "#2563eb", // blue-600
-        light: "#3b82f6", // blue-500
-        dark: "#1d4ed8", // blue-700
-        text: colorSchem === "dark" ? "#60a5fa" : "#2563eb", // blue-400 : blue-600
-        bg: colorSchem === "dark" ? "#0c0a09" : "#eff6ff", // blue-950 : blue-50
+        main: "#2563eb",
+        light: "#3b82f6",
+        dark: "#1d4ed8",
+        text: "#60a5fa",
+        bg: "#0c0a09",
       },
-      bg: colorSchem === "dark" ? "#020617" : "#f8fafc", // slate-950 : slate-50
-      card: colorSchem === "dark" ? "#0f172a" : "#ffffff", // slate-900 : white
-      text: colorSchem === "dark" ? "#ffffff" : "#1e293b", // white : slate-800
-      textMuted: colorSchem === "dark" ? "#94a3b8" : "#64748b", // slate-400 : slate-500
-      border: colorSchem === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
-      tab: colorSchem === "dark" ? "#1e293b" : "#e2e8f0", // slate-800 : slate-200
+      bg: "#020617",
+      card: "#0f172a",
+      text: "#ffffff",
+      textMuted: "#94a3b8",
+      border: "#1e293b",
+      tab: "#1e293b",
     },
     forest: {
       primary: {
-        main: "#059669", // emerald-600
-        light: "#10b981", // emerald-500
-        dark: "#047857", // emerald-700
-        text: colorSchem === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-600
-        bg: colorSchem === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
+        main: "#059669",
+        light: "#10b981",
+        dark: "#047857",
+        text: "#34d399",
+        bg: "#022c22",
       },
-      bg: colorSchem === "dark" ? "#022c22" : "#ecfdf5", // emerald-950 : emerald-50
-      card: colorSchem === "dark" ? "#064e3b" : "#ffffff", // emerald-900 : white
-      text: colorSchem === "dark" ? "#ffffff" : "#064e3b", // white : emerald-800
-      textMuted: colorSchem === "dark" ? "#34d399" : "#059669", // emerald-400 : emerald-500
-      border: colorSchem === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
-      tab: colorSchem === "dark" ? "#064e3b" : "#a7f3d0", // emerald-800 : emerald-200
+      bg: "#022c22",
+      card: "#064e3b",
+      text: "#ffffff",
+      textMuted: "#34d399",
+      border: "#022c22",
+      tab: "#065f46",
     },
     sunset: {
       primary: {
-        main: "#ea580c", // orange-600
-        light: "#f97316", // orange-500
-        dark: "#c2410c", // orange-700
-        text: colorSchem === "dark" ? "#fb923c" : "#ea580c", // orange-400 : orange-600
-        bg: colorSchem === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
+        main: "#ea580c",
+        light: "#f97316",
+        dark: "#c2410c",
+        text: "#fb923c",
+        bg: "#431407",
       },
-      bg: colorSchem === "dark" ? "#431407" : "#fff7ed", // orange-950 : orange-50
-      card: colorSchem === "dark" ? "#7c2d12" : "#ffffff", // orange-900 : white
-      text: colorSchem === "dark" ? "#ffffff" : "#9a3412", // white : orange-800
-      textMuted: colorSchem === "dark" ? "#fb923c" : "#fb923c", // orange-400 : orange-500
-      border: colorSchem === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
-      tab: colorSchem === "dark" ? "#9a3412" : "#fed7aa", // orange-800 : orange-200
+      bg: "#431407",
+      card: "#7c2d12",
+      text: "#ffffff",
+      textMuted: "#fb923c",
+      border: "#ea580c",
+      tab: "#9a3412",
     },
     berry: {
       primary: {
-        main: "#c026d3", // fuchsia-600
-        light: "#d946ef", // fuchsia-500
-        dark: "#a21caf", // fuchsia-700
-        text: colorSchem === "dark" ? "#f0abfc" : "#c026d3", // fuchsia-400 : fuchsia-600
-        bg: colorSchem === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
+        main: "#c026d3",
+        light: "#d946ef",
+        dark: "#a21caf",
+        text: "#f0abfc",
+        bg: "#4a044e",
       },
-      bg: colorSchem === "dark" ? "#4a044e" : "#fdf4ff", // fuchsia-950 : fuchsia-50
-      card: colorSchem === "dark" ? "#86198f" : "#ffffff", // fuchsia-900 : white
-      text: colorSchem === "dark" ? "#ffffff" : "#701a75", // white : fuchsia-800
-      textMuted: colorSchem === "dark" ? "#f0abfc" : "#f0abfc", // fuchsia-400 : fuchsia-500
-      border: colorSchem === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
-      tab: colorSchem === "dark" ? "#701a75" : "#fae8ff", // fuchsia-800 : fuchsia-200
+      bg: "#4a044e",
+      card: "#86198f",
+      text: "#ffffff",
+      textMuted: "#f0abfc",
+      border: "#4a044e",
+      tab: "#701a75",
     },
     monochrome: {
       primary: {
-        main: "#525252", // neutral-600
-        light: "#737373", // neutral-500
-        dark: "#404040", // neutral-700
-        text: colorSchem === "dark" ? "#A3A3A3" : "#525252", // neutral-400 : neutral-600
-        bg: colorSchem === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
+        main: "#525252",
+        light: "#737373",
+        dark: "#404040",
+        text: "#A3A3A3",
+        bg: "#0A0A0A",
       },
-      bg: colorSchem === "dark" ? "#0A0A0A" : "#FAFAFA", // neutral-950 : neutral-50
-      card: colorSchem === "dark" ? "#171717" : "#FFFFFF", // neutral-900 : white
-      text: colorSchem === "dark" ? "#FFFFFF" : "#262626", // white : neutral-800
-      textMuted: colorSchem === "dark" ? "#A3A3A3" : "#737373", // neutral-400 : neutral-500
-      border: colorSchem === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
-      tab: colorSchem === "dark" ? "#262626" : "#E5E5E5", // neutral-800 : neutral-200
+      bg: "#0A0A0A",
+      card: "#171717",
+      text: "#FFFFFF",
+      textMuted: "#A3A3A3",
+      border: "#262626",
+      tab: "#262626",
+    },
+    white: {
+      primary: {
+        main: "#3b82f6", // blue-500
+        light: "#60a5fa", // blue-400
+        dark: "#1d4ed8", // blue-700
+        text: "#1d4ed8", // same as dark
+        bg: "#ffffff",
+      },
+      bg: "#ffffff",
+      card: "#f9fafb", // gray-50
+      text: "#111827", // gray-900
+      textMuted: "#6b7280", // gray-500
+      border: "#e5e7eb", // gray-200
+      tab: "#f3f4f6", // gray-100
     },
   };
   const isDark = colorSchem === "dark";
@@ -1438,7 +1471,7 @@ export default function ProfileScreen() {
                   )}
 
                   <View
-                    className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-20 `}
+                    className={`${cardBgColor} rounded-2xl items-center justify-center  mb-2 mt-20 `}
                   >
                     <Text
                       className={`${textColor} text-2xl font-bold mb-2 text-center`}
@@ -1463,18 +1496,17 @@ export default function ProfileScreen() {
                       windowSize={10}
                       initialNumToRender={5}
                       contentContainerStyle={{ paddingVertical: 16 }}
-                      ItemSeparatorComponent={() => <View className="h-4" />}
+                      ItemSeparatorComponent={() => <View className="h-4 " />}
                       renderItem={({ item, index }) => {
                         const Checkins = checkins[index];
                         return (
                           <View
                             className={`${borderColor} border rounded-xl pb-3 pt-3  `}
-                            style={{ width: screenWidth * 0.75 }}
+                            style={{ width: screenWidth * 0.81 }}
                           >
                             <View className="mb-3 flex justify-center items-center">
                               <View
-                                className={` rounded-full ${primaryColor} px-6 py-2 justify-center items-center`}
-                                style={{ maxWidth: screenWidth * 0.7 }}
+                                className={` rounded-full ${primaryColor} px-10 py-2 justify-center items-center`}
                               >
                                 <Text
                                   className={`${textColor} text-xl font-semibold text-center`}
@@ -1504,7 +1536,9 @@ export default function ProfileScreen() {
                     />
                   </View>
 
-                  <View className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-5`}>
+                  <View
+                    className={`${cardBgColor} rounded-2xl items-center justify-center  mb-2 mt-5`}
+                  >
                     <Text
                       className={`${textColor} text-2xl font-bold mb-2 text-center`}
                     >
@@ -1534,11 +1568,11 @@ export default function ProfileScreen() {
                         return (
                           <View
                             className={`${borderColor} border rounded-xl p-11`}
-                            style={{ width: screenWidth * 0.75 }}
+                            style={{ width: screenWidth * 0.8 }}
                           >
                             <View className="mb-3">
                               <View
-                                className={` rounded-full ${primaryColor}  py-2 justify-center items-center mx-20`}
+                                className={` rounded-full ${primaryColor} px-10  py-2 justify-center items-center `}
                               >
                                 <Text
                                   className={`${textColor} text-xl font-semibold text-center`}
@@ -1548,7 +1582,7 @@ export default function ProfileScreen() {
                               </View>
                             </View>
                             <Text
-                              className={`${textMutedColor} text-center text-sm`}
+                              className={`${textMutedColor} text-center text-sm mb-3`}
                             >
                               {achieved}% completed
                             </Text>
@@ -1852,7 +1886,7 @@ export default function ProfileScreen() {
                     )}
 
                     <View
-                      className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-20 `}
+                      className={`${cardBgColor} rounded-2xl items-center justify-center  mb-2 mt-20 `}
                     >
                       <Text
                         className={`${textColor} text-2xl font-bold mb-2 text-center`}
@@ -1883,11 +1917,11 @@ export default function ProfileScreen() {
                           return (
                             <View
                               className={`${borderColor} border rounded-xl pb-3 pt-3  `}
-                              style={{ width: screenWidth * 0.75 }}
+                              style={{ width: screenWidth * 0.81 }}
                             >
                               <View className="mb-3 flex justify-center items-center">
                                 <View
-                                  className={` rounded-full ${primaryColor} px-6 py-2 justify-center items-center`}
+                                  className={` rounded-full ${primaryColor} px-10 py-2 justify-center items-center`}
                                   style={{ maxWidth: screenWidth * 0.7 }}
                                 >
                                   <Text
@@ -1919,7 +1953,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View
-                      className={`${cardBgColor} rounded-2xl p-5 mb-2 mt-5`}
+                      className={`${cardBgColor} rounded-2xl items-center justify-center  mb-2 mt-5`}
                     >
                       <Text
                         className={`${textColor} text-2xl font-bold mb-2 text-center`}
@@ -1950,12 +1984,11 @@ export default function ProfileScreen() {
                           return (
                             <View
                               className={`${borderColor} border rounded-xl p-11`}
-                              style={{ width: screenWidth * 0.75 }}
+                              style={{ width: screenWidth * 0.8 }}
                             >
                               <View className="mb-3">
                                 <View
-                                  className={` rounded-full ${primaryColor} px-6 py-2 justify-center items-center`}
-                                  style={{ maxWidth: screenWidth * 0.7 }}
+                                  className={` rounded-full ${primaryColor} px-10 py-2 justify-center items-center`}
                                 >
                                   <Text
                                     className={`${textColor} text-xl font-semibold text-center`}
@@ -1965,7 +1998,7 @@ export default function ProfileScreen() {
                                 </View>
                               </View>
                               <Text
-                                className={`${textMutedColor} text-center text-sm`}
+                                className={`${textMutedColor} text-center text-sm mb-3`}
                               >
                                 {achieved}% completed
                               </Text>
