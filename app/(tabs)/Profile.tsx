@@ -1,4 +1,5 @@
 import PieChart from "@/components/ui/HabitDonutPieChart";
+import LanguagePiechart from "@/components/ui/LanguagePiechart";
 import LineChart from "@/components/ui/LineChart";
 import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -122,108 +123,16 @@ export default function ProfileScreen() {
   >([]);
 
   const [activeTab2, setActiveTab2] = useState<string>("analysis");
+  const [TimeCodedToday, setTimeCodedToday] = useState<number>(0);
+  type Language = {
+    name: string;
+    percent: number;
+    color: string;
+  };
 
-  // type LlamaContext = {
-  //   completion: (options: {
-  //     prompt: string;
-  //     n_predict: number;
-  //     temperature: number;
-  //     top_k: number;
-  //     top_p: number;
-  //     stop: string[];
-  //   }) => Promise<{ text: string }>;
-  // };
-  // let globalLlamaContext: LlamaContext | null = null;
-
-  // const MODEL_CONFIG = {
-  //   url: "https://huggingface.co/bartowski/Llama-3.2-1B-Instruct-GGUF/resolve/main/Llama-3.2-1B-Instruct-Q4_K_M.gguf",
-  //   filename: "llama-3.2-1b-instruct-q4_k_m.gguf",
-  //   promptTemplate: (message: any) =>
-  //     `<|start_header_id|>user<|end_header_id|>\n${message}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n`,
-  // };
-
-  // const stopWords = [
-  //   "</s>",
-  //   "<|end|>",
-  //   "<|eot_id|>",
-  //   "<|end_of_text|>",
-  //   "<|im_end|>",
-  //   "<|EOT|>",
-  //   "<|END_OF_TURN_TOKEN|>",
-  //   "<|end_of_turn|>",
-  //   "<|endoftext|>",
-  // ];
-
-  // const downloadModel = async () => {
-  //   const modelPath = `${RNFS.DocumentDirectoryPath}/${MODEL_CONFIG.filename}`;
-
-  //   if (!(await RNFS.exists(modelPath))) {
-  //     console.log("Downloading model...");
-  //     const download = RNFS.downloadFile({
-  //       fromUrl: MODEL_CONFIG.url,
-  //       toFile: modelPath,
-  //       progressDivider: 10,
-  //       progress: (res) => {
-  //         const percent = (res.bytesWritten / res.contentLength) * 100;
-  //         console.log(`Download progress: ${percent.toFixed(2)}%`);
-  //       },
-  //     });
-
-  //     await download.promise;
-  //     console.log("Model downloaded");
-  //   } else {
-  //     console.log("Model already exists");
-  //   }
-
-  //   return modelPath;
-  // };
-
-  // const initializeTinyLlama = async () => {
-  //   try {
-  //     if (globalLlamaContext != null) {
-  //       console.log("Model already loaded");
-  //       return;
-  //     }
-
-  //     console.log("Starting model initialization...");
-
-  //     const modelPath = await downloadModel();
-  //     console.log("Model path:", modelPath);
-
-  //     globalLlamaContext = await initLlama(
-  //       {
-  //         model: modelPath,
-  //         n_ctx: 1024,
-  //         n_threads: 1,
-  //         use_mlock: false,
-  //         n_gpu_layers: 0,
-  //       },
-  //       (progress) => {
-  //         console.log(`Loading progress: ${Math.round(progress * 100)}%`);
-  //       }
-  //     );
-
-  //     console.log("TinyLlama initialized successfully");
-
-  //     const completionResponse = await globalLlamaContext.completion({
-  //       prompt: MODEL_CONFIG.promptTemplate(
-  //         "Kannst du mir Tipps geben wie ich meine Habits einhalten kann, z.B. täglich Coden kriege ich einfach nicht hin."
-  //       ),
-  //       n_predict: 512,
-  //       temperature: 0.7,
-  //       top_k: 40,
-  //       top_p: 0.95,
-  //       stop: stopWords,
-  //     });
-  //     console.log(completionResponse.text);
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // };
-
-  // useEffect(() => {
-  //   initializeTinyLlama();
-  // }, []);
+  const [languagesToday, setLanguagesToday] = useState<Language[]>([]);
+  const [apiKey, setApiKey] = useState<boolean>(false);
+  const [activeTheme, setActiveTheme] = useState<string>("default");
 
   useFocusEffect(
     useCallback(() => {
@@ -240,6 +149,59 @@ export default function ProfileScreen() {
       loadHighestStreak();
     }, [])
   );
+
+  const loadCodingTimeAndApiKey = async () => {
+    const Apikey = await AsyncStorage.getItem("WakaTimeKey");
+    if (Apikey) {
+      const WakaTimeKey = Apikey.trim();
+      setApiKey(true);
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 7);
+
+      const summaryRes = await fetch(
+        `https://wakatime.com/api/v1/users/current/summaries?range=Today&api_key=${WakaTimeKey}`
+      );
+      const summaryJson = await summaryRes.json();
+
+      let totalSeconds = 0;
+      if (summaryJson.data) {
+        for (const day of summaryJson.data) {
+          totalSeconds += day.grand_total.total_seconds;
+        }
+      }
+      const totalHours = (totalSeconds / 3600).toFixed(2);
+      setTimeCodedToday(parseFloat(totalHours));
+
+      const langsRes = await fetch(
+        `https://wakatime.com/api/v1/users/current/summaries?range=Today&api_key=${WakaTimeKey}`
+      );
+      const langsJson = await langsRes.json();
+      const languagesForToday = langsJson.data[0].languages || [];
+
+      const langData: Language[] = languagesForToday
+        .sort((a: any, b: any) => b.total_seconds - a.total_seconds)
+        .map((lang: any) => ({
+          name: lang.name,
+          percent: lang.percent,
+          time: lang.text,
+        }));
+      const languagesWithColorSimple = langData.map((lang, index) => ({
+        ...lang,
+        color:
+          index === 0
+            ? currentTheme.primary.main
+            : `${currentTheme.primary.main}${Math.max(30, 100 - index * 15)
+                .toString(16)
+                .padStart(2, "0")}`,
+      }));
+      setLanguagesToday(languagesWithColorSimple);
+    }
+  };
+
+  useEffect(() => {
+    loadCodingTimeAndApiKey();
+  }, [activeTheme]);
 
   useFocusEffect(
     useCallback(() => {
@@ -613,7 +575,6 @@ export default function ProfileScreen() {
       for (let i = 0; i < categories.length; i++) {
         if (categories[i].longestStreak > o) {
           o = categories[i].longestStreak;
-          console.log(o);
         }
       }
       setlongest_streak_habbit(o);
@@ -628,7 +589,6 @@ export default function ProfileScreen() {
       for (let i = 0; i < routines.length; i++) {
         if (routines[i].longestStreak > o) {
           o = routines[i].longestStreak;
-          console.log(o);
         }
       }
       setlongest_streak_routine(o);
@@ -925,8 +885,6 @@ export default function ProfileScreen() {
       loadTimeline();
     }, [])
   );
-
-  const [activeTheme, setActiveTheme] = useState<string>("default");
 
   const loadTheme = async () => {
     const Theme = await AsyncStorage.getItem("theme");
@@ -2027,6 +1985,69 @@ export default function ProfileScreen() {
                 </View>
               </View>
             )}
+            {apiKey ? (
+              <View
+                className="mb-20 items-center justify-center rounded-2xl pt-5 p-8"
+                style={{ backgroundColor: currentTheme.card }}
+              >
+                <Text
+                  className=" font-bold text-white text-xl"
+                  style={{ color: currentTheme.text }}
+                >
+                  Your Daily Coding Review
+                </Text>
+
+                <Text></Text>
+                <View className="flex-row items-center">
+                  <LanguagePiechart
+                    languages={languagesToday}
+                    isDarkMode={colorSchem === "dark"}
+                    theme={currentTheme}
+                    timeCodedToday={TimeCodedToday}
+                  />
+                  <View className="ml-4">
+                    {languagesToday.map((lang) => (
+                      <View
+                        key={lang.name}
+                        className="flex-row items-center mb-3"
+                        style={{ minWidth: 120 }}
+                      >
+                        <View
+                          style={{
+                            width: 16,
+                            height: 16,
+                            backgroundColor: lang.color,
+                            borderRadius: 4,
+                            marginRight: 12,
+                          }}
+                        />
+                        <View style={{ flexShrink: 1 }}>
+                          <Text
+                            style={{
+                              color: currentTheme.text,
+                              fontWeight: "600",
+                            }}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {lang.name}
+                          </Text>
+                          <Text
+                            style={{
+                              color: currentTheme.textMuted,
+                              fontSize: 12,
+                              marginTop: 2,
+                            }}
+                          >
+                            {lang.percent.toFixed(1)}%
+                          </Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+            ) : null}
           </View>
         ) : (
           <View className="w-full mb-10">

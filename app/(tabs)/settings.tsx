@@ -29,6 +29,7 @@ export default function Tab() {
   const [radarDataall, setRadarDataall] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [paywallvisible, setPaywallvisible] = useState<boolean>(false);
+  const [wakaTimeApiKey, setWakaTimeApiKey] = useState<string>("");
   const handleSelectionChange = async (index: number) => {
     setSelectedIndex(index);
     try {
@@ -139,6 +140,11 @@ export default function Tab() {
           if (loaded1 !== null) {
             setIsEnabled(JSON.parse(loaded1));
           }
+
+          const loaded2 = await AsyncStorage.getItem("WakaTimeKey");
+          if (loaded2 !== null) {
+            setWakaTimeApiKey(loaded2);
+          }
         } catch {}
       };
       load();
@@ -162,6 +168,10 @@ export default function Tab() {
 
   const saveGithub = async (username: string) => {
     await AsyncStorage.setItem("github", username);
+  };
+
+  const saveApiKey = async (key: string) => {
+    await AsyncStorage.setItem("WakaTimeKey", key);
   };
 
   useFocusEffect(
@@ -459,6 +469,7 @@ export default function Tab() {
         </View>
         {paywallvisible ? (
           <PaywallModal
+            theme={currentTheme}
             visible={paywallvisible}
             onClose={() => setPaywallvisible(false)}
           />
@@ -484,6 +495,7 @@ export default function Tab() {
               <Text className={`${textColor} text-base font-medium w-24`}>
                 Github
               </Text>
+
               <TextInput
                 className={`flex-1 ${textColor} text-base ${inputBgColor} px-3 py-2.5 rounded-lg`}
                 placeholder="Enter username"
@@ -492,6 +504,32 @@ export default function Tab() {
                 onChangeText={(text) => {
                   setGithubUsername(text); // State aktualisieren
                   saveGithub(text); // In AsyncStorage speichern
+                }}
+              />
+            </View>
+
+            <View
+              className={`flex-row items-center ${borderColor} border-b pb-4 mb-4`}
+            >
+              <View className="w-10 items-center">
+                <FontAwesome5
+                  name="clock"
+                  size={18}
+                  color={currentTheme.text}
+                />
+              </View>
+              <Text className={`${textColor} text-base font-medium w-24`}>
+                WakaTime
+              </Text>
+
+              <TextInput
+                className={`flex-1 ${textColor} text-base ${inputBgColor} px-3 py-2.5 rounded-lg`}
+                placeholder="Enter API Key"
+                placeholderTextColor={isDark ? "#6b7280" : "#9ca3af"}
+                value={wakaTimeApiKey}
+                onChangeText={(text) => {
+                  setWakaTimeApiKey(text);
+                  saveApiKey(text);
                 }}
               />
             </View>

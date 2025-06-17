@@ -416,7 +416,6 @@ export default function ExploreScreen() {
   );
 
   const [activeTheme, setActiveTheme] = useState<string>("default");
-
   const loadTheme = async () => {
     const Theme = await AsyncStorage.getItem("theme");
     if (Theme) {
@@ -432,7 +431,6 @@ export default function ExploreScreen() {
   useEffect(() => {
     loadTheme();
   });
-
   const themes = {
     default: {
       primary: {

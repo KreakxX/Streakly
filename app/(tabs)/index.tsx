@@ -9,6 +9,7 @@ import Streak from "@/components/ui/streak";
 import StreakV2 from "@/components/ui/StreakV2";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { Video } from "expo-av";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as Device from "expo-device";
@@ -204,6 +205,17 @@ export default function HomeScreen() {
   const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
   const [originalRoutines, setOriginalRoutines] = useState<Routine[]>([]);
   const [themeModal, setThemeModal] = useState<boolean>(false);
+
+  useEffect(() => {
+    const loadTheme = async () => {
+      const theme = await AsyncStorage.getItem("theme");
+
+      if (theme) {
+        setActiveTheme(JSON.parse(theme));
+      }
+    };
+    loadTheme();
+  }, []);
 
   const GroupCategories = [
     { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
@@ -978,47 +990,47 @@ export default function HomeScreen() {
     askForReview();
   }, []);
 
-  // const connectWithGithub = async () => {
-  //   const updatedCategories = [...categories];
-  //   const username = await AsyncStorage.getItem("github");
-  //   let github = false;
-  //   let CategoryIndex = 0;
-  //   const todayFormatted = new Date().toISOString().split("T")[0];
-  //   updatedCategories.forEach((category, index) => {
-  //     if (category.github == true) {
-  //       github = true;
-  //       CategoryIndex = index;
-  //     }
-  //   });
-  //   if (github) {
-  //     try {
-  //       const response = await axios.get(
-  //         `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
-  //         {
-  //           headers: {
-  //             Accept: "application/vnd.github.v3+json",
-  //           },
-  //         }
-  //       );
-  //       const count = response.data["total_count"];
-  //       if (count) {
-  //         handleCheckIn(CategoryIndex, true);
-  //       }
-  //     } catch (error) {
-  //       console.log(error);
-  //       throw error;
-  //     }
-  //   }
-  // };
-  // useEffect(() => {
-  //   connectWithGithub();
-  // }, []);
+  const connectWithGithub = async () => {
+    const updatedCategories = [...categories];
+    const username = await AsyncStorage.getItem("github");
+    let github = false;
+    let CategoryIndex = 0;
+    const todayFormatted = new Date().toISOString().split("T")[0];
+    updatedCategories.forEach((category, index) => {
+      if (category.github == true) {
+        github = true;
+        CategoryIndex = index;
+      }
+    });
+    if (github) {
+      try {
+        const response = await axios.get(
+          `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
+          {
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+            },
+          }
+        );
+        const count = response.data["total_count"];
+        if (count) {
+          handleCheckIn(CategoryIndex, true);
+        }
+      } catch (error) {
+        console.log(error);
+        throw error;
+      }
+    }
+  };
+  useEffect(() => {
+    connectWithGithub();
+  }, []);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     connectWithGithub();
-  //   }, [])
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      connectWithGithub();
+    }, [])
+  );
 
   const availableColors2 = availableColors;
   const items2 = items;
@@ -1437,10 +1449,19 @@ export default function HomeScreen() {
       if (permissionGranted) {
         await Notifications.cancelAllScheduledNotificationsAsync();
         if (send && uncheckedHabbit !== null && uncheckedHabbit !== undefined) {
+          const m = [
+            `You haven’t done your ${uncheckedHabbit} yet. Time to get it done.`,
+            `${uncheckedHabbit} is still unchecked. Handle it.`,
+            `Still missing: ${uncheckedHabbit}. No excuses.`,
+            `Clock’s ticking – ${uncheckedHabbit} isn’t done yet. Move.`,
+          ];
+
+          const rm = m[Math.floor(Math.random() * m.length)];
+
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "🎯 Daily Habit Check!",
-              body: `Du hast heute dein Habit ${uncheckedHabbit} noch nicht erledigt!`,
+              body: rm,
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -1449,12 +1470,12 @@ export default function HomeScreen() {
             },
           });
         }
-
-        if (send) {
+        const alldone = await GetRandomUncheckedHabbit();
+        if (send && alldone !== null) {
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "🎯 Daily Habit Check!",
-              body: `Vergiss nicht deine Gewohnheiten zu checken 🔥`,
+              body: `Don't forget to check your habits 🔥`,
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
@@ -1645,15 +1666,6 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const loadTheme = async () => {
-      const theme = await AsyncStorage.getItem("theme");
-      if (theme) {
-        setActiveTheme(theme);
-      }
-    };
-    loadTheme();
-  }, []);
-  useEffect(() => {
     const saveTheme = async () => {
       await AsyncStorage.setItem("theme", JSON.stringify(activeTheme));
 
@@ -1739,7 +1751,7 @@ export default function HomeScreen() {
       text: "#ffffff",
       textMuted: "#9ca3af",
       border: "#1f2937",
-      tab: "#151422",
+      tab: "#131620",
     },
     ocean: {
       primary: {
@@ -1747,7 +1759,7 @@ export default function HomeScreen() {
         light: "#3b82f6",
         dark: "#1d4ed8",
         text: "#60a5fa",
-        bg: "#0c0a09",
+        bg: "#075985",
       },
       bg: "#020617",
       card: "#0f172a",
@@ -1813,23 +1825,23 @@ export default function HomeScreen() {
       card: "#171717",
       text: "#FFFFFF",
       textMuted: "#A3A3A3",
-      border: "#1f1f1f",
-      tab: "#262626",
+      border: "#2c2c2c",
+      tab: "#1f1f1f",
     },
     white: {
       primary: {
-        main: "#3b82f6",
-        light: "#60a5fa",
-        dark: "#1d4ed8",
-        text: "#1d4ed8",
-        bg: "#ffffff",
+        main: "#52525b",
+        light: "#71717a",
+        dark: "#3f3f46",
+        text: "#3f3f46",
+        bg: "#e4e4e7",
       },
-      bg: "#ffffff",
-      card: "#f9fafb",
-      text: "#111827",
-      textMuted: "#6b7280",
-      border: "#e5e7eb",
-      tab: "#f3f4f6",
+      bg: "#e4e4e7",
+      card: "#71717a",
+      text: "#27272a",
+      textMuted: "#52525b",
+      border: "#3f3f46",
+      tab: "#3f3f46",
     },
   };
 
@@ -2256,7 +2268,7 @@ export default function HomeScreen() {
                         key={key}
                         className="p-4 rounded-full h-12 w-12"
                         style={{
-                          backgroundColor: theme.primary.main,
+                          backgroundColor: theme.primary.bg,
                           borderWidth: isActive ? 3 : 0,
                           borderColor: isActive ? "#71717a" : "transparent",
                         }}
@@ -2716,7 +2728,7 @@ export default function HomeScreen() {
                               </View>
                             </View>
                             <Text className="mb-5 text-gray-400 font-bold text-md">
-                              Longest Streak: {category.longestStreak}
+                              Longest Streak: {category.longestStreak} 🔥
                             </Text>
 
                             <Text className="mb-5 text-gray-400 font-bold text-md ">
