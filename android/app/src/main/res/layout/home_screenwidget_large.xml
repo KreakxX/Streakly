@@ -58,7 +58,7 @@
         android:horizontalSpacing="2dp"
         android:stretchMode="columnWidth"
         android:layout_below="@id/appwidget_text"
-        android:layout_marginTop="28dp"
+        android:layout_marginTop="23dp"
         android:layout_marginStart="30dp"
         android:gravity="center" />
 </RelativeLayout>
