@@ -91,7 +91,7 @@ internal fun updateAppWidget(
     
     if (isChecked) {
     // Erstelle einen runden, gefärbten Hintergrund mit Checkmark als Bitmap
-    val size = 189 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
+    val size = 104 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     
@@ -128,14 +128,14 @@ internal fun updateAppWidget(
     
 } else {
     // Erstelle einen runden, gefärbten Hintergrund mit Checkmark als Bitmap
-    val size = 189 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
+    val size = 104 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     
     // Zeichne den runden Hintergrund
     val backgroundPaint = Paint().apply {
         isAntiAlias = true
-        color = Color.parseColor("#1f2937")
+        color = Color.parseColor("#2c2c2c")
         style = Paint.Style.FILL
     }
     
@@ -205,7 +205,7 @@ private fun updateButton(context: Context, appWidgetId: Int) {
     val isNowChecked = checkedDays.any { it.date == today && it.status }
   if (isNowChecked) {
     // Erstelle einen runden, gefärbten Hintergrund mit Checkmark als Bitmap
-    val size = 189 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
+    val size = 104 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     
@@ -241,7 +241,7 @@ private fun updateButton(context: Context, appWidgetId: Int) {
     views.setInt(R.id.round_button, "setBackgroundResource", 0)
     
 } else {
-     val size = 189 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
+     val size = 104 // Größe in Pixeln (höhere Auflösung für bessere Qualität)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     

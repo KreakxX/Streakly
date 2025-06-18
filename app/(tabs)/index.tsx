@@ -205,17 +205,7 @@ export default function HomeScreen() {
   const [originalCategories, setOriginalCategories] = useState<Category[]>([]);
   const [originalRoutines, setOriginalRoutines] = useState<Routine[]>([]);
   const [themeModal, setThemeModal] = useState<boolean>(false);
-
-  useEffect(() => {
-    const loadTheme = async () => {
-      const theme = await AsyncStorage.getItem("theme");
-
-      if (theme) {
-        setActiveTheme(JSON.parse(theme));
-      }
-    };
-    loadTheme();
-  }, []);
+  const { ThemeModule } = NativeModules;
 
   const GroupCategories = [
     { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
@@ -452,6 +442,13 @@ export default function HomeScreen() {
         JSON.stringify(localCheckedDays)
       );
 
+      if (currentTheme) {
+        await CategoryDatamodule.saveToPrefs(
+          "widget_currentTheme",
+          JSON.stringify(currentTheme)
+        );
+      }
+
       const startDate =
         category.startDate instanceof Date
           ? category.startDate
@@ -552,9 +549,7 @@ export default function HomeScreen() {
             checkedToday: widgetDayStatus ? currentCategory.amount : 0,
             buttonColor: widgetDayStatus
               ? currentCategory.color
-              : colorScheme === "dark"
-              ? "#1e293b"
-              : "#71717a",
+              : currentTheme.border,
             lastCheckDate: widgetDayStatus
               ? today.toLocaleDateString("de-DE")
               : "",
@@ -839,6 +834,14 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    const loadTheme = async () => {
+      const theme = await AsyncStorage.getItem("theme");
+
+      if (theme) {
+        setActiveTheme(JSON.parse(theme));
+      }
+    };
+    loadTheme();
     loadCategories();
   }, []);
 
@@ -1668,7 +1671,6 @@ export default function HomeScreen() {
   useEffect(() => {
     const saveTheme = async () => {
       await AsyncStorage.setItem("theme", JSON.stringify(activeTheme));
-
       const today = new Date();
 
       const updatedCategories = categories.map((category) => {

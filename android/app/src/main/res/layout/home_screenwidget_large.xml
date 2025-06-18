@@ -5,17 +5,34 @@
     android:layout_height="match_parent"
     android:theme="@style/AppTheme.AppWidgetContainer">
 
-    <TextView
+   <TextView
         android:id="@+id/appwidget_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Habit"
+        android:text="Coding"
         android:textColor="#FFFFFF"
         android:textStyle="bold"
         android:textSize="22sp"
         android:layout_marginTop="20dp"
-        android:layout_marginStart="30dp" />
+        android:layout_marginStart="30dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true" />
 
+    <!-- Button ganz rechts -->
+    <ImageView
+        android:id="@+id/round_button"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/round_button_background"
+        android:clickable="true"
+        android:visibility="visible"
+        android:scaleType="center"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"   
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="20dp" />     <!-- Abstand zum Rand -->
+
+    <!-- Streak links vom Button -->
     <TextView
         android:id="@+id/appwidget_streak"
         android:layout_width="wrap_content"
@@ -28,35 +45,20 @@
         android:paddingRight="10dp"
         android:paddingTop="4dp"
         android:paddingBottom="4dp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="30dp" />
-
+        android:layout_alignTop="@id/appwidget_text"
+        android:layout_toStartOf="@id/round_button" 
+        android:layout_marginEnd="10dp" />      
+    <!-- Grid unter dem Habit-Namen -->
     <GridView
         android:id="@+id/days_grid"
         android:layout_width="215dp"
-        android:layout_height="140dp"
+        android:layout_height="145dp"
         android:numColumns="10"
         android:verticalSpacing="4dp"
         android:horizontalSpacing="2dp"
         android:stretchMode="columnWidth"
         android:layout_below="@id/appwidget_text"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="28dp"
         android:layout_marginStart="30dp"
         android:gravity="center" />
-
-    <Button
-        android:id="@+id/round_button"
-        android:layout_width="63dp"
-        android:layout_height="63dp"
-        android:text="✓"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:background="@drawable/round_button_background"
-        android:clickable="true"
-        android:layout_marginTop="30dp"
-        android:layout_alignTop="@id/days_grid"
-        android:layout_alignStart="@id/appwidget_streak"
-        android:visibility="visible" />
 </RelativeLayout>
