@@ -16,7 +16,6 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useFocusEffect } from "expo-router";
 import * as StoreReview from "expo-store-review";
-import { vars } from "nativewind";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -190,6 +189,117 @@ export default function HomeScreen() {
     { days: 2300, icon: "ghost", color: "#FBC02D" },
     { days: 2500, icon: "ghost", color: "#F57F17" },
   ];
+
+  const themes = {
+    default: {
+      primary: {
+        main: "#7c3aed",
+        light: "#8b5cf6",
+        dark: "#6d28d9",
+        text: "#c4b5fd",
+        bg: "#1f2937",
+      },
+      bg: "#030712",
+      card: "#111827",
+      text: "#ffffff",
+      textMuted: "#9ca3af",
+      border: "#1f2937",
+      tab: "#131620",
+    },
+    ocean: {
+      primary: {
+        main: "#2563eb",
+        light: "#3b82f6",
+        dark: "#1d4ed8",
+        text: "#60a5fa",
+        bg: "#075985",
+      },
+      bg: "#020617",
+      card: "#0f172a",
+      text: "#ffffff",
+      textMuted: "#94a3b8",
+      border: "#1e293b",
+      tab: "#1e293b",
+    },
+    forest: {
+      primary: {
+        main: "#059669",
+        light: "#10b981",
+        dark: "#047857",
+        text: "#34d399",
+        bg: "#022c22",
+      },
+      bg: "#022c22",
+      card: "#064e3b",
+      text: "#ffffff",
+      textMuted: "#34d399",
+      border: "#022c22",
+      tab: "#065f46",
+    },
+    sunset: {
+      primary: {
+        main: "#ea580c",
+        light: "#f97316",
+        dark: "#c2410c",
+        text: "#fb923c",
+        bg: "#431407",
+      },
+      bg: "#431407",
+      card: "#7c2d12",
+      text: "#ffffff",
+      textMuted: "#fb923c",
+      border: "#ea580c",
+      tab: "#9a3412",
+    },
+    berry: {
+      primary: {
+        main: "#c026d3",
+        light: "#d946ef",
+        dark: "#a21caf",
+        text: "#f0abfc",
+        bg: "#4a044e",
+      },
+      bg: "#4a044e",
+      card: "#86198f",
+      text: "#ffffff",
+      textMuted: "#f0abfc",
+      border: "#4a044e",
+      tab: "#701a75",
+    },
+    monochrome: {
+      primary: {
+        main: "#525252",
+        light: "#737373",
+        dark: "#404040",
+        text: "#A3A3A3",
+        bg: "#0A0A0A",
+      },
+      bg: "#0A0A0A",
+      card: "#171717",
+      text: "#FFFFFF",
+      textMuted: "#A3A3A3",
+      border: "#2c2c2c",
+      tab: "#1f1f1f",
+    },
+    white: {
+      primary: {
+        main: "#52525b",
+        light: "#71717a",
+        dark: "#3f3f46",
+        text: "#3f3f46",
+        bg: "#e4e4e7",
+      },
+      bg: "#e4e4e7",
+      card: "#71717a",
+      text: "#27272a",
+      textMuted: "#52525b",
+      border: "#3f3f46",
+      tab: "#3f3f46",
+    },
+  };
+  const [activeTheme, setActiveTheme] = useState<string>("default");
+  const currentTheme =
+    themes[activeTheme as keyof typeof themes] || themes.default;
   type StreakBadge = {
     days: number;
     icon: string;
@@ -422,6 +532,20 @@ export default function HomeScreen() {
     checkAndClearWidgetCache();
   }, []);
 
+  useEffect(() => {
+    const saveData = async () => {
+      try {
+        await CategoryDatamodule.saveToPrefs(
+          "habits",
+          JSON.stringify(categories)
+        );
+      } catch (error) {
+        console.log(error);
+        throw error;
+      }
+    };
+    saveData();
+  }, [categories, originalCategories]);
   const updateWidgetWithCategory = async (category: Category) => {
     try {
       await CategoryDatamodule.saveToPrefs("widget_habit_name", category.name);
@@ -441,13 +565,6 @@ export default function HomeScreen() {
         "widget_habit_checkedDays",
         JSON.stringify(localCheckedDays)
       );
-
-      if (currentTheme) {
-        await CategoryDatamodule.saveToPrefs(
-          "widget_currentTheme",
-          JSON.stringify(currentTheme)
-        );
-      }
 
       const startDate =
         category.startDate instanceof Date
@@ -486,6 +603,8 @@ export default function HomeScreen() {
     }
   };
   const loadWidgetData = async () => {
+    const currentTheme =
+      themes[activeTheme as keyof typeof themes] || themes.default;
     try {
       const data = await CategoryDatamodule.loadWidgetData();
       if (!data || !data.checkedDays) return;
@@ -512,79 +631,84 @@ export default function HomeScreen() {
         (day) => day.date === localToday
       )?.status;
 
-      setCategories((prev) => {
+      const updateCategories = (prev: Category[]) => {
         if (prev.length === 0) return prev;
 
-        const currentCategory = prev[0];
-        const todayInCategory = currentCategory.checkedDays.find((day) => {
-          if (!day || !day.date) return false;
+        // Update all categories, not just the first one
+        return prev.map((currentCategory, index) => {
+          const todayInCategory = currentCategory.checkedDays.find((day) => {
+            if (!day || !day.date) return false;
 
-          const dayDate =
-            day.date instanceof Date ? day.date : new Date(day.date);
+            const dayDate =
+              day.date instanceof Date ? day.date : new Date(day.date);
 
-          if (isNaN(dayDate.getTime())) {
-            console.error("Invalid date in checkedDays:", day.date);
-            return false;
+            if (isNaN(dayDate.getTime())) {
+              console.error("Invalid date in checkedDays:", day.date);
+              return false;
+            }
+
+            const localDate = new Date(
+              dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
+            )
+              .toISOString()
+              .split("T")[0];
+            return localDate === localToday;
+          });
+
+          if (todayInCategory && todayInCategory.status !== widgetDayStatus) {
+            const updated = {
+              ...currentCategory,
+              streak: widgetDayStatus
+                ? currentCategory.streak + 1
+                : currentCategory.streak - 1,
+              longestStreak:
+                widgetDayStatus &&
+                currentCategory.streak + 1 > currentCategory.longestStreak
+                  ? currentCategory.streak + 1
+                  : currentCategory.longestStreak,
+              checkedToday: widgetDayStatus ? currentCategory.amount : 0,
+              buttonColor: widgetDayStatus
+                ? currentCategory.color
+                : currentTheme.border,
+              lastCheckDate: widgetDayStatus
+                ? today.toLocaleDateString("de-DE")
+                : "",
+              days: widgetDayStatus
+                ? currentCategory.days + 1
+                : currentCategory.days - 1,
+              checkedDays: currentCategory.checkedDays.map((day) => {
+                if (!day || !day.date) return day;
+
+                const dayDate =
+                  day.date instanceof Date ? day.date : new Date(day.date);
+
+                if (isNaN(dayDate.getTime())) {
+                  console.error("Invalid date in checkedDays:", day.date);
+                  return day;
+                }
+
+                const localDate = new Date(
+                  dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
+                )
+                  .toISOString()
+                  .split("T")[0];
+
+                if (localDate === localToday) {
+                  return { ...day, status: Boolean(widgetDayStatus) };
+                }
+                return day;
+              }),
+            };
+
+            return updated;
           }
 
-          const localDate = new Date(
-            dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-          )
-            .toISOString()
-            .split("T")[0];
-          return localDate === localToday;
+          return currentCategory;
         });
+      };
 
-        if (todayInCategory && todayInCategory.status !== widgetDayStatus) {
-          const updated = {
-            ...currentCategory,
-            streak: widgetDayStatus
-              ? currentCategory.streak + 1
-              : currentCategory.streak - 1,
-            longestStreak:
-              widgetDayStatus &&
-              currentCategory.streak + 1 > currentCategory.longestStreak
-                ? currentCategory.streak + 1
-                : currentCategory.longestStreak,
-            checkedToday: widgetDayStatus ? currentCategory.amount : 0,
-            buttonColor: widgetDayStatus
-              ? currentCategory.color
-              : currentTheme.border,
-            lastCheckDate: widgetDayStatus
-              ? today.toLocaleDateString("de-DE")
-              : "",
-            days: widgetDayStatus
-              ? currentCategory.days + 1
-              : currentCategory.days - 1,
-            checkedDays: currentCategory.checkedDays.map((day) => {
-              if (!day || !day.date) return day;
-
-              const dayDate =
-                day.date instanceof Date ? day.date : new Date(day.date);
-
-              if (isNaN(dayDate.getTime())) {
-                console.error("Invalid date in checkedDays:", day.date);
-                return day;
-              }
-
-              const localDate = new Date(
-                dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-              )
-                .toISOString()
-                .split("T")[0];
-
-              if (localDate === localToday) {
-                return { ...day, status: Boolean(widgetDayStatus) };
-              }
-              return day;
-            }),
-          };
-
-          return [updated, ...prev.slice(1)];
-        }
-
-        return prev;
-      });
+      setCategories(updateCategories);
+      setOriginalCategories(updateCategories);
     } catch (e) {
       console.error("Error loading widget data:", e);
     }
@@ -678,7 +802,30 @@ export default function HomeScreen() {
     saveRoutines();
   }, [categories, isReady, routines]);
 
-  const loadCategories = async () => {
+  const loadTheme = async () => {
+    try {
+      const themeData = await AsyncStorage.getItem("theme");
+      if (themeData) {
+        const parsedTheme = JSON.parse(themeData);
+        console.log(parsedTheme + " - Theme geladen");
+        setActiveTheme(parsedTheme);
+        return themes[parsedTheme as keyof typeof themes] || themes.default;
+      } else {
+        setActiveTheme("default");
+        return themes.default;
+      }
+    } catch (e) {
+      console.error("Theme laden fehlgeschlagen", e);
+      setActiveTheme("default");
+      return themes.default;
+    }
+  };
+
+  const loadCategories = async (currentTheme?: any) => {
+    const theme =
+      currentTheme ||
+      themes[activeTheme as keyof typeof themes] ||
+      themes.default;
     try {
       const qd = await AsyncStorage.getItem("QuestDate");
       if (qd) {
@@ -834,19 +981,13 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const loadTheme = async () => {
-      const theme = await AsyncStorage.getItem("theme");
-
-      if (theme) {
-        setActiveTheme(JSON.parse(theme));
-      }
+    const initializeApp = async () => {
+      const currentTheme = await loadTheme();
+      await loadCategories(currentTheme);
+      loadRoutines();
     };
-    loadTheme();
-    loadCategories();
-  }, []);
 
-  useEffect(() => {
-    loadRoutines();
+    initializeApp();
   }, []);
 
   useFocusEffect(
@@ -863,7 +1004,7 @@ export default function HomeScreen() {
 
   const [expand, setExpand] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
-  const [amount, setAmount] = useState<string>("1");
+  const [amount, setAmount] = useState<string>("3");
 
   const handleCheckIn = async (
     index: number,
@@ -1659,7 +1800,6 @@ export default function HomeScreen() {
     loadStartScreen();
   }, []);
 
-  const [activeTheme, setActiveTheme] = useState<string>("default");
   const isSameDay = (date1: Date, date2: Date) => {
     const d1 = new Date(date1);
     const d2 = new Date(date2);
@@ -1738,139 +1878,6 @@ export default function HomeScreen() {
       setCategories(upddatedCategories);
     }
   };
-
-  const themes = {
-    default: {
-      primary: {
-        main: "#7c3aed",
-        light: "#8b5cf6",
-        dark: "#6d28d9",
-        text: "#c4b5fd",
-        bg: "#1f2937",
-      },
-      bg: "#030712",
-      card: "#111827",
-      text: "#ffffff",
-      textMuted: "#9ca3af",
-      border: "#1f2937",
-      tab: "#131620",
-    },
-    ocean: {
-      primary: {
-        main: "#2563eb",
-        light: "#3b82f6",
-        dark: "#1d4ed8",
-        text: "#60a5fa",
-        bg: "#075985",
-      },
-      bg: "#020617",
-      card: "#0f172a",
-      text: "#ffffff",
-      textMuted: "#94a3b8",
-      border: "#1e293b",
-      tab: "#1e293b",
-    },
-    forest: {
-      primary: {
-        main: "#059669",
-        light: "#10b981",
-        dark: "#047857",
-        text: "#34d399",
-        bg: "#022c22",
-      },
-      bg: "#022c22",
-      card: "#064e3b",
-      text: "#ffffff",
-      textMuted: "#34d399",
-      border: "#022c22",
-      tab: "#065f46",
-    },
-    sunset: {
-      primary: {
-        main: "#ea580c",
-        light: "#f97316",
-        dark: "#c2410c",
-        text: "#fb923c",
-        bg: "#431407",
-      },
-      bg: "#431407",
-      card: "#7c2d12",
-      text: "#ffffff",
-      textMuted: "#fb923c",
-      border: "#ea580c",
-      tab: "#9a3412",
-    },
-    berry: {
-      primary: {
-        main: "#c026d3",
-        light: "#d946ef",
-        dark: "#a21caf",
-        text: "#f0abfc",
-        bg: "#4a044e",
-      },
-      bg: "#4a044e",
-      card: "#86198f",
-      text: "#ffffff",
-      textMuted: "#f0abfc",
-      border: "#4a044e",
-      tab: "#701a75",
-    },
-    monochrome: {
-      primary: {
-        main: "#525252",
-        light: "#737373",
-        dark: "#404040",
-        text: "#A3A3A3",
-        bg: "#0A0A0A",
-      },
-      bg: "#0A0A0A",
-      card: "#171717",
-      text: "#FFFFFF",
-      textMuted: "#A3A3A3",
-      border: "#2c2c2c",
-      tab: "#1f1f1f",
-    },
-    white: {
-      primary: {
-        main: "#52525b",
-        light: "#71717a",
-        dark: "#3f3f46",
-        text: "#3f3f46",
-        bg: "#e4e4e7",
-      },
-      bg: "#e4e4e7",
-      card: "#71717a",
-      text: "#27272a",
-      textMuted: "#52525b",
-      border: "#3f3f46",
-      tab: "#3f3f46",
-    },
-  };
-
-  const currentTheme =
-    themes[activeTheme as keyof typeof themes] || themes.default;
-
-  const themeVars = vars({
-    "--bg-color": currentTheme.bg,
-    "--card-color": currentTheme.card,
-    "--text-color": currentTheme.text,
-    "--text-muted-color": currentTheme.textMuted,
-    "--border-color": currentTheme.border,
-    "--primary-color": currentTheme.primary.main,
-    "--primary-text-color": currentTheme.primary.text,
-    "--tab-color": currentTheme.tab,
-    "--primary-bg-color": currentTheme.primary.bg,
-  });
-
-  const bgColor = "bg-[var(--bg-color)]";
-  const cardBgColor = "bg-[var(--card-color)]";
-  const textColor = "text-[var(--text-color)]";
-  const textMutedColor = "text-[var(--text-muted-color)]";
-  const borderColor = "border-[var(--border-color)]";
-  const primaryColor = "bg-[var(--primary-color)]";
-  const primaryTextColor = "text-[var(--primary-text-color)]";
-  const tabBgColor = "bg-[var(--primary-bg-color)]";
-  const tabActiveBgColor = "bg-[var(--primary-color)]";
 
   if (startScreen) {
     return (

@@ -122,7 +122,7 @@ export default function ProfileScreen() {
     { name: string; date: string; icon?: string; color?: string }[]
   >([]);
 
-  const [activeTab2, setActiveTab2] = useState<string>("analysis");
+  const [activeTab2, setActiveTab2] = useState<string>("achievements");
   const [TimeCodedToday, setTimeCodedToday] = useState<number>(0);
   type Language = {
     name: string;

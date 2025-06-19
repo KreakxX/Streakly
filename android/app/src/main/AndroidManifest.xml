@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
+    
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
+    
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -14,17 +14,15 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
+    
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />
-
             <category android:name="android.intent.category.BROWSABLE" />
-
             <data android:scheme="https" />
         </intent>
     </queries>
-
+    
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -33,19 +31,33 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver
-            android:name=".HomeScreenwidget"
-            android:exported="false">
+        
+        <!-- Widget Receiver -->
+        <receiver android:name=".HomeScreenwidget"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.kreakxx.loop.ACTION_BUTTON_CLICK" />
             </intent-filter>
-
-            <meta-data
-                android:name="android.appwidget.provider"
+            <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/home_screenwidget_info" />
         </receiver>
-
-
+        
+        <!-- Widget Configuration Activity -->
+        <activity
+    android:name=".WidgetConfigurationActivity"
+    android:theme="@style/Theme.AppCompat.Light.Dialog"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+    </intent-filter>
+</activity>
+        
+        <!-- Remote Views Service -->
+        <service
+            android:name=".DaysRemoteViewsService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        
         <meta-data
             android:name="expo.modules.updates.ENABLED"
             android:value="false" />
@@ -55,7 +67,7 @@
         <meta-data
             android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS"
             android:value="0" />
-
+        
         <activity
             android:name=".MainActivity"
             android:configChanges="keyboard|keyboardHidden|orientation|screenSize|screenLayout|uiMode"
@@ -66,23 +78,16 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="loop" />
                 <data android:scheme="exp+loop" />
             </intent-filter>
         </activity>
-
-        <service
-            android:name=".DaysRemoteViewsService"
-            android:permission="android.permission.BIND_REMOTEVIEWS" />
+        
     </application>
-
 </manifest>

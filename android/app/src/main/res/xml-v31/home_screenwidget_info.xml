@@ -13,4 +13,5 @@
     android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:updatePeriodMillis="86400000"
+    android:configure="com.kreakxx.loop.WidgetConfigurationActivity"
     android:widgetCategory="home_screen" />

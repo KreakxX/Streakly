@@ -1,3 +1,4 @@
+
 package com.kreakxx.loop
 
 import android.content.Context
@@ -5,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
+import android.appwidget.AppWidgetManager
 import androidx.annotation.RequiresApi
 import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
@@ -15,13 +17,15 @@ import java.time.ZoneId
 import android.graphics.Color
 
 
+
 class DaysRemoteViewsService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
-        return DaysRemoteViewsFactory(applicationContext)
+        val appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        return DaysRemoteViewsFactory(applicationContext, appWidgetId)
     }
 }
 
-class DaysRemoteViewsFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
+class DaysRemoteViewsFactory(private val context: Context, private val appWidgetId: Int) : RemoteViewsService.RemoteViewsFactory {
 
     private val totalDays = 70 // total days to show
     private var checkedDays = listOf<Int>()
@@ -46,7 +50,7 @@ class DaysRemoteViewsFactory(private val context: Context) : RemoteViewsService.
     override fun getViewAt(position: Int): RemoteViews {
         val rv = RemoteViews(context.packageName, R.layout.day_item)
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-val habitColor = prefs.getString("widget_habit_color", "#60A5FA")
+        val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA")
 
         val dayIndex = gridItems[position]
 
@@ -67,9 +71,10 @@ val habitColor = prefs.getString("widget_habit_color", "#60A5FA")
 
     data class CheckedDay(val date: String, val status: Boolean)
 
-    private fun loadCheckedays(): List<CheckedDay> {
+   private fun loadCheckedays(): List<CheckedDay> {
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        val json = prefs.getString("widget_habit_checkedDays", "[]") ?: "[]"
+        // Verwende die spezifische Widget-ID wie im zweiten File
+        val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
         val type = object : TypeToken<List<CheckedDay>>() {}.type
         return Gson().fromJson(json, type)
     }
