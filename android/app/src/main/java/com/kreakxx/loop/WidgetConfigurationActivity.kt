@@ -1,4 +1,4 @@
-// WidgetConfigurationActivity.kt
+// Simplified WidgetConfigurationActivity.kt - Just save data as-is
 package com.kreakxx.loop
 
 import android.app.Activity
@@ -10,8 +10,11 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
-
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.DayOfWeek
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 class WidgetConfigurationActivity : AppCompatActivity() {
     
@@ -25,11 +28,18 @@ class WidgetConfigurationActivity : AppCompatActivity() {
         val id: String,
         val name: String,
         val color: String,
-        val streak: Int = 0
+        val streak: Int = 0,
+        val checkedDays: List<CheckedDay> = emptyList()
     ) {
         override fun toString(): String = name
     }
     
+    data class CheckedDay(
+        val date: String,
+        val status: Boolean
+    )
+    
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_widget_configuration)
@@ -55,7 +65,6 @@ class WidgetConfigurationActivity : AppCompatActivity() {
         categorySpinner = findViewById(R.id.category_spinner)
         confirmButton = findViewById(R.id.confirm_button)
         
-        // Initialize adapter
         categoryAdapter = ArrayAdapter(
             this,
             android.R.layout.simple_spinner_item,
@@ -66,8 +75,6 @@ class WidgetConfigurationActivity : AppCompatActivity() {
     }
     
     private fun loadCategories() {
-        // TODO: Replace with your actual data loading logic
-        // This could be from Room Database, Repository, or API
         categories = loadCategoriesFromDataSource()
         
         categoryAdapter.clear()
@@ -81,35 +88,67 @@ class WidgetConfigurationActivity : AppCompatActivity() {
     }
     
     private fun loadCategoriesFromDataSource(): List<Category> {
-       val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-    val habitsJson = prefs.getString("habits", null)
+        val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val habitsJson = prefs.getString("habits", null)
         
-    return if (habitsJson != null && habitsJson != "LMAO") {
-        try {
-            val gson = Gson()
-            val type = object : TypeToken<List<Category>>() {}.type
-            val categoriesWithoutIds: List<Category> = gson.fromJson(habitsJson, type)
-            
-            categoriesWithoutIds.mapIndexed { index, category ->
-                category.copy(id = (index + 1).toString())
+        return if (habitsJson != null && habitsJson != "LMAO") {
+            try {
+                val gson = Gson()
+                val type = object : TypeToken<List<Map<String, Any>>>() {}.type
+                val habitsData: List<Map<String, Any>> = gson.fromJson(habitsJson, type)
+                
+                habitsData.mapIndexed { index, habitMap ->
+                    val id = when (val idValue = habitMap["id"]) {
+                        is Number -> idValue.toString()
+                        is String -> idValue
+                        else -> (index + 1).toString()
+                    }
+                    
+                    val name = habitMap["name"] as? String ?: "Habit ${index + 1}"
+                    val color = habitMap["color"] as? String ?: "#60A5FA"
+                    val streak = (habitMap["streak"] as? Number)?.toInt() ?: 0
+                    
+                    val checkedDays = try {
+                        val checkedDaysData = habitMap["checkedDays"]
+                        when (checkedDaysData) {
+                            is List<*> -> {
+                                checkedDaysData.mapNotNull { dayData ->
+                                    when (dayData) {
+                                        is Map<*, *> -> {
+                                            val date = dayData["date"] as? String
+                                            val status = dayData["status"] as? Boolean
+                                            if (date != null && status != null) {
+                                                CheckedDay(date, status)
+                                            } else null
+                                        }
+                                        else -> null
+                                    }
+                                }
+                            }
+                            else -> emptyList()
+                        }
+                    } catch (e: Exception) {
+                        emptyList<CheckedDay>()
+                    }
+                    
+                    Category(id, name, color, streak, checkedDays)
+                }
+            } catch (e: Exception) {
+                getDefaultCategories()
             }
-        } catch (e: Exception) {
-           
+        } else {
             getDefaultCategories()
         }
-    } else {
-        getDefaultCategories()
-    }
     }
 
     private fun getDefaultCategories(): List<Category> {
-    return listOf(
-        Category("1", "Workout", "#60A5FA", 5),
-        Category("2", "Reading", "#34D399", 3),
-        Category("3", "Meditation", "#F59E0B", 7),
-        Category("4", "Water Drinking", "#8B5CF6", 2)
-    )
-}
+        return listOf(
+            Category("1", "Workout", "#60A5FA", 0),
+            Category("2", "Reading", "#34D399", 0),
+            Category("3", "Meditation", "#F59E0B", 0),
+            Category("4", "Water Drinking", "#8B5CF6", 0)
+        )
+    }
     
     private fun setupListeners() {
         confirmButton.setOnClickListener {
@@ -117,6 +156,7 @@ class WidgetConfigurationActivity : AppCompatActivity() {
         }
     }
     
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun saveConfiguration() {
         val selectedCategory = categorySpinner.selectedItem as? Category
         
@@ -125,14 +165,22 @@ class WidgetConfigurationActivity : AppCompatActivity() {
             return
         }
         
-        // Save configuration to SharedPreferences
+        // Save EXACT data from app - no modifications
+        val gson = Gson()
+        val checkedDaysJson = gson.toJson(selectedCategory.checkedDays)
+        
         val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         prefs.edit().apply {
             putString("widget_${appWidgetId}_category_id", selectedCategory.id)
             putString("widget_${appWidgetId}_habit_name", selectedCategory.name)
             putString("widget_${appWidgetId}_habit_color", selectedCategory.color)
             putString("widget_${appWidgetId}_habit_streak", selectedCategory.streak.toString())
-            putString("widget_${appWidgetId}_habit_checkedDays", "[]")
+            putString("widget_${appWidgetId}_habit_checkedDays", checkedDaysJson)
+            
+            // Set start date to current Monday
+            val monday = LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
+            putString("widget_${appWidgetId}_habit_startDate", monday.toString())
+            
             apply()
         }
         

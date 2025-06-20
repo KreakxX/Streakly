@@ -297,9 +297,11 @@ export default function HomeScreen() {
       tab: "#3f3f46",
     },
   };
-  const [activeTheme, setActiveTheme] = useState<string>("default");
+  const [activeTheme, setActiveTheme] = useState<string>("ocean");
   const currentTheme =
     themes[activeTheme as keyof typeof themes] || themes.default;
+  const [isCategoriesLoaded, setIsCategoriesLoaded] = useState(false);
+
   type StreakBadge = {
     days: number;
     icon: string;
@@ -546,9 +548,36 @@ export default function HomeScreen() {
     };
     saveData();
   }, [categories, originalCategories]);
-  const updateWidgetWithCategory = async (category: Category) => {
+
+  const updateWidgetWithCategory = async (
+    category: Category,
+    widgetId?: number
+  ) => {
     try {
-      await CategoryDatamodule.saveToPrefs("widget_habit_name", category.name);
+      // If no specific widgetId provided, update all widgets with this category
+      if (widgetId) {
+        await updateSingleWidget(category, widgetId);
+      } else {
+        // Get all widget IDs and update each one
+        const widgetIds = await CategoryDatamodule.getAllWidgetIds();
+        for (const id of widgetIds) {
+          await updateSingleWidget(category, id);
+        }
+      }
+
+      await CategoryDatamodule.updateWidget();
+    } catch (e) {
+      console.error("❌ Widget update failed:", e);
+    }
+  };
+
+  const updateSingleWidget = async (category: Category, widgetId: number) => {
+    try {
+      // Use widget-specific keys
+      await CategoryDatamodule.saveToPrefs(
+        `widget_${widgetId}_habit_name`,
+        category.name
+      );
 
       const localCheckedDays = category.checkedDays
         .filter((cd) => cd && cd.date instanceof Date)
@@ -562,7 +591,7 @@ export default function HomeScreen() {
         }));
 
       await CategoryDatamodule.saveToPrefs(
-        "widget_habit_checkedDays",
+        `widget_${widgetId}_habit_checkedDays`,
         JSON.stringify(localCheckedDays)
       );
 
@@ -583,59 +612,72 @@ export default function HomeScreen() {
         .split("T")[0];
 
       await CategoryDatamodule.saveToPrefs(
-        "widget_habit_startDate",
+        `widget_${widgetId}_habit_startDate`,
         localStart
       );
 
       await CategoryDatamodule.saveToPrefs(
-        "widget_habit_color",
+        `widget_${widgetId}_habit_color`,
         category.color
       );
 
       await CategoryDatamodule.saveToPrefs(
-        "widget_habit_streak",
+        `widget_${widgetId}_habit_streak`,
         category.streak.toString()
       );
-
-      await CategoryDatamodule.updateWidget();
     } catch (e) {
-      console.error("❌ Widget update failed:", e);
+      console.error(`❌ Failed to update widget ${widgetId}:`, e);
     }
   };
+
   const loadWidgetData = async () => {
     const currentTheme =
       themes[activeTheme as keyof typeof themes] || themes.default;
-    try {
-      const data = await CategoryDatamodule.loadWidgetData();
-      if (!data || !data.checkedDays) return;
 
-      let newCheckedDays: { date: string; status: boolean }[] = [];
-      try {
-        newCheckedDays =
-          typeof data.checkedDays === "string"
-            ? JSON.parse(data.checkedDays)
-            : [];
-      } catch (e) {
-        console.error("Failed to parse widget data:", e);
+    try {
+      // Get all widget IDs first
+      const widgetIds = await CategoryDatamodule.getAllWidgetIds();
+
+      if (widgetIds.length === 0) {
+        console.log("No widgets found");
         return;
       }
 
+      // Load data from all widgets and merge changes
+      let hasChanges = false;
       const today = new Date();
-      const localToday = new Date(
-        today.getTime() - today.getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .split("T")[0];
+      // FIX: Use consistent date format without timezone adjustment
+      const localToday = today.toISOString().split("T")[0];
 
-      const widgetDayStatus = newCheckedDays.find(
-        (day) => day.date === localToday
-      )?.status;
+      for (const widgetId of widgetIds) {
+        try {
+          const data = await CategoryDatamodule.loadWidgetDataForId(widgetId);
+          if (!data || !data.checkedDays) continue;
 
-      const updateCategories = (prev: Category[]) => {
-        if (prev.length === 0) return prev;
+          let newCheckedDays: { date: string; status: boolean }[] = [];
+          try {
+            newCheckedDays =
+              typeof data.checkedDays === "string"
+                ? JSON.parse(data.checkedDays)
+                : [];
+          } catch (e) {
+            console.error(`Failed to parse widget data for ${widgetId}:`, e);
+            continue;
+          }
 
-        // Update all categories, not just the first one
-        return prev.map((currentCategory, index) => {
+          const widgetDayStatus = newCheckedDays.find(
+            (day) => day.date === localToday
+          )?.status;
+
+          // Find the category that matches this widget
+          const habitName = data.habitName || "Habit";
+          const categoryIndex = categories.findIndex(
+            (cat) => cat.name === habitName
+          );
+
+          if (categoryIndex === -1) continue;
+
+          const currentCategory = categories[categoryIndex];
           const todayInCategory = currentCategory.checkedDays.find((day) => {
             if (!day || !day.date) return false;
 
@@ -647,72 +689,80 @@ export default function HomeScreen() {
               return false;
             }
 
-            const localDate = new Date(
-              dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-            )
-              .toISOString()
-              .split("T")[0];
+            // FIX: Use consistent date format without timezone adjustment
+            const localDate = dayDate.toISOString().split("T")[0];
             return localDate === localToday;
           });
 
+          // Check if widget status differs from app status
           if (todayInCategory && todayInCategory.status !== widgetDayStatus) {
-            const updated = {
-              ...currentCategory,
-              streak: widgetDayStatus
-                ? currentCategory.streak + 1
-                : currentCategory.streak - 1,
-              longestStreak:
-                widgetDayStatus &&
-                currentCategory.streak + 1 > currentCategory.longestStreak
-                  ? currentCategory.streak + 1
-                  : currentCategory.longestStreak,
-              checkedToday: widgetDayStatus ? currentCategory.amount : 0,
-              buttonColor: widgetDayStatus
-                ? currentCategory.color
-                : currentTheme.border,
-              lastCheckDate: widgetDayStatus
-                ? today.toLocaleDateString("de-DE")
-                : "",
-              days: widgetDayStatus
-                ? currentCategory.days + 1
-                : currentCategory.days - 1,
-              checkedDays: currentCategory.checkedDays.map((day) => {
-                if (!day || !day.date) return day;
+            hasChanges = true;
 
-                const dayDate =
-                  day.date instanceof Date ? day.date : new Date(day.date);
+            // Update the category
+            const updateCategories = (prev: Category[]) => {
+              return prev.map((cat, index) => {
+                if (index !== categoryIndex) return cat;
 
-                if (isNaN(dayDate.getTime())) {
-                  console.error("Invalid date in checkedDays:", day.date);
-                  return day;
-                }
+                const updated = {
+                  ...cat,
+                  streak: widgetDayStatus
+                    ? cat.streak + 1
+                    : Math.max(0, cat.streak - 1), // Don't go below 0
+                  longestStreak:
+                    widgetDayStatus && cat.streak + 1 > cat.longestStreak
+                      ? cat.streak + 1
+                      : cat.longestStreak,
+                  checkedToday: widgetDayStatus ? cat.amount : 0,
+                  buttonColor: widgetDayStatus
+                    ? cat.color
+                    : currentTheme.border,
+                  lastCheckDate: widgetDayStatus
+                    ? today.toLocaleDateString("de-DE")
+                    : "",
+                  days: widgetDayStatus
+                    ? cat.days + 1
+                    : Math.max(0, cat.days - 1), // Don't go below 0
+                  checkedDays: cat.checkedDays.map((day) => {
+                    if (!day || !day.date) return day;
 
-                const localDate = new Date(
-                  dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-                )
-                  .toISOString()
-                  .split("T")[0];
+                    const dayDate =
+                      day.date instanceof Date ? day.date : new Date(day.date);
 
-                if (localDate === localToday) {
-                  return { ...day, status: Boolean(widgetDayStatus) };
-                }
-                return day;
-              }),
+                    if (isNaN(dayDate.getTime())) {
+                      console.error("Invalid date in checkedDays:", day.date);
+                      return day;
+                    }
+
+                    // FIX: Use consistent date format without timezone adjustment
+                    const localDate = dayDate.toISOString().split("T")[0];
+
+                    if (localDate === localToday) {
+                      return { ...day, status: Boolean(widgetDayStatus) };
+                    }
+                    return day;
+                  }),
+                };
+
+                return updated;
+              });
             };
 
-            return updated;
+            setCategories(updateCategories);
+            setOriginalCategories(updateCategories);
           }
+        } catch (e) {
+          console.error(`Error loading widget data for ${widgetId}:`, e);
+        }
+      }
 
-          return currentCategory;
-        });
-      };
-
-      setCategories(updateCategories);
-      setOriginalCategories(updateCategories);
+      if (hasChanges) {
+        console.log("✅ Widget data synchronized with app");
+      }
     } catch (e) {
       console.error("Error loading widget data:", e);
     }
   };
+
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
@@ -802,30 +852,7 @@ export default function HomeScreen() {
     saveRoutines();
   }, [categories, isReady, routines]);
 
-  const loadTheme = async () => {
-    try {
-      const themeData = await AsyncStorage.getItem("theme");
-      if (themeData) {
-        const parsedTheme = JSON.parse(themeData);
-        console.log(parsedTheme + " - Theme geladen");
-        setActiveTheme(parsedTheme);
-        return themes[parsedTheme as keyof typeof themes] || themes.default;
-      } else {
-        setActiveTheme("default");
-        return themes.default;
-      }
-    } catch (e) {
-      console.error("Theme laden fehlgeschlagen", e);
-      setActiveTheme("default");
-      return themes.default;
-    }
-  };
-
-  const loadCategories = async (currentTheme?: any) => {
-    const theme =
-      currentTheme ||
-      themes[activeTheme as keyof typeof themes] ||
-      themes.default;
+  const loadCategories = async (theme = currentTheme) => {
     try {
       const qd = await AsyncStorage.getItem("QuestDate");
       if (qd) {
@@ -906,14 +933,12 @@ export default function HomeScreen() {
           return category;
         });
         setOriginalCategories(updatedCategories);
-
         const finalCategories =
           selectedCategoryCategories && selectedCategoryCategories.trim() !== ""
             ? updatedCategories.filter(
                 (cat: any) => cat.category === selectedCategoryCategories
               )
             : updatedCategories;
-
         setCategories(finalCategories);
       }
     } catch (e) {
@@ -981,13 +1006,25 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    const initializeApp = async () => {
-      const currentTheme = await loadTheme();
-      await loadCategories(currentTheme);
-      loadRoutines();
+    const loadEverything = async () => {
+      try {
+        // 1. First load theme
+        const themeName = await AsyncStorage.getItem("theme");
+        const parsedTheme = themeName
+          ? (JSON.parse(themeName) as keyof typeof themes)
+          : "default";
+        setActiveTheme(parsedTheme);
+        await loadCategories(themes.default);
+
+        if (parsedTheme !== "default") {
+          await loadCategories(themes[parsedTheme]);
+        }
+      } finally {
+        setIsCategoriesLoaded(true);
+      }
     };
 
-    initializeApp();
+    loadEverything();
   }, []);
 
   useFocusEffect(

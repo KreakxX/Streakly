@@ -1,4 +1,4 @@
-// Updated HomeScreenwidget.kt
+// Simplified HomeScreenwidget.kt - Just show loaded data
 package com.kreakxx.loop
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -20,6 +20,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.util.Log
 
 class HomeScreenwidget : AppWidgetProvider() {
     companion object {
@@ -48,7 +49,6 @@ class HomeScreenwidget : AppWidgetProvider() {
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        // Clean up preferences when widget is deleted
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         val editor = prefs.edit()
         
@@ -58,6 +58,7 @@ class HomeScreenwidget : AppWidgetProvider() {
             editor.remove("widget_${appWidgetId}_habit_color")
             editor.remove("widget_${appWidgetId}_habit_streak")
             editor.remove("widget_${appWidgetId}_habit_checkedDays")
+            editor.remove("widget_${appWidgetId}_habit_startDate")
         }
         
         editor.apply()
@@ -94,22 +95,29 @@ internal fun updateAppWidget(
 
     val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
     val habitName = prefs.getString("widget_${appWidgetId}_habit_name", "Habit") ?: "Habit"
-    val habitStreakString = prefs.getString("widget_${appWidgetId}_habit_streak", "0") ?: "0"
-    val habitStreak = habitStreakString.toIntOrNull() ?: 0
     val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA") ?: "#60A5FA"
     
-    views.setTextViewText(R.id.appwidget_streak, "$habitStreak 🔥")
+    // Simply use the stored streak - no recalculation
+    val streak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
+    
+    views.setTextViewText(R.id.appwidget_streak, "$streak 🔥")
     views.setTextViewText(R.id.appwidget_text, habitName)
     
+    // Check if today is in checkedDays
+    val today = LocalDate.now(ZoneId.systemDefault()).toString()
     val gson = Gson()
     val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
     val type = object : TypeToken<List<DaysRemoteViewsFactory.CheckedDay>>() {}.type
-    val checkedDays = gson.fromJson<List<DaysRemoteViewsFactory.CheckedDay>>(json, type)
+    val checkedDays = try {
+        gson.fromJson<List<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: emptyList()
+    } catch (e: Exception) {
+        emptyList<DaysRemoteViewsFactory.CheckedDay>()
+    }
 
-    val today = LocalDate.now(ZoneId.systemDefault()).toString()
-    val isChecked = checkedDays.any { it.date == today && it.status }
+    val isChecked = checkedDays.any { it.date == today && it.status == true }
     
-    // Create button bitmap based on checked state
+    
+    // Create button with correct state
     val buttonBitmap = createButtonBitmap(isChecked, habitColor)
     views.setImageViewBitmap(R.id.round_button, buttonBitmap)
     views.setInt(R.id.round_button, "setBackgroundResource", 0)
@@ -120,51 +128,41 @@ internal fun updateAppWidget(
 @RequiresApi(Build.VERSION_CODES.O)
 private fun updateButton(context: Context, appWidgetId: Int) {
     val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-    val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA") ?: "#60A5FA"
+    val editor = prefs.edit()
+    
     val gson = Gson()
     val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
     val type = object : TypeToken<MutableList<DaysRemoteViewsFactory.CheckedDay>>() {}.type
-    val checkedDays = gson.fromJson<MutableList<DaysRemoteViewsFactory.CheckedDay>>(json, type)
-
+    val checkedDays = gson.fromJson<MutableList<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: mutableListOf()
+    
     val today = LocalDate.now(ZoneId.systemDefault()).toString()
-
+    
     val existing = checkedDays.find { it.date == today }
     val wasChecked = existing?.status == true
-
+    
     if (existing != null) {
         checkedDays.remove(existing)
-        checkedDays.add(DaysRemoteViewsFactory.CheckedDay(today, !wasChecked))
-    } else {
-        checkedDays.add(DaysRemoteViewsFactory.CheckedDay(today, true))
     }
-
-    // Update checkedDays in prefs
-    prefs.edit().putString("widget_${appWidgetId}_habit_checkedDays", gson.toJson(checkedDays)).apply()
-
-    // Update streak
-    val currentStreakStringSave = prefs.getString("widget_habit_streak", "0") ?: "0"
-    val currentStreakString = prefs.getString("widget_${appWidgetId}_habit_streak", "0") ?: "0"
-    val currentStreak = currentStreakString.toIntOrNull() ?: 0
-    val currentStreakSave = currentStreakStringSave.toIntOrNull() ?: 0
-
-    val newStreak = if (wasChecked) currentStreak - 1 else currentStreak + 1
-    val newStreakSave = if (wasChecked) currentStreakSave - 1 else currentStreakSave + 1
-
-    prefs.edit().putString("widget_${appWidgetId}_habit_streak", newStreak.toString()).apply()
-    prefs.edit().putString("widget_habit_streak", newStreakSave.toString()).apply()
-
-
-    // Create new RemoteViews for the widget
-    val views = RemoteViews(context.packageName, R.layout.home_screenwidget_medium)
-
-    val isNowChecked = checkedDays.any { it.date == today && it.status }
-    val buttonBitmap = createButtonBitmap(isNowChecked, habitColor)
-    views.setImageViewBitmap(R.id.round_button, buttonBitmap)
-    views.setInt(R.id.round_button, "setBackgroundResource", 0)
-    views.setTextViewText(R.id.appwidget_streak, "$newStreak 🔥")
-
+    checkedDays.add(DaysRemoteViewsFactory.CheckedDay(today, !wasChecked))
+    
+    checkedDays.sortBy { it.date }
+    
+    editor.putString("widget_${appWidgetId}_habit_checkedDays", gson.toJson(checkedDays))
+    
+    val newStreak = if (!wasChecked) {
+        // Was unchecked, now checking -> increase streak
+        val currentStreak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
+        currentStreak + 1
+    } else {
+        // Was checked, now unchecking -> decrease streak
+        val currentStreak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
+        maxOf(0, currentStreak - 1)
+    }
+    
+    editor.putString("widget_${appWidgetId}_habit_streak", newStreak.toString())
+    editor.apply()
+    
     val appWidgetManager = AppWidgetManager.getInstance(context)
-    appWidgetManager.updateAppWidget(appWidgetId, views)
     updateAppWidget(context, appWidgetManager, appWidgetId)
     appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.days_grid)
 }
@@ -176,7 +174,11 @@ private fun createButtonBitmap(isChecked: Boolean, habitColor: String): Bitmap {
     
     val backgroundPaint = Paint().apply {
         isAntiAlias = true
-        color = if (isChecked) Color.parseColor(habitColor) else Color.parseColor("#2c2c2c")
+        color = try {
+            if (isChecked) Color.parseColor(habitColor) else Color.parseColor("#2c2c2c")
+        } catch (e: Exception) {
+            if (isChecked) Color.parseColor("#60A5FA") else Color.parseColor("#2c2c2c")
+        }
         style = Paint.Style.FILL
     }
     

@@ -1,4 +1,4 @@
-
+// Simplified Version - DaysRemoteViewsService.kt
 package com.kreakxx.loop
 
 import android.content.Context
@@ -15,8 +15,7 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.ZoneId
 import android.graphics.Color
-
-
+import android.util.Log
 
 class DaysRemoteViewsService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
@@ -53,13 +52,13 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
         val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA")
 
         val dayIndex = gridItems[position]
-
         val isChecked = checkedDays.contains(dayIndex)
+        
         if (isChecked) {
-    rv.setInt(R.id.day_cell, "setBackgroundColor", Color.parseColor(habitColor))
-} else {
-    rv.setInt(R.id.day_cell, "setBackgroundResource", R.drawable.day_unchecked)
-}
+            rv.setInt(R.id.day_cell, "setBackgroundColor", Color.parseColor(habitColor))
+        } else {
+            rv.setInt(R.id.day_cell, "setBackgroundResource", R.drawable.day_unchecked)
+        }
 
         return rv
     }
@@ -71,65 +70,59 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
 
     data class CheckedDay(val date: String, val status: Boolean)
 
-   private fun loadCheckedays(): List<CheckedDay> {
+    private fun loadCheckedDays(): List<CheckedDay> {
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        // Verwende die spezifische Widget-ID wie im zweiten File
         val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
+        
         val type = object : TypeToken<List<CheckedDay>>() {}.type
-        return Gson().fromJson(json, type)
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-private fun loadStartDate(): LocalDate {
-    val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-    val startDateString = prefs.getString("widget_habit_startDate", null)
-
-    return if (!startDateString.isNullOrBlank()) {
-        LocalDate.parse(startDateString)
-    } else {
-        LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
-    }
-}
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun needsReset(startDate: LocalDate): Boolean {
-        val today = LocalDate.now(ZoneId.systemDefault())
-        return ChronoUnit.DAYS.between(startDate, today) >= totalDays
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun saveNewStartDate() {
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE).edit()
-        val monday = LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
-        prefs.putString("widget_habit_startDate", monday.toString())
-        prefs.apply()
+        return try {
+            Gson().fromJson(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadGridState() {
-        var startDate = loadStartDate()
-        if (needsReset(startDate)) {
-            saveNewStartDate()
-            startDate = loadStartDate()
+        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val startDateString = prefs.getString("widget_${appWidgetId}_habit_startDate", null)
+        
+        // Use stored start date or default to current Monday
+        val startDate = if (!startDateString.isNullOrBlank()) {
+            try {
+                LocalDate.parse(startDateString)
+            } catch (e: Exception) {
+                LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
+            }
+        } else {
+            LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
         }
 
-        val checked = loadCheckedays()
+        val checked = loadCheckedDays()
+        
         gridItems.clear()
         for (i in 0 until totalDays) {
             gridItems.add(i)
         }
 
+        // Simply map checked days to grid positions
         checkedDays = checked
-            .filter { cd ->
-                cd.status &&
-                        !LocalDate.parse(cd.date).isBefore(startDate) &&
-                        !LocalDate.parse(cd.date).isAfter(startDate.plusDays(totalDays.toLong()))
-            }
-            .map {
-                val dayOffset = ChronoUnit.DAYS.between(startDate, LocalDate.parse(it.date)).toInt()
-                val col = dayOffset % 7
-                val row = dayOffset / 7
-                row + col * 10
+            .filter { it.status == true }
+            .mapNotNull { cd ->
+                try {
+                    val checkDate = LocalDate.parse(cd.date)
+                    val dayOffset = ChronoUnit.DAYS.between(startDate, checkDate).toInt()
+                    
+                    if (dayOffset >= 0 && dayOffset < totalDays) {
+                        val col = dayOffset % 7
+                        val row = dayOffset / 7
+                        row + col * 10
+                    } else {
+                        null
+                    }
+                } catch (e: Exception) {
+                    null
+                }
             }
     }
 }
