@@ -2069,7 +2069,7 @@ export default function HomeScreen() {
     }
   };
 
-  if (startScreen) {
+  if (!startScreen) {
     return (
       <ScrollView
         className="flex-1 bg-slate-950"
@@ -2080,11 +2080,12 @@ export default function HomeScreen() {
           <>
             <Image
               source={require("../../assets/images/AppLogo-removebg-preview.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
+              className="  mb-10 mt-10"
+              style={{ width: "90%", height: "50%" }}
               resizeMode="contain"
             />
             <Text className="text-2xl font-bold text-white text-center mb-8">
-              Welcome to LOOP !
+              Welcome to Streakly !
             </Text>
           </>
         )}
@@ -2092,13 +2093,46 @@ export default function HomeScreen() {
         {introPage === 1 && (
           <>
             <Image
-              source={require("../../assets/images/Habit.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
+              source={require("../../assets/images/AppLogo-removebg-preview.png")}
+              className="  mb-10 mt-10"
+              style={{ width: "90%", height: "35%" }}
               resizeMode="contain"
             />
-            <Text className="text-2xl font-bold text-white text-center mb-8">
-              Create new Habits !
-            </Text>
+            <View
+              className={`rounded-t-3xl  px-6  `}
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: 0.25,
+                shadowRadius: 3.84,
+                elevation: 5,
+                maxHeight: "40%",
+              }}
+            >
+              <View className="items-center justify-center">
+                <Text className="font-bold text-white text-2xl">
+                  Choose your Theme
+                </Text>
+              </View>
+              <View className="flex-row flex-wrap mb-10 mt-10 gap-5 items-center justify-center">
+                {Object.entries(themes).map(([key, theme]) => {
+                  const isActive = key === activeTheme;
+
+                  return (
+                    <TouchableOpacity
+                      key={key}
+                      className="p-4 rounded-full h-12 w-12"
+                      style={{
+                        backgroundColor: theme.primary.bg,
+                        borderWidth: isActive ? 3 : 0,
+                        borderColor: isActive ? "#71717a" : "transparent",
+                      }}
+                      onPress={() => setActiveTheme(key)}
+                    />
+                  );
+                })}
+              </View>
+            </View>
           </>
         )}
 
@@ -2186,7 +2220,7 @@ export default function HomeScreen() {
 
         <View className="mb-20 flex-row gap-3">
           <TouchableOpacity
-            className={`bg-violet-600 px-8 py-4 rounded-full ${
+            className={`bg-gray-900 px-8 py-4 rounded-full ${
               introPage === 0 ? "opacity-50" : ""
             }`}
             onPress={() => {
@@ -2199,12 +2233,12 @@ export default function HomeScreen() {
             <Text className="text-white font-bold text-lg">Back</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="bg-violet-600 px-8 py-4 rounded-full"
+            className="bg-gray-900 px-8 py-4 rounded-full"
             onPress={() => {
               if (introPage < 6) {
                 setIntroPage(introPage + 1);
               } else {
-                setStartScreen(false);
+                setStartScreen(true);
               }
             }}
           >
@@ -2981,27 +3015,58 @@ export default function HomeScreen() {
                             <View className="flex-row flex-wrap mt-5 gap-4 items-center justify-center">
                               {(category.imagePaths ?? []).length > 0 ? (
                                 (category.imagePaths ?? []).map((path, idx) => (
-                                  <TouchableOpacity
+                                  <View
+                                    className="flex-col gap-2 items-center justify-center"
                                     key={idx}
-                                    onPress={() => {
-                                      setImageIndex(idx);
-                                      const newCategories = [...categories];
-                                      newCategories[index] = {
-                                        ...newCategories[index],
-                                        galleryVisible: true,
-                                      };
-                                      setCategories(newCategories);
-                                    }}
                                   >
-                                    <Image
-                                      source={{ uri: path }}
-                                      style={{
-                                        width: 100,
-                                        height: 100,
-                                        borderRadius: 8,
+                                    <TouchableOpacity
+                                      onPress={() => {
+                                        setImageIndex(idx);
+                                        const newCategories = [...categories];
+                                        newCategories[index] = {
+                                          ...newCategories[index],
+                                          galleryVisible: true,
+                                        };
+                                        setCategories(newCategories);
                                       }}
-                                    />
-                                  </TouchableOpacity>
+                                    >
+                                      <Image
+                                        source={{ uri: path }}
+                                        style={{
+                                          width: 100,
+                                          height: 100,
+                                          borderRadius: 8,
+                                        }}
+                                      />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                      className="h-10 w-10 rounded-full items-center justify-center"
+                                      style={{
+                                        backgroundColor: currentTheme.border,
+                                      }}
+                                      onPress={() => {
+                                        const newCategories = [...categories];
+                                        const newImagePaths = [
+                                          ...(newCategories[index].imagePaths ??
+                                            []),
+                                        ];
+                                        newImagePaths.splice(idx, 1);
+
+                                        newCategories[index] = {
+                                          ...newCategories[index],
+                                          imagePaths: newImagePaths,
+                                        };
+
+                                        setCategories(newCategories);
+                                      }}
+                                    >
+                                      <MaterialCommunityIcons
+                                        name="trash-can"
+                                        size={20}
+                                        color={currentTheme.card}
+                                      ></MaterialCommunityIcons>
+                                    </TouchableOpacity>
+                                  </View>
                                 ))
                               ) : (
                                 <Text className="flex justify-center items-center font-bold text-lg text-white">
