@@ -3,7 +3,7 @@
     android:description="@string/app_widget_description"
     android:initialKeyguardLayout="@layout/home_screenwidget_medium"
     android:initialLayout="@layout/home_screenwidget_medium"
-    android:minWidth="160dp"
+    android:minWidth="190dp"
     android:minHeight="90dp"
     android:maxWidth="220dp"
     android:maxHeight="150dp"

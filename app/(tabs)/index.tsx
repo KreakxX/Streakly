@@ -515,15 +515,55 @@ export default function HomeScreen() {
       }
 
       try {
+        console.log("🔄 Clearing widget cache for all widgets...");
+
+        // Get all existing widget IDs first
+        const widgetIds = await CategoryDatamodule.getAllWidgetIds();
+
+        // Clear data for each widget ID
+        for (const widgetId of widgetIds) {
+          console.log(`Clearing widget cache for ID: ${widgetId}`);
+
+          await CategoryDatamodule.saveToPrefs(
+            `widget_habit_name_${widgetId}`,
+            ""
+          );
+          await CategoryDatamodule.saveToPrefs(
+            `widget_habit_checkedDays_${widgetId}`,
+            "[]"
+          );
+          await CategoryDatamodule.saveToPrefs(
+            `widget_habit_startDate_${widgetId}`,
+            ""
+          );
+          await CategoryDatamodule.saveToPrefs(
+            `widget_habit_streak_${widgetId}`,
+            "0"
+          );
+
+          // Update specific widget
+          await CategoryDatamodule.updateWidgetForId(widgetId);
+        }
+
+        // Also clear the old static widget data (fallback for compatibility)
         await CategoryDatamodule.saveToPrefs("widget_habit_name", "");
         await CategoryDatamodule.saveToPrefs("widget_habit_checkedDays", "[]");
         await CategoryDatamodule.saveToPrefs("widget_habit_startDate", "");
         await CategoryDatamodule.saveToPrefs("widget_habit_streak", "0");
+
+        // Clear widget IDs list if you want to start fresh
+        await CategoryDatamodule.saveToPrefs("widget_ids", "[]");
+
+        // Update general widget (if still exists)
         await CategoryDatamodule.updateWidget();
+
+        // Clear app state
         setCategories([]);
         setOriginalCategories([]);
 
         await AsyncStorage.setItem("widget_cache_cleared", "true");
+
+        console.log("✅ Widget cache cleared for all widgets");
       } catch (e) {
         console.error("❌ Failed to clear widget cache:", e);
       } finally {
@@ -551,7 +591,7 @@ export default function HomeScreen() {
 
   const updateWidgetWithCategory = async (category: Category) => {
     try {
-      // Get all widget IDs
+      // Get all widget IDsf
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
       // Only update widgets that are configured for this specific category
@@ -635,30 +675,31 @@ export default function HomeScreen() {
       console.error(`❌ Failed to update widget ${widgetId}:`, e);
     }
   };
-
   const loadWidgetData = async () => {
-    const currentTheme =
-      themes[activeTheme as keyof typeof themes] || themes.default;
-
     try {
       // Get all widget IDs first
+      console.log("loaded, no Widget, this is the problem");
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
       if (widgetIds.length === 0) {
-        console.log("No widgets found");
         return;
       }
-
-      // Load data from all widgets and merge changes
       let hasChanges = false;
       const today = new Date();
-      // FIX: Use consistent date format without timezone adjustment
-      const localToday = today.toISOString().split("T")[0];
+
+      // Lokales Datum mit Timezone-Offset (wie in Ihrem Beispiel)
+      const localToday = new Date(
+        today.getTime() - today.getTimezoneOffset() * 60000
+      )
+        .toISOString()
+        .split("T")[0];
 
       for (const widgetId of widgetIds) {
         try {
           const data = await CategoryDatamodule.loadWidgetDataForId(widgetId);
-          if (!data || !data.checkedDays) continue;
+          if (!data || !data.checkedDays) {
+            continue;
+          }
 
           let newCheckedDays: { date: string; status: boolean }[] = [];
           try {
@@ -667,23 +708,29 @@ export default function HomeScreen() {
                 ? JSON.parse(data.checkedDays)
                 : [];
           } catch (e) {
-            console.error(`Failed to parse widget data for ${widgetId}:`, e);
             continue;
           }
 
-          const widgetDayStatus = newCheckedDays.find(
+          // Find today's status in widget
+          const widgetTodayEntry = newCheckedDays.find(
             (day) => day.date === localToday
-          )?.status;
+          );
 
-          // Find the category that matches this widget
+          const widgetDayStatus = widgetTodayEntry?.status;
+
           const habitName = data.habitName || "Habit";
+
           const categoryIndex = categories.findIndex(
             (cat) => cat.name === habitName
           );
 
-          if (categoryIndex === -1) continue;
+          if (categoryIndex === -1) {
+            continue;
+          }
 
           const currentCategory = categories[categoryIndex];
+
+          // Find today's entry in category using same timezone logic
           const todayInCategory = currentCategory.checkedDays.find((day) => {
             if (!day || !day.date) return false;
 
@@ -691,43 +738,88 @@ export default function HomeScreen() {
               day.date instanceof Date ? day.date : new Date(day.date);
 
             if (isNaN(dayDate.getTime())) {
-              console.error("Invalid date in checkedDays:", day.date);
               return false;
             }
 
-            // FIX: Use consistent date format without timezone adjustment
-            const localDate = dayDate.toISOString().split("T")[0];
+            // Gleiche Timezone-Logic wie bei localToday
+            const localDate = new Date(
+              dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
+            )
+              .toISOString()
+              .split("T")[0];
+
             return localDate === localToday;
           });
 
-          // Check if widget status differs from app status
-          if (todayInCategory && todayInCategory.status !== widgetDayStatus) {
+          // Get app status (default to false if no entry exists)
+          const appDayStatus = todayInCategory?.status || false;
+
+          // Handle undefined widgetDayStatus properly
+          const normalizedWidgetStatus = widgetDayStatus === true; // Only true if explicitly true
+          const normalizedAppStatus = appDayStatus === true;
+
+          // Check if widget status differs from app status AND widget status is not undefined
+          if (
+            todayInCategory &&
+            widgetDayStatus !== undefined &&
+            normalizedWidgetStatus !== normalizedAppStatus
+          ) {
             hasChanges = true;
 
             // Update the category
-            const updateCategories = (prev: Category[]) => {
+            setCategories((prev) => {
               return prev.map((cat, index) => {
                 if (index !== categoryIndex) return cat;
 
+                let newStreak = cat.streak;
+                console.log("Original streak:", newStreak);
+
+                if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  // Widget is checked, app is unchecked -> increase streak
+                  newStreak = cat.streak + 1;
+                  console.log("Increasing streak to:", newStreak);
+                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  // Widget is unchecked, app is checked -> decrease streak
+                  newStreak = Math.max(0, cat.streak - 1);
+                  console.log("Decreasing streak to:", newStreak);
+                }
+
+                console.log(
+                  "Widget status:",
+                  widgetDayStatus,
+                  "->",
+                  normalizedWidgetStatus
+                );
+                console.log(
+                  "App status:",
+                  appDayStatus,
+                  "->",
+                  normalizedAppStatus
+                );
+
+                // Calculate new days count
+                let newDays = cat.days;
+                if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  newDays = cat.days + 1;
+                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  newDays = Math.max(0, cat.days - 1);
+                }
+
                 const updated = {
                   ...cat,
-                  streak: widgetDayStatus
-                    ? cat.streak + 1
-                    : Math.max(0, cat.streak - 1), // Don't go below 0
+                  streak: newStreak,
                   longestStreak:
-                    widgetDayStatus && cat.streak + 1 > cat.longestStreak
-                      ? cat.streak + 1
+                    normalizedWidgetStatus && newStreak > cat.longestStreak
+                      ? newStreak
                       : cat.longestStreak,
-                  checkedToday: widgetDayStatus ? cat.amount : 0,
-                  buttonColor: widgetDayStatus
+                  checkedToday: normalizedWidgetStatus ? cat.amount : 0,
+                  buttonColor: normalizedWidgetStatus
                     ? cat.color
                     : currentTheme.border,
-                  lastCheckDate: widgetDayStatus
+                  lastCheckDate: normalizedWidgetStatus
                     ? today.toLocaleDateString("de-DE")
                     : "",
-                  days: widgetDayStatus
-                    ? cat.days + 1
-                    : Math.max(0, cat.days - 1), // Don't go below 0
+                  days: newDays,
                   checkedDays: cat.checkedDays.map((day) => {
                     if (!day || !day.date) return day;
 
@@ -739,11 +831,15 @@ export default function HomeScreen() {
                       return day;
                     }
 
-                    // FIX: Use consistent date format without timezone adjustment
-                    const localDate = dayDate.toISOString().split("T")[0];
+                    // Gleiche Timezone-Logic
+                    const localDate = new Date(
+                      dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
+                    )
+                      .toISOString()
+                      .split("T")[0];
 
                     if (localDate === localToday) {
-                      return { ...day, status: Boolean(widgetDayStatus) };
+                      return { ...day, status: normalizedWidgetStatus };
                     }
                     return day;
                   }),
@@ -751,18 +847,70 @@ export default function HomeScreen() {
 
                 return updated;
               });
-            };
+            });
 
-            setCategories(updateCategories);
-            setOriginalCategories(updateCategories);
+            setOriginalCategories((prev) => {
+              return prev.map((cat, index) => {
+                if (index !== categoryIndex) return cat;
+
+                // Same update logic for originalCategories
+                let newStreak = cat.streak;
+                if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  newStreak = cat.streak + 1;
+                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  newStreak = Math.max(0, cat.streak - 1);
+                }
+
+                let newDays = cat.days;
+                if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  newDays = cat.days + 1;
+                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  newDays = Math.max(0, cat.days - 1);
+                }
+
+                return {
+                  ...cat,
+                  streak: newStreak,
+                  longestStreak:
+                    normalizedWidgetStatus && newStreak > cat.longestStreak
+                      ? newStreak
+                      : cat.longestStreak,
+                  checkedToday: normalizedWidgetStatus ? cat.amount : 0,
+                  buttonColor: normalizedWidgetStatus
+                    ? cat.color
+                    : currentTheme.border,
+                  lastCheckDate: normalizedWidgetStatus
+                    ? today.toLocaleDateString("de-DE")
+                    : "",
+                  days: newDays,
+                  checkedDays: cat.checkedDays.map((day) => {
+                    if (!day || !day.date) return day;
+
+                    const dayDate =
+                      day.date instanceof Date ? day.date : new Date(day.date);
+
+                    if (isNaN(dayDate.getTime())) {
+                      return day;
+                    }
+
+                    const localDate = new Date(
+                      dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
+                    )
+                      .toISOString()
+                      .split("T")[0];
+
+                    if (localDate === localToday) {
+                      return { ...day, status: normalizedWidgetStatus };
+                    }
+                    return day;
+                  }),
+                };
+              });
+            });
           }
         } catch (e) {
           console.error(`Error loading widget data for ${widgetId}:`, e);
         }
-      }
-
-      if (hasChanges) {
-        console.log("✅ Widget data synchronized with app");
       }
     } catch (e) {
       console.error("Error loading widget data:", e);
@@ -779,8 +927,7 @@ export default function HomeScreen() {
     return () => {
       subscription.remove();
     };
-  }, []);
-
+  }, [loadWidgetData]);
   useEffect(() => {
     const loadBadgesAndAnimation = async () => {
       try {

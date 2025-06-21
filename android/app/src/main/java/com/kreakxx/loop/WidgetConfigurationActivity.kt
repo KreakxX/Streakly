@@ -157,41 +157,42 @@ class WidgetConfigurationActivity : AppCompatActivity() {
     }
     
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun saveConfiguration() {
-        val selectedCategory = categorySpinner.selectedItem as? Category
-        
-        if (selectedCategory == null) {
-            Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        // Save EXACT data from app - no modifications
-        val gson = Gson()
-        val checkedDaysJson = gson.toJson(selectedCategory.checkedDays)
-        
-        val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
-        prefs.edit().apply {
-            putString("widget_${appWidgetId}_category_id", selectedCategory.id)
-            putString("widget_${appWidgetId}_habit_name", selectedCategory.name)
-            putString("widget_${appWidgetId}_habit_color", selectedCategory.color)
-            putString("widget_${appWidgetId}_habit_streak", selectedCategory.streak.toString())
-            putString("widget_${appWidgetId}_habit_checkedDays", checkedDaysJson)
-            
-            // Set start date to current Monday
-            val monday = LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
-            putString("widget_${appWidgetId}_habit_startDate", monday.toString())
-            
-            apply()
-        }
-        
-        val context = this@WidgetConfigurationActivity
-        val appWidgetManager = AppWidgetManager.getInstance(context)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
-        
-        val resultValue = Intent().apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        }
-        setResult(Activity.RESULT_OK, resultValue)
-        finish()
+private fun saveConfiguration() {
+    val selectedCategory = categorySpinner.selectedItem as? Category
+    
+    if (selectedCategory == null) {
+        Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show()
+        return
     }
+    
+    // Save EXACT data from app - no modifications
+    val gson = Gson()
+    val checkedDaysJson = gson.toJson(selectedCategory.checkedDays)
+    
+    val prefs = getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+    prefs.edit().apply {
+        putString("widget_${appWidgetId}_category_id", selectedCategory.id)
+        putString("widget_${appWidgetId}_habit_name", selectedCategory.name)
+        putString("widget_${appWidgetId}_habit_color", selectedCategory.color)
+        putString("widget_${appWidgetId}_habit_streak", selectedCategory.streak.toString())
+        putString("widget_${appWidgetId}_habit_checkedDays", checkedDaysJson)
+        
+        // Set start date to current Monday
+        val monday = LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
+        putString("widget_${appWidgetId}_habit_startDate", monday.toString())
+        
+        apply()
+    }
+    
+    // JETZT erst das Widget updaten - nachdem alle Daten gespeichert sind
+    val context = this@WidgetConfigurationActivity
+    val appWidgetManager = AppWidgetManager.getInstance(context)
+    updateAppWidget(context, appWidgetManager, appWidgetId)
+    
+    val resultValue = Intent().apply {
+        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+    }
+    setResult(Activity.RESULT_OK, resultValue)
+    finish()
+}
 }

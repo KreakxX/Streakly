@@ -32,8 +32,13 @@ class HomeScreenwidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+          for (appWidgetId in appWidgetIds) {
+            val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            val habitName = prefs.getString("widget_${appWidgetId}_habit_name", null)
+            
+            if (habitName != null) {
+                updateAppWidget(context, appWidgetManager, appWidgetId)
+            }
         }
     }
     
