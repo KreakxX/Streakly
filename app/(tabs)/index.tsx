@@ -549,19 +549,28 @@ export default function HomeScreen() {
     saveData();
   }, [categories, originalCategories]);
 
-  const updateWidgetWithCategory = async (
-    category: Category,
-    widgetId?: number
-  ) => {
+  const updateWidgetWithCategory = async (category: Category) => {
     try {
-      // If no specific widgetId provided, update all widgets with this category
-      if (widgetId) {
-        await updateSingleWidget(category, widgetId);
-      } else {
-        // Get all widget IDs and update each one
-        const widgetIds = await CategoryDatamodule.getAllWidgetIds();
-        for (const id of widgetIds) {
-          await updateSingleWidget(category, id);
+      // Get all widget IDs
+      const widgetIds = await CategoryDatamodule.getAllWidgetIds();
+
+      // Only update widgets that are configured for this specific category
+      for (const widgetId of widgetIds) {
+        try {
+          // Load the widget data to check which category it belongs to
+          const widgetData = await CategoryDatamodule.loadWidgetDataForId(
+            widgetId
+          );
+
+          // Only update if this widget is configured for the current category
+          if (widgetData && widgetData.habitName === category.name) {
+            await updateSingleWidget(category, widgetId);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to check widget ${widgetId} configuration:`,
+            error
+          );
         }
       }
 
@@ -582,11 +591,8 @@ export default function HomeScreen() {
       const localCheckedDays = category.checkedDays
         .filter((cd) => cd && cd.date instanceof Date)
         .map((cd) => ({
-          date: new Date(
-            cd.date.getTime() - cd.date.getTimezoneOffset() * 60000
-          )
-            .toISOString()
-            .split("T")[0],
+          // Nur das Datum, ohne Zeit-Teil
+          date: cd.date.toISOString().split("T")[0], // "2025-06-21"
           status: cd.status,
         }));
 

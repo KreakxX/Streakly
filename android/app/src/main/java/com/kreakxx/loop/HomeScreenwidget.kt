@@ -114,7 +114,29 @@ internal fun updateAppWidget(
         emptyList<DaysRemoteViewsFactory.CheckedDay>()
     }
 
-    val isChecked = checkedDays.any { it.date == today && it.status == true }
+   val isChecked = checkedDays.any { checkedDay ->
+    try {
+        // Extrahiere nur das Datum (vor dem 'T') für Vergleich
+        val dateOnly = if (checkedDay.date.contains('T')) {
+            checkedDay.date.split('T')[0]
+        } else {
+            checkedDay.date
+        }
+        val result = dateOnly == today && checkedDay.status == true
+        Log.d("WidgetDebug", "Comparing: '$dateOnly' == '$today' && ${checkedDay.status} = $result")
+        result
+    } catch (e: Exception) {
+        Log.e("WidgetDebug", "Date parsing error for: ${checkedDay.date}", e)
+        false
+    }
+}
+
+    Log.d("WidgetDebug", "Today: $today")
+Log.d("WidgetDebug", "CheckedDays JSON: $json")
+checkedDays.forEach { day ->
+    Log.d("WidgetDebug", "CheckedDay: date='${day.date}', status=${day.status}")
+}
+Log.d("WidgetDebug", "IsChecked result: $isChecked")
     
     
     // Create button with correct state
@@ -135,10 +157,18 @@ private fun updateButton(context: Context, appWidgetId: Int) {
     val type = object : TypeToken<MutableList<DaysRemoteViewsFactory.CheckedDay>>() {}.type
     val checkedDays = gson.fromJson<MutableList<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: mutableListOf()
     
-    val today = LocalDate.now(ZoneId.systemDefault()).toString()
+val today = LocalDate.now(ZoneId.systemDefault()).toString() // "2025-06-21"
     
-    val existing = checkedDays.find { it.date == today }
-    val wasChecked = existing?.status == true
+val existing = checkedDays.find { 
+    val dateOnly = if (it.date.contains('T')) {
+        it.date.split('T')[0]
+    } else {
+        it.date
+    }
+    dateOnly == today
+} 
+
+val wasChecked = existing?.status == true
     
     if (existing != null) {
         checkedDays.remove(existing)

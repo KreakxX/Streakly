@@ -105,12 +105,19 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
             gridItems.add(i)
         }
 
-        // Simply map checked days to grid positions
+        // Map checked days to grid positions with date splitting like in HomeScreenwidget
         checkedDays = checked
             .filter { it.status == true }
             .mapNotNull { cd ->
                 try {
-                    val checkDate = LocalDate.parse(cd.date)
+                    // Extract only the date part (before 'T') for comparison - same as HomeScreenwidget
+                    val dateOnly = if (cd.date.contains('T')) {
+                        cd.date.split('T')[0]
+                    } else {
+                        cd.date
+                    }
+                    
+                    val checkDate = LocalDate.parse(dateOnly)
                     val dayOffset = ChronoUnit.DAYS.between(startDate, checkDate).toInt()
                     
                     if (dayOffset >= 0 && dayOffset < totalDays) {
@@ -121,6 +128,7 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
                         null
                     }
                 } catch (e: Exception) {
+                    Log.e("DaysRemoteViews", "Date parsing error for: ${cd.date}", e)
                     null
                 }
             }

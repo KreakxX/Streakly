@@ -99,4 +99,15 @@ class CategoryDatamodule(reactContext: ReactApplicationContext) : ReactContextBa
             promise.reject("GET_IDS_ERROR", e)
         }
     }
+
+    @ReactMethod
+fun getFromPrefs(key: String, promise: Promise) {
+    try {
+        val prefs: SharedPreferences = reactApplicationContext.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val value = prefs.getString(key, null)
+        promise.resolve(value)
+    } catch (e: Exception) {
+        promise.reject("GET_ERROR", e)
+    }
+}
 }
