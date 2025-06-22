@@ -10,7 +10,6 @@ import StreakV2 from "@/components/ui/StreakV2";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { Video } from "expo-av";
 import { CameraType, CameraView, useCameraPermissions } from "expo-camera";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
@@ -121,6 +120,7 @@ export default function HomeScreen() {
   const [startScreen, setStartScreen] = useState<boolean>(false);
   const { CategoryDatamodule } = NativeModules;
   const clearedRef = useRef(false);
+  const startRef = useRef(false);
 
   const weekdays = [
     { label: "MO", value: "Montag" },
@@ -505,10 +505,26 @@ export default function HomeScreen() {
       </TouchableOpacity>
     );
   };
+  const getLocalDateString = (date = new Date()) => {
+    // Always get local date string in YYYY-MM-DD format
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  const parseToLocalDate = (dateString: string) => {
+    // Parse date string to local date without timezone issues
+    if (dateString.includes("T")) {
+      dateString = dateString.split("T")[0];
+    }
+    const [year, month, day] = dateString.split("-");
+    return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  };
+
   useEffect(() => {
     const checkAndClearWidgetCache = async () => {
       const alreadyCleared = await AsyncStorage.getItem("widget_cache_cleared");
-
       if (alreadyCleared === "true") {
         clearedRef.current = true;
         return;
@@ -517,10 +533,8 @@ export default function HomeScreen() {
       try {
         console.log("🔄 Clearing widget cache for all widgets...");
 
-        // Get all existing widget IDs first
         const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
-        // Clear data for each widget ID
         for (const widgetId of widgetIds) {
           console.log(`Clearing widget cache for ID: ${widgetId}`);
 
@@ -541,23 +555,17 @@ export default function HomeScreen() {
             "0"
           );
 
-          // Update specific widget
           await CategoryDatamodule.updateWidgetForId(widgetId);
         }
 
-        // Also clear the old static widget data (fallback for compatibility)
         await CategoryDatamodule.saveToPrefs("widget_habit_name", "");
         await CategoryDatamodule.saveToPrefs("widget_habit_checkedDays", "[]");
         await CategoryDatamodule.saveToPrefs("widget_habit_startDate", "");
         await CategoryDatamodule.saveToPrefs("widget_habit_streak", "0");
-
-        // Clear widget IDs list if you want to start fresh
         await CategoryDatamodule.saveToPrefs("widget_ids", "[]");
 
-        // Update general widget (if still exists)
         await CategoryDatamodule.updateWidget();
 
-        // Clear app state
         setCategories([]);
         setOriginalCategories([]);
 
@@ -591,18 +599,14 @@ export default function HomeScreen() {
 
   const updateWidgetWithCategory = async (category: Category) => {
     try {
-      // Get all widget IDsf
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
-      // Only update widgets that are configured for this specific category
       for (const widgetId of widgetIds) {
         try {
-          // Load the widget data to check which category it belongs to
           const widgetData = await CategoryDatamodule.loadWidgetDataForId(
             widgetId
           );
 
-          // Only update if this widget is configured for the current category
           if (widgetData && widgetData.habitName === category.name) {
             await updateSingleWidget(category, widgetId);
           }
@@ -622,19 +626,22 @@ export default function HomeScreen() {
 
   const updateSingleWidget = async (category: Category, widgetId: number) => {
     try {
-      // Use widget-specific keys
       await CategoryDatamodule.saveToPrefs(
         `widget_${widgetId}_habit_name`,
         category.name
       );
 
+      // Use consistent date formatting
       const localCheckedDays = category.checkedDays
-        .filter((cd) => cd && cd.date instanceof Date)
-        .map((cd) => ({
-          // Nur das Datum, ohne Zeit-Teil
-          date: cd.date.toISOString().split("T")[0], // "2025-06-21"
-          status: cd.status,
-        }));
+        .filter((cd) => cd && cd.date)
+        .map((cd) => {
+          const dateObj =
+            cd.date instanceof Date ? cd.date : parseToLocalDate(cd.date);
+          return {
+            date: getLocalDateString(dateObj), // Always YYYY-MM-DD format
+            status: cd.status,
+          };
+        });
 
       await CategoryDatamodule.saveToPrefs(
         `widget_${widgetId}_habit_checkedDays`,
@@ -644,29 +651,23 @@ export default function HomeScreen() {
       const startDate =
         category.startDate instanceof Date
           ? category.startDate
-          : new Date(category.startDate);
+          : parseToLocalDate(category.startDate);
 
       if (isNaN(startDate.getTime())) {
         console.error("Invalid startDate:", category.startDate);
         return;
       }
 
-      const localStart = new Date(
-        startDate.getTime() - startDate.getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .split("T")[0];
-
+      const localStartDate = getLocalDateString(startDate);
       await CategoryDatamodule.saveToPrefs(
         `widget_${widgetId}_habit_startDate`,
-        localStart
+        localStartDate
       );
 
       await CategoryDatamodule.saveToPrefs(
         `widget_${widgetId}_habit_color`,
         category.color
       );
-
       await CategoryDatamodule.saveToPrefs(
         `widget_${widgetId}_habit_streak`,
         category.streak.toString()
@@ -675,24 +676,17 @@ export default function HomeScreen() {
       console.error(`❌ Failed to update widget ${widgetId}:`, e);
     }
   };
+
   const loadWidgetData = async () => {
     try {
-      // Get all widget IDs first
-      console.log("loaded, no Widget, this is the problem");
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
       if (widgetIds.length === 0) {
         return;
       }
-      let hasChanges = false;
-      const today = new Date();
 
-      // Lokales Datum mit Timezone-Offset (wie in Ihrem Beispiel)
-      const localToday = new Date(
-        today.getTime() - today.getTimezoneOffset() * 60000
-      )
-        .toISOString()
-        .split("T")[0];
+      let hasChanges = false;
+      const todayString = getLocalDateString(); // Get today in consistent format
 
       for (const widgetId of widgetIds) {
         try {
@@ -701,7 +695,7 @@ export default function HomeScreen() {
             continue;
           }
 
-          let newCheckedDays: { date: string; status: boolean }[] = [];
+          let newCheckedDays = [];
           try {
             newCheckedDays =
               typeof data.checkedDays === "string"
@@ -711,13 +705,15 @@ export default function HomeScreen() {
             continue;
           }
 
-          // Find today's status in widget
-          const widgetTodayEntry = newCheckedDays.find(
-            (day) => day.date === localToday
-          );
+          // Find today's status in widget data
+          const widgetTodayEntry = newCheckedDays.find((day: any) => {
+            const dayDateString = day.date.includes("T")
+              ? day.date.split("T")[0]
+              : day.date;
+            return dayDateString === todayString;
+          });
 
           const widgetDayStatus = widgetTodayEntry?.status;
-
           const habitName = data.habitName || "Habit";
 
           const categoryIndex = categories.findIndex(
@@ -730,35 +726,27 @@ export default function HomeScreen() {
 
           const currentCategory = categories[categoryIndex];
 
-          // Find today's entry in category using same timezone logic
+          // Find today's entry in category
           const todayInCategory = currentCategory.checkedDays.find((day) => {
             if (!day || !day.date) return false;
 
             const dayDate =
-              day.date instanceof Date ? day.date : new Date(day.date);
-
+              day.date instanceof Date ? day.date : parseToLocalDate(day.date);
             if (isNaN(dayDate.getTime())) {
               return false;
             }
 
-            // Gleiche Timezone-Logic wie bei localToday
-            const localDate = new Date(
-              dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-            )
-              .toISOString()
-              .split("T")[0];
-
-            return localDate === localToday;
+            const dayDateString = getLocalDateString(dayDate);
+            return dayDateString === todayString;
           });
 
-          // Get app status (default to false if no entry exists)
           const appDayStatus = todayInCategory?.status || false;
 
-          // Handle undefined widgetDayStatus properly
-          const normalizedWidgetStatus = widgetDayStatus === true; // Only true if explicitly true
+          // Normalize statuses
+          const normalizedWidgetStatus = widgetDayStatus === true;
           const normalizedAppStatus = appDayStatus === true;
 
-          // Check if widget status differs from app status AND widget status is not undefined
+          // Check if widget status differs from app status
           if (
             todayInCategory &&
             widgetDayStatus !== undefined &&
@@ -766,107 +754,25 @@ export default function HomeScreen() {
           ) {
             hasChanges = true;
 
-            // Update the category
+            // Update categories
             setCategories((prev) => {
               return prev.map((cat, index) => {
                 if (index !== categoryIndex) return cat;
 
                 let newStreak = cat.streak;
-                console.log("Original streak:", newStreak);
-
-                if (normalizedWidgetStatus && !normalizedAppStatus) {
-                  // Widget is checked, app is unchecked -> increase streak
-                  newStreak = cat.streak + 1;
-                  console.log("Increasing streak to:", newStreak);
-                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
-                  // Widget is unchecked, app is checked -> decrease streak
-                  newStreak = Math.max(0, cat.streak - 1);
-                  console.log("Decreasing streak to:", newStreak);
-                }
-
-                console.log(
-                  "Widget status:",
-                  widgetDayStatus,
-                  "->",
-                  normalizedWidgetStatus
-                );
-                console.log(
-                  "App status:",
-                  appDayStatus,
-                  "->",
-                  normalizedAppStatus
-                );
-
-                // Calculate new days count
                 let newDays = cat.days;
+
                 if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  // Widget is checked, app is unchecked -> increase
+                  newStreak = cat.streak + 1;
                   newDays = cat.days + 1;
                 } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  // Widget is unchecked, app is checked -> decrease
+                  newStreak = Math.max(0, cat.streak - 1);
                   newDays = Math.max(0, cat.days - 1);
                 }
 
-                const updated = {
-                  ...cat,
-                  streak: newStreak,
-                  longestStreak:
-                    normalizedWidgetStatus && newStreak > cat.longestStreak
-                      ? newStreak
-                      : cat.longestStreak,
-                  checkedToday: normalizedWidgetStatus ? cat.amount : 0,
-                  buttonColor: normalizedWidgetStatus
-                    ? cat.color
-                    : currentTheme.border,
-                  lastCheckDate: normalizedWidgetStatus
-                    ? today.toLocaleDateString("de-DE")
-                    : "",
-                  days: newDays,
-                  checkedDays: cat.checkedDays.map((day) => {
-                    if (!day || !day.date) return day;
-
-                    const dayDate =
-                      day.date instanceof Date ? day.date : new Date(day.date);
-
-                    if (isNaN(dayDate.getTime())) {
-                      console.error("Invalid date in checkedDays:", day.date);
-                      return day;
-                    }
-
-                    // Gleiche Timezone-Logic
-                    const localDate = new Date(
-                      dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-                    )
-                      .toISOString()
-                      .split("T")[0];
-
-                    if (localDate === localToday) {
-                      return { ...day, status: normalizedWidgetStatus };
-                    }
-                    return day;
-                  }),
-                };
-
-                return updated;
-              });
-            });
-
-            setOriginalCategories((prev) => {
-              return prev.map((cat, index) => {
-                if (index !== categoryIndex) return cat;
-
-                // Same update logic for originalCategories
-                let newStreak = cat.streak;
-                if (normalizedWidgetStatus && !normalizedAppStatus) {
-                  newStreak = cat.streak + 1;
-                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
-                  newStreak = Math.max(0, cat.streak - 1);
-                }
-
-                let newDays = cat.days;
-                if (normalizedWidgetStatus && !normalizedAppStatus) {
-                  newDays = cat.days + 1;
-                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
-                  newDays = Math.max(0, cat.days - 1);
-                }
+                const today = new Date();
 
                 return {
                   ...cat,
@@ -887,19 +793,70 @@ export default function HomeScreen() {
                     if (!day || !day.date) return day;
 
                     const dayDate =
-                      day.date instanceof Date ? day.date : new Date(day.date);
+                      day.date instanceof Date
+                        ? day.date
+                        : parseToLocalDate(day.date);
+                    if (isNaN(dayDate.getTime())) {
+                      console.error("Invalid date in checkedDays:", day.date);
+                      return day;
+                    }
 
+                    const dayDateString = getLocalDateString(dayDate);
+                    if (dayDateString === todayString) {
+                      return { ...day, status: normalizedWidgetStatus };
+                    }
+                    return day;
+                  }),
+                };
+              });
+            });
+
+            // Update originalCategories with same logic
+            setOriginalCategories((prev) => {
+              return prev.map((cat, index) => {
+                if (index !== categoryIndex) return cat;
+
+                let newStreak = cat.streak;
+                let newDays = cat.days;
+
+                if (normalizedWidgetStatus && !normalizedAppStatus) {
+                  newStreak = cat.streak + 1;
+                  newDays = cat.days + 1;
+                } else if (!normalizedWidgetStatus && normalizedAppStatus) {
+                  newStreak = Math.max(0, cat.streak - 1);
+                  newDays = Math.max(0, cat.days - 1);
+                }
+
+                const today = new Date();
+
+                return {
+                  ...cat,
+                  streak: newStreak,
+                  longestStreak:
+                    normalizedWidgetStatus && newStreak > cat.longestStreak
+                      ? newStreak
+                      : cat.longestStreak,
+                  checkedToday: normalizedWidgetStatus ? cat.amount : 0,
+                  buttonColor: normalizedWidgetStatus
+                    ? cat.color
+                    : currentTheme.border,
+                  lastCheckDate: normalizedWidgetStatus
+                    ? today.toLocaleDateString("de-DE")
+                    : "",
+                  days: newDays,
+                  checkedDays: cat.checkedDays.map((day) => {
+                    if (!day || !day.date) return day;
+
+                    const dayDate =
+                      day.date instanceof Date
+                        ? day.date
+                        : parseToLocalDate(day.date);
                     if (isNaN(dayDate.getTime())) {
                       return day;
                     }
 
-                    const localDate = new Date(
-                      dayDate.getTime() - dayDate.getTimezoneOffset() * 60000
-                    )
-                      .toISOString()
-                      .split("T")[0];
-
-                    if (localDate === localToday) {
+                    const dayDateString = getLocalDateString(dayDate);
+                    if (dayDateString === todayString) {
                       return { ...day, status: normalizedWidgetStatus };
                     }
                     return day;
@@ -911,6 +868,10 @@ export default function HomeScreen() {
         } catch (e) {
           console.error(`Error loading widget data for ${widgetId}:`, e);
         }
+      }
+
+      if (hasChanges) {
+        console.log("✅ Widget data synchronized with app");
       }
     } catch (e) {
       console.error("Error loading widget data:", e);
@@ -1980,9 +1941,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadStartScreen = async () => {
       const loading = await AsyncStorage.getItem("start");
-      if (!loading) {
-        setStartScreen(true);
+      if (loading === null) {
         AsyncStorage.setItem("start", "true");
+        setStartScreen(true);
       } else {
         setStartScreen(false);
       }
@@ -2069,7 +2030,7 @@ export default function HomeScreen() {
     }
   };
 
-  if (!startScreen) {
+  if (startScreen) {
     return (
       <ScrollView
         className="flex-1 bg-slate-950"
@@ -2079,9 +2040,9 @@ export default function HomeScreen() {
         {introPage === 0 && (
           <>
             <Image
-              source={require("../../assets/images/AppLogo-removebg-preview.png")}
+              source={require("../../assets/images/GoodHabitsRealV3.png")}
               className="  mb-10 mt-10"
-              style={{ width: "90%", height: "50%" }}
+              style={{ width: "100%", height: "50%" }}
               resizeMode="contain"
             />
             <Text className="text-2xl font-bold text-white text-center mb-8">
@@ -2095,7 +2056,7 @@ export default function HomeScreen() {
             <Image
               source={require("../../assets/images/AppLogo-removebg-preview.png")}
               className="  mb-10 mt-10"
-              style={{ width: "90%", height: "35%" }}
+              style={{ width: "100%", height: "35%" }}
               resizeMode="contain"
             />
             <View
@@ -2139,76 +2100,19 @@ export default function HomeScreen() {
         {introPage === 2 && (
           <>
             <Image
-              source={require("../../assets/images/Routine.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
+              source={require("../../assets/images/StreakImage_transparent.png")}
+              style={{ width: "100%", height: "57%" }}
+              className="mb-8"
               resizeMode="contain"
             />
-            <Text className="text-2xl font-bold text-white text-center mb-8">
-              Create new Routines !
-            </Text>
-          </>
-        )}
-
-        {introPage === 3 && (
-          <>
-            <Image
-              source={require("../../assets/images/HabitView.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
-              resizeMode="contain"
-            />
-            <Text className="text-2xl font-bold text-white text-center mb-8">
-              Keep track of your Habits and Streaks
-            </Text>
-          </>
-        )}
-
-        {introPage === 4 && (
-          <>
-            <Image
-              source={require("../../assets/images/RoutineView.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
-              resizeMode="contain"
-            />
-            <Text className="text-2xl font-bold text-white text-center mb-8">
-              Keep track of your Routines and Streaks
-            </Text>
-          </>
-        )}
-
-        {introPage === 5 && (
-          <View className="items-center justify-center relative  ">
-            <Video
-              source={require("../../assets/videos/3x_besser.mp4")}
-              style={{
-                width: 400,
-                height: 650,
-                borderRadius: 16,
-                marginBottom: 45,
-              }}
-              isLooping
-              shouldPlay
-            />
-            <Text className="text-2xl font-bold text-white text-center mb-3  ">
-              Click on the Habit name to get more Information
-            </Text>
-          </View>
-        )}
-
-        {introPage === 6 && (
-          <>
-            <Image
-              source={require("../../assets/images/AppLogo-removebg-preview.png")}
-              className="w-[400px] h-[560px] mb-10 mt-10"
-              resizeMode="contain"
-            />
-            <Text className="text-2xl font-bold text-white text-center mb-8">
-              Start now, and get those Streaks 🔥
+            <Text className="text-xl font-bold text-white text-center mb-4">
+              Start now, and achieve your goals.
             </Text>
           </>
         )}
 
         <View className="flex-row justify-center items-center mb-4">
-          {[0, 1, 2, 3, 4, 5, 6].map((idx) => (
+          {[0, 1, 2].map((idx) => (
             <View
               key={idx}
               className={`w-3 h-3 mx-1 rounded-full ${
@@ -2235,15 +2139,15 @@ export default function HomeScreen() {
           <TouchableOpacity
             className="bg-gray-900 px-8 py-4 rounded-full"
             onPress={() => {
-              if (introPage < 6) {
+              if (introPage < 2) {
                 setIntroPage(introPage + 1);
               } else {
-                setStartScreen(true);
+                setStartScreen(false);
               }
             }}
           >
             <Text className="text-white font-bold text-lg">
-              {introPage < 6 ? "Next" : "Let's Go !"}
+              {introPage < 2 ? "Next" : "Let's Go !"}
             </Text>
           </TouchableOpacity>
         </View>

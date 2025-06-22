@@ -1,5 +1,6 @@
-// Simplified HomeScreenwidget.kt - Just show loaded data
+// Updated HomeScreenwidget.kt with consistent date handling
 package com.kreakxx.loop
+
 import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -14,6 +15,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import android.graphics.Color
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -25,6 +27,30 @@ import android.util.Log
 class HomeScreenwidget : AppWidgetProvider() {
     companion object {
         const val ACTION_BUTTON_CLICK = "com.kreakxx.loop.ACTION_BUTTON_CLICK"
+        
+        // Utility function for consistent date formatting
+        fun getTodayDateString(): String {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LocalDate.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+            } else {
+                val calendar = java.util.Calendar.getInstance()
+                String.format(
+                    "%04d-%02d-%02d",
+                    calendar.get(java.util.Calendar.YEAR),
+                    calendar.get(java.util.Calendar.MONTH) + 1,
+                    calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                )
+            }
+        }
+        
+        // Utility function to extract date part from any date string
+        fun extractDatePart(dateString: String): String {
+            return if (dateString.contains('T')) {
+                dateString.split('T')[0]
+            } else {
+                dateString
+            }
+        }
     }
     
     override fun onUpdate(
@@ -32,7 +58,7 @@ class HomeScreenwidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
-          for (appWidgetId in appWidgetIds) {
+        for (appWidgetId in appWidgetIds) {
             val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
             val habitName = prefs.getString("widget_${appWidgetId}_habit_name", null)
             
@@ -102,47 +128,43 @@ internal fun updateAppWidget(
     val habitName = prefs.getString("widget_${appWidgetId}_habit_name", "Habit") ?: "Habit"
     val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA") ?: "#60A5FA"
     
-    // Simply use the stored streak - no recalculation
+    // Use the stored streak directly
     val streak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
     
     views.setTextViewText(R.id.appwidget_streak, "$streak 🔥")
     views.setTextViewText(R.id.appwidget_text, habitName)
     
-    // Check if today is in checkedDays
-    val today = LocalDate.now(ZoneId.systemDefault()).toString()
+    // Check if today is in checkedDays using consistent date handling
+    val today = HomeScreenwidget.getTodayDateString()
     val gson = Gson()
     val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
     val type = object : TypeToken<List<DaysRemoteViewsFactory.CheckedDay>>() {}.type
     val checkedDays = try {
         gson.fromJson<List<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: emptyList()
     } catch (e: Exception) {
+        Log.e("WidgetDebug", "Error parsing checkedDays JSON: $json", e)
         emptyList<DaysRemoteViewsFactory.CheckedDay>()
     }
 
-   val isChecked = checkedDays.any { checkedDay ->
-    try {
-        // Extrahiere nur das Datum (vor dem 'T') für Vergleich
-        val dateOnly = if (checkedDay.date.contains('T')) {
-            checkedDay.date.split('T')[0]
-        } else {
-            checkedDay.date
+    val isChecked = checkedDays.any { checkedDay ->
+        try {
+            // Extract date part consistently
+            val dateOnly = HomeScreenwidget.extractDatePart(checkedDay.date)
+            val result = dateOnly == today && checkedDay.status == true
+            Log.d("WidgetDebug", "Date comparison: '$dateOnly' == '$today' && ${checkedDay.status} = $result")
+            result
+        } catch (e: Exception) {
+            Log.e("WidgetDebug", "Date parsing error for: ${checkedDay.date}", e)
+            false
         }
-        val result = dateOnly == today && checkedDay.status == true
-        Log.d("WidgetDebug", "Comparing: '$dateOnly' == '$today' && ${checkedDay.status} = $result")
-        result
-    } catch (e: Exception) {
-        Log.e("WidgetDebug", "Date parsing error for: ${checkedDay.date}", e)
-        false
     }
-}
 
     Log.d("WidgetDebug", "Today: $today")
-Log.d("WidgetDebug", "CheckedDays JSON: $json")
-checkedDays.forEach { day ->
-    Log.d("WidgetDebug", "CheckedDay: date='${day.date}', status=${day.status}")
-}
-Log.d("WidgetDebug", "IsChecked result: $isChecked")
-    
+    Log.d("WidgetDebug", "CheckedDays JSON: $json")
+    Log.d("WidgetDebug", "IsChecked result: $isChecked")
+    checkedDays.forEach { day ->
+        Log.d("WidgetDebug", "CheckedDay: date='${day.date}', status=${day.status}")
+    }
     
     // Create button with correct state
     val buttonBitmap = createButtonBitmap(isChecked, habitColor)
@@ -162,41 +184,45 @@ private fun updateButton(context: Context, appWidgetId: Int) {
     val type = object : TypeToken<MutableList<DaysRemoteViewsFactory.CheckedDay>>() {}.type
     val checkedDays = gson.fromJson<MutableList<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: mutableListOf()
     
-val today = LocalDate.now(ZoneId.systemDefault()).toString() // "2025-06-21"
+    val today = HomeScreenwidget.getTodayDateString()
     
-val existing = checkedDays.find { 
-    val dateOnly = if (it.date.contains('T')) {
-        it.date.split('T')[0]
-    } else {
-        it.date
+    // Find existing entry for today using consistent date handling
+    val existing = checkedDays.find { 
+        HomeScreenwidget.extractDatePart(it.date) == today
     }
-    dateOnly == today
-} 
 
-val wasChecked = existing?.status == true
+    val wasChecked = existing?.status == true
     
+    // Remove existing entry if found
     if (existing != null) {
         checkedDays.remove(existing)
     }
+    
+    // Add new entry with toggled status
     checkedDays.add(DaysRemoteViewsFactory.CheckedDay(today, !wasChecked))
     
+    // Sort by date to maintain order
     checkedDays.sortBy { it.date }
     
+    // Save updated checked days
     editor.putString("widget_${appWidgetId}_habit_checkedDays", gson.toJson(checkedDays))
     
+    // Update streak based on the change
+    val currentStreak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
     val newStreak = if (!wasChecked) {
         // Was unchecked, now checking -> increase streak
-        val currentStreak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
         currentStreak + 1
     } else {
         // Was checked, now unchecking -> decrease streak
-        val currentStreak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
         maxOf(0, currentStreak - 1)
     }
     
     editor.putString("widget_${appWidgetId}_habit_streak", newStreak.toString())
     editor.apply()
     
+    Log.d("WidgetDebug", "Button updated: wasChecked=$wasChecked, newStatus=${!wasChecked}, newStreak=$newStreak")
+    
+    // Refresh widget display
     val appWidgetManager = AppWidgetManager.getInstance(context)
     updateAppWidget(context, appWidgetManager, appWidgetId)
     appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetId, R.id.days_grid)

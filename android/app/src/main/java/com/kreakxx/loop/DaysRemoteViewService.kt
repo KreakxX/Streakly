@@ -1,4 +1,4 @@
-// Simplified Version - DaysRemoteViewsService.kt
+// Updated DaysRemoteViewsService.kt with simplified date handling from version 2
 package com.kreakxx.loop
 
 import android.content.Context
@@ -14,6 +14,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import android.graphics.Color
 import android.util.Log
 
@@ -29,6 +30,32 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
     private val totalDays = 70 // total days to show
     private var checkedDays = listOf<Int>()
     private val gridItems = mutableListOf<Int>()
+
+    companion object {
+        // Utility function for consistent date formatting (same as HomeScreenwidget)
+        fun getTodayDateString(): String {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                LocalDate.now(ZoneId.systemDefault()).format(DateTimeFormatter.ISO_LOCAL_DATE)
+            } else {
+                val calendar = java.util.Calendar.getInstance()
+                String.format(
+                    "%04d-%02d-%02d",
+                    calendar.get(java.util.Calendar.YEAR),
+                    calendar.get(java.util.Calendar.MONTH) + 1,
+                    calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                )
+            }
+        }
+        
+        // Utility function to extract date part from any date string (same as HomeScreenwidget)
+        fun extractDatePart(dateString: String): String {
+            return if (dateString.contains('T')) {
+                dateString.split('T')[0]
+            } else {
+                dateString
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
@@ -55,7 +82,11 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
         val isChecked = checkedDays.contains(dayIndex)
         
         if (isChecked) {
-            rv.setInt(R.id.day_cell, "setBackgroundColor", Color.parseColor(habitColor))
+            try {
+                rv.setInt(R.id.day_cell, "setBackgroundColor", Color.parseColor(habitColor))
+            } catch (e: Exception) {
+                rv.setInt(R.id.day_cell, "setBackgroundColor", Color.parseColor("#60A5FA"))
+            }
         } else {
             rv.setInt(R.id.day_cell, "setBackgroundResource", R.drawable.day_unchecked)
         }
@@ -78,6 +109,7 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
         return try {
             Gson().fromJson(json, type) ?: emptyList()
         } catch (e: Exception) {
+            Log.e("DaysRemoteViews", "Error parsing checkedDays JSON: $json", e)
             emptyList()
         }
     }
@@ -87,11 +119,12 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
         val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
         val startDateString = prefs.getString("widget_${appWidgetId}_habit_startDate", null)
         
-        // Use stored start date or default to current Monday
+        // Use stored start date or default to current Monday (simplified approach from version 2)
         val startDate = if (!startDateString.isNullOrBlank()) {
             try {
                 LocalDate.parse(startDateString)
             } catch (e: Exception) {
+                Log.e("DaysRemoteViews", "Error parsing start date: $startDateString", e)
                 LocalDate.now(ZoneId.systemDefault()).with(DayOfWeek.MONDAY)
             }
         } else {
@@ -100,12 +133,13 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
 
         val checked = loadCheckedDays()
         
+        // Create grid items (0 to totalDays-1)
         gridItems.clear()
         for (i in 0 until totalDays) {
             gridItems.add(i)
         }
 
-        // Map checked days to grid positions with date splitting like in HomeScreenwidget
+        // Map checked days to grid positions with date splitting like in HomeScreenwidget (version 2 approach)
         checkedDays = checked
             .filter { it.status == true }
             .mapNotNull { cd ->
@@ -132,5 +166,17 @@ class DaysRemoteViewsFactory(private val context: Context, private val appWidget
                     null
                 }
             }
+        
+        Log.d("DaysRemoteViews", "Loaded grid state: startDate=$startDate, checkedDays=${checkedDays.size}, totalItems=${gridItems.size}")
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getDayOfWeekFromIndex(startDate: LocalDate, dayIndex: Int): DayOfWeek {
+        return startDate.plusDays(dayIndex.toLong()).dayOfWeek
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun getDateFromIndex(startDate: LocalDate, dayIndex: Int): LocalDate {
+        return startDate.plusDays(dayIndex.toLong())
     }
 }
