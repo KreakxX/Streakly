@@ -38,7 +38,7 @@ const Streak = ({
   const weekdays = ["MO", "DI", "MI", "DO", "FR", "SA", "SO"];
 
   const [periodOffset, setPeriodOffset] = useState(0);
-  const [i, setI] = useState<number>(10);
+  const [i, setI] = useState<number>(50);
 
   const handlePrevPeriod = () => {
     if (periodOffset > 0) {

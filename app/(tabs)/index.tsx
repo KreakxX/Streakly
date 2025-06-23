@@ -1158,11 +1158,11 @@ export default function HomeScreen() {
   useEffect(() => {
     const loadEverything = async () => {
       try {
-        // 1. First load theme
         const themeName = await AsyncStorage.getItem("theme");
         const parsedTheme = themeName
           ? (JSON.parse(themeName) as keyof typeof themes)
           : "default";
+        console.log(parsedTheme);
         setActiveTheme(parsedTheme);
         await loadCategories(themes.default);
 
@@ -1625,20 +1625,17 @@ export default function HomeScreen() {
 
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
 
-      // Durch alle Widget IDs iterieren und die passende finden
       for (const widgetId of widgetIds) {
         try {
           const widgetData = await CategoryDatamodule.loadWidgetDataForId(
             widgetId
           );
 
-          // Prüfen ob dieses Widget zur gelöschten Category gehört
           if (widgetData && widgetData.habitName === categoryToRemove.name) {
             console.log(
               `Found matching widget ID: ${widgetId} for ${categoryToRemove.name}`
             );
 
-            // Widget-spezifische Daten clearen (mit der gleichen Struktur wie updateSingleWidget)
             await CategoryDatamodule.saveToPrefs(
               `widget_${widgetId}_habit_name`,
               "Habit wurde gelöscht"
@@ -1670,13 +1667,11 @@ export default function HomeScreen() {
         }
       }
 
-      // Einmal am Ende alle Widgets updaten
       await CategoryDatamodule.updateWidget();
     } catch (error) {
       console.error("❌ Failed to clear widget data:", error);
     }
 
-    // Category aus der App entfernen
     const updatedCategories = categories.filter(
       (category, index) => index !== reindex
     );
@@ -3201,6 +3196,7 @@ export default function HomeScreen() {
                           };
                           setRoutines(newRoutines);
                         }}
+                        className="font-bold text-2xl text-white"
                       >
                         <Text className="font-bold text-2xl text-white max-w-[160px] ">
                           {routine.name}
@@ -3497,12 +3493,12 @@ export default function HomeScreen() {
                         {items.map((item, itemIndex) => (
                           <TouchableOpacity
                             key={itemIndex}
-                            className={`w-[30%] items-center p-3 rounded-lg mb-2  `}
+                            className={`w-[30%] items-center p-3 rounded-lg mb-2 `}
                             style={{
                               backgroundColor:
                                 selectedIcon === item.value
                                   ? currentTheme.primary.main
-                                  : currentTheme.bg,
+                                  : currentTheme.border,
                             }}
                             onPress={() => setSelectedIcon(item.value)}
                           >
@@ -3539,13 +3535,15 @@ export default function HomeScreen() {
                         };
                         setRoutines(newRoutines);
                       }}
-                      className={`rounded-lg py-3 items-center ml-5 mr-5 mb-5 ${
-                        !name || !selectedIcon ? "bg-slate-800" : "bg-gray-400"
+                      className={`rounded-lg py-3 items-center ${
+                        !name || !selectedIcon
+                          ? "bg-violet-800"
+                          : "bg-violet-600"
                       }`}
                       style={{
                         backgroundColor:
                           !name || !selectedIcon
-                            ? currentTheme.bg
+                            ? currentTheme.border
                             : currentTheme.primary.main,
                       }}
                     >
@@ -3557,39 +3555,6 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
-
-        <View className="flex-row ">
-          {activeTab == "habits" ? (
-            <TouchableOpacity
-              onPress={() => {
-                setExpand(!expand);
-                setName("");
-                setSelectedCategory("");
-                setAmount("");
-                setSelectedDays([]);
-              }}
-              className=" mt-8 mx-auto  rounded-full w-16 h-16 items-center justify-center mb-4"
-              style={{ backgroundColor: currentTheme.card }}
-            >
-              <Text className="font-bold text-3xl text-white">+</Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              onPress={() => {
-                setExpandRoutine(!expandRoutine);
-                setName("");
-                setSelectedCategory("");
-                setAmount("");
-                setSelectedDays([]);
-              }}
-              className="mt-8 mx-auto  rounded-full w-16 h-16 items-center justify-center mb-4"
-              style={{ backgroundColor: currentTheme.card }}
-            >
-              <Text className="font-bold text-3xl text-white">+</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
         {expandRoutine ? (
           <View
             style={{
@@ -3716,11 +3681,7 @@ export default function HomeScreen() {
                 {items.map((item, index) => (
                   <TouchableOpacity
                     key={index}
-                    className={`w-[31%] items-center p-3 rounded-lg mb-2 ${
-                      selectedIcon === item.value
-                        ? "bg-violet-600 border-gray-600"
-                        : "bg-gray-800 border-gray-800"
-                    }`}
+                    className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
                     style={{
                       backgroundColor:
                         selectedIcon === item.value
@@ -3780,172 +3741,235 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         ) : null}
-        {expand ? (
+        <Modal visible={expand}>
           <View
-            style={{
-              backgroundColor: currentTheme.card,
-            }}
-            className="rounded-xl p-4 shadow-sm mt-4"
+            className="flex-1 justify-end"
+            style={{ backgroundColor: currentTheme.card }}
           >
-            <Text className="text-xl font-bold text-white mb-4 ">
-              Create New Habit
-            </Text>
-
-            <TextInput
-              className=" border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.border }}
-              placeholder="Enter name of Habit"
-              placeholderTextColor="#9CA3AF"
-              value={name}
-              onChangeText={setName}
-            />
-
-            <TextInput
-              className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.border }}
-              placeholder="Enter amount of Habit"
-              placeholderTextColor="#9CA3AF"
-              value={amount}
-              onChangeText={setAmount}
-            />
-            <View className="mb-6 mt-6">
-              <Text
-                className={` font-bold text-lg mb-3 
-                             text-white
-                          }`}
-              >
-                Select a Category
-              </Text>
-
-              <FlatList
-                data={GroupCategories}
-                renderItem={renderCategoryItem}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{}}
-              />
-            </View>
-
-            <Text className="text-white font-medium mb-3">Choose an icon</Text>
-
-            {selectedIcon && (
-              <View
-                className="flex-row items-center  p-3 rounded-lg mb-4"
-                style={{ backgroundColor: currentTheme.border }}
-              >
-                <MaterialCommunityIcons
-                  name={selectedIcon as any}
-                  size={28}
-                  color="#374151"
-                />
-                <Text className="ml-3 text-white font-medium">
-                  {items.find((item) => item.value === selectedIcon)?.label}
-                </Text>
-              </View>
-            )}
-            <Text className="text-white font-medium mb-5">Select Weekdays</Text>
-            <View className="flex-row flex-wrap  gap-4 mb-5">
-              {weekdays.map((weekday, index) => {
-                const isSelected = selectedDays.includes(weekday.value);
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => {
-                      setSelectedDays((prev) => {
-                        if (prev.includes(weekday.value)) {
-                          return prev.filter((day) => day !== weekday.value);
-                        } else {
-                          return [...prev, weekday.value];
-                        }
-                      });
-                    }}
-                    className={`rounded-full h-12 w-12 items-center justify-center ${
-                      isSelected ? "bg-violet-600" : "bg-slate-800"
-                    }`}
-                    style={{
-                      backgroundColor: isSelected
-                        ? currentTheme.primary.main
-                        : currentTheme.border,
-                    }}
-                  >
-                    <Text className="text-gray-400 font-bold">
-                      {weekday.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
             <ScrollView
-              className="h-72 mb-4 mt-8"
               scrollEnabled={true}
               showsVerticalScrollIndicator={true}
               nestedScrollEnabled={true}
+              style={{ maxHeight: "100%" }}
+              className="mx-6  "
             >
-              <View className="flex-row flex-wrap justify-between">
-                {items.map((item, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
-                    style={{
-                      backgroundColor:
-                        selectedIcon === item.value
+              <TouchableOpacity
+                onPress={() => {
+                  setExpand(false);
+                }}
+                className="rounded-full items-center justify-center h-12 w-12 mb-10 mt-5"
+                style={{ backgroundColor: currentTheme.border }}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={23}
+                  color={"white"}
+                ></MaterialCommunityIcons>
+              </TouchableOpacity>
+              <Text className="text-3xl font-bold text-white mb-5 text-center ">
+                Create New Habit
+              </Text>
+
+              <TextInput
+                className=" border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                style={{ backgroundColor: currentTheme.border }}
+                placeholder="Enter name of Habit"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+              />
+
+              <TextInput
+                className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                style={{ backgroundColor: currentTheme.border }}
+                placeholder="Enter amount of Habit"
+                placeholderTextColor="#9CA3AF"
+                value={amount}
+                onChangeText={setAmount}
+              />
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
+
+              <Text className="text-white font-medium mb-3">
+                Choose an icon
+              </Text>
+
+              {selectedIcon && (
+                <View
+                  className="flex-row items-center  p-3 rounded-lg mb-4"
+                  style={{ backgroundColor: currentTheme.border }}
+                >
+                  <MaterialCommunityIcons
+                    name={selectedIcon as any}
+                    size={28}
+                    color="#374151"
+                  />
+                  <Text className="ml-3 text-white font-medium">
+                    {items.find((item) => item.value === selectedIcon)?.label}
+                  </Text>
+                </View>
+              )}
+              <Text className="text-white font-medium mb-5">
+                Select Weekdays
+              </Text>
+              <View className="flex-row flex-wrap  gap-4 mb-5">
+                {weekdays.map((weekday, index) => {
+                  const isSelected = selectedDays.includes(weekday.value);
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        setSelectedDays((prev) => {
+                          if (prev.includes(weekday.value)) {
+                            return prev.filter((day) => day !== weekday.value);
+                          } else {
+                            return [...prev, weekday.value];
+                          }
+                        });
+                      }}
+                      className={`rounded-full h-12 w-12 items-center justify-center ${
+                        isSelected ? "bg-violet-600" : "bg-slate-800"
+                      }`}
+                      style={{
+                        backgroundColor: isSelected
                           ? currentTheme.primary.main
                           : currentTheme.border,
-                    }}
-                    onPress={() => setSelectedIcon(item.value)}
-                  >
-                    <MaterialCommunityIcons
-                      name={item.value as any}
-                      size={24}
-                      color={
-                        selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
-                      }
-                    />
-                    <Text
-                      className={`text-xs mt-1 text-center ${
-                        selectedIcon === item.value
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}
-                      numberOfLines={1}
+                      }}
                     >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text className="text-gray-400 font-bold">
+                        {weekday.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            </ScrollView>
+              <ScrollView
+                className="h-72 mb-4 mt-8"
+                scrollEnabled={true}
+                showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
+              >
+                <View className="flex-row flex-wrap justify-between">
+                  {items.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
+                      style={{
+                        backgroundColor:
+                          selectedIcon === item.value
+                            ? currentTheme.primary.main
+                            : currentTheme.border,
+                      }}
+                      onPress={() => setSelectedIcon(item.value)}
+                    >
+                      <MaterialCommunityIcons
+                        name={item.value as any}
+                        size={24}
+                        color={
+                          selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
+                        }
+                      />
+                      <Text
+                        className={`text-xs mt-1 text-center ${
+                          selectedIcon === item.value
+                            ? "text-white"
+                            : "text-gray-600"
+                        }`}
+                        numberOfLines={1}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
 
-            <TouchableOpacity
-              className={`rounded-lg py-3 items-center ${
-                !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
-              }`}
-              style={{
-                backgroundColor:
-                  !name || !selectedIcon
-                    ? currentTheme.border
-                    : currentTheme.primary.main,
-              }}
-              disabled={!name || !selectedIcon}
-              onPress={() => {
-                addNewHabit(
-                  name,
-                  selectedIcon,
-                  Number.parseInt(amount),
-                  selectedDays
-                );
-                setAmount("1");
-                setName("");
-                setSelectedIcon("");
-              }}
-            >
-              <Text className="text-white font-bold text-base">Add Habit</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                className={`rounded-lg py-3 mb-5 items-center ${
+                  !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
+                }`}
+                style={{
+                  backgroundColor:
+                    !name || !selectedIcon
+                      ? currentTheme.border
+                      : currentTheme.primary.main,
+                }}
+                disabled={!name || !selectedIcon}
+                onPress={() => {
+                  addNewHabit(
+                    name,
+                    selectedIcon,
+                    Number.parseInt(amount),
+                    selectedDays
+                  );
+                  setAmount("1");
+                  setName("");
+                  setSelectedIcon("");
+                }}
+              >
+                <Text className="text-white font-bold text-base">
+                  Add Habit
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-        ) : null}
+        </Modal>
       </ScrollView>
+      <View
+        style={{
+          position: "absolute",
+          bottom: 100, // Abstand vom unteren Rand
+          right: 24, // Abstand vom rechten Rand
+          zIndex: 100,
+        }}
+      >
+        {activeTab == "habits" ? (
+          <TouchableOpacity
+            onPress={() => {
+              setExpand(true);
+              setName("");
+              setSelectedCategory("");
+              setAmount("");
+              setSelectedDays([]);
+            }}
+            className="rounded-full w-16 h-16 items-center justify-center shadow-lg"
+            style={{ backgroundColor: currentTheme.tab }}
+          >
+            <Text className="font-bold text-3xl text-white">+</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            onPress={() => {
+              setExpandRoutine(!expandRoutine);
+              setName("");
+              setSelectedCategory("");
+              setAmount("");
+              setSelectedDays([]);
+            }}
+            className="rounded-full w-16 h-16 items-center justify-center shadow-lg"
+            style={{ backgroundColor: currentTheme.card }}
+          >
+            <Text className="font-bold text-3xl text-white">+</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }

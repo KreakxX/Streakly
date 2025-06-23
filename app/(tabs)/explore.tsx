@@ -221,7 +221,7 @@ export default function ExploreScreen() {
 
       return (
         <View
-          className={`mb-5 rounded-xl overflow-hidden shadow-sm ${cardBgColor}  ${borderColor}`}
+          className={`mb-8 mx-4 rounded-xl overflow-hidden shadow-sm ${cardBgColor}  ${borderColor}`}
           style={{
             shadowColor: isDarkMode ? "#000" : "#718096",
             shadowOffset: { width: 0, height: 1 },
@@ -554,7 +554,7 @@ export default function ExploreScreen() {
   };
 
   return (
-    <View className={`flex-1 ${bgColor}`} style={themeVars}>
+    <View className={`flex-1  ${bgColor}`} style={themeVars}>
       <FlatList
         data={filteredRoutines.slice(0, visibleCount)}
         renderItem={({ item, index }) => {
