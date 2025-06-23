@@ -695,6 +695,15 @@ export default function ProfileScreen() {
   const [checkins, setCheckins] = useState<number[][]>([]);
   const [checkinsRoutines, setCheckinsRoutines] = useState<number[][]>([]);
 
+  const getMonday = (date: Date) => {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   const getWeeklyCheckInData = async (
     index: number,
     weeks = 6
@@ -704,13 +713,16 @@ export default function ProfileScreen() {
       const categories = JSON.parse(Categories);
       const category = categories[index];
       const today = new Date();
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      const thisMonday = getMonday(today);
 
       const results: number[] = [];
 
       for (let i = weeks - 1; i >= 0; i--) {
-        const start = new Date(today.getTime() - oneWeek * (i + 1));
-        const end = new Date(today.getTime() - oneWeek * i);
+        const start = new Date(thisMonday);
+        start.setDate(thisMonday.getDate() - i * 7);
+
+        const end = new Date(start);
+        end.setDate(start.getDate() + 7);
 
         const count = category.checkedDays.filter((entry: any) => {
           const entryDate = new Date(entry.date);
@@ -734,14 +746,16 @@ export default function ProfileScreen() {
       const routines = JSON.parse(Routines);
       const routine = routines[index];
       const today = new Date();
-      const oneWeek = 7 * 24 * 60 * 60 * 1000;
+      const thisMonday = getMonday(today);
 
       const results: number[] = [];
 
       for (let i = weeks - 1; i >= 0; i--) {
-        const start = new Date(today.getTime() - oneWeek * (i + 1));
-        const end = new Date(today.getTime() - oneWeek * i);
+        const start = new Date(thisMonday);
+        start.setDate(thisMonday.getDate() - i * 7);
 
+        const end = new Date(start);
+        end.setDate(start.getDate() + 7);
         const count = routine.checkedDays.filter((entry: any) => {
           const entryDate = new Date(entry.date);
           return entry.status && entryDate >= start && entryDate < end;

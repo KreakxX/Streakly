@@ -14,7 +14,113 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+const themes = {
+  default: {
+    primary: {
+      main: "#7c3aed",
+      light: "#8b5cf6",
+      dark: "#6d28d9",
+      text: "#c4b5fd",
+      bg: "#1f2937",
+    },
+    bg: "#030712",
+    card: "#111827",
+    text: "#ffffff",
+    textMuted: "#9ca3af",
+    border: "#1f2937",
+    tab: "#151422",
+  },
+  ocean: {
+    primary: {
+      main: "#2563eb",
+      light: "#3b82f6",
+      dark: "#1d4ed8",
+      text: "#60a5fa",
+      bg: "#0c0a09",
+    },
+    bg: "#020617",
+    card: "#0f172a",
+    text: "#ffffff",
+    textMuted: "#94a3b8",
+    border: "#1e293b",
+    tab: "#1e293b",
+  },
+  forest: {
+    primary: {
+      main: "#059669",
+      light: "#10b981",
+      dark: "#047857",
+      text: "#34d399",
+      bg: "#022c22",
+    },
+    bg: "#022c22",
+    card: "#064e3b",
+    text: "#ffffff",
+    textMuted: "#34d399",
+    border: "#022c22",
+    tab: "#065f46",
+  },
+  sunset: {
+    primary: {
+      main: "#ea580c",
+      light: "#f97316",
+      dark: "#c2410c",
+      text: "#fb923c",
+      bg: "#431407",
+    },
+    bg: "#431407",
+    card: "#7c2d12",
+    text: "#ffffff",
+    textMuted: "#fb923c",
+    border: "#ea580c",
+    tab: "#9a3412",
+  },
+  berry: {
+    primary: {
+      main: "#c026d3",
+      light: "#d946ef",
+      dark: "#a21caf",
+      text: "#f0abfc",
+      bg: "#4a044e",
+    },
+    bg: "#4a044e",
+    card: "#86198f",
+    text: "#ffffff",
+    textMuted: "#f0abfc",
+    border: "#4a044e",
+    tab: "#701a75",
+  },
+  monochrome: {
+    primary: {
+      main: "#525252",
+      light: "#737373",
+      dark: "#404040",
+      text: "#A3A3A3",
+      bg: "#0A0A0A",
+    },
+    bg: "#0A0A0A",
+    card: "#171717",
+    text: "#FFFFFF",
+    textMuted: "#A3A3A3",
+    border: "#262626",
+    tab: "#262626",
+  },
+  white: {
+    primary: {
+      main: "#3b82f6", // blue-500
+      light: "#60a5fa", // blue-400
+      dark: "#1d4ed8", // blue-700
+      text: "#1d4ed8", // same as dark
+      bg: "#ffffff",
+    },
+    bg: "#ffffff",
+    card: "#f9fafb", // gray-50
+    text: "#111827", // gray-900
+    textMuted: "#6b7280", // gray-500
+    border: "#e5e7eb", // gray-200
+    tab: "#f3f4f6", // gray-100
+  },
+};
 const categories = [
   { id: "health", name: "Health & Fitness", icon: "heart-pulse" },
   { id: "productivity", name: "Productivity", icon: "lightning-bolt" },
@@ -327,6 +433,12 @@ export default function ExploreScreen() {
     setSearchQuery(query);
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      setVisibleCount(5);
+    }, [])
+  );
+
   const handleCategoryFilter = (categoryName: string) => {
     if (categoryName === selectedCategory) {
       setSelectedCategory("");
@@ -345,25 +457,6 @@ export default function ExploreScreen() {
   }, []);
   const clearCategory = () => {
     setSelectedCategory("");
-  };
-
-  const getBackgroundColor = (isDark: boolean, isAdded: boolean) => {
-    if (isDark) {
-      return isAdded ? "bg-violet-800" : "bg-violet-600";
-    }
-    return isAdded ? "bg-violet-700" : "bg-violet-600";
-  };
-
-  const getTextColor = (isDark: boolean, isAdded: boolean) => {
-    if (isDark) {
-      return isAdded ? "text-gray-600" : "text-white";
-    }
-    return isAdded ? "text-gray-200" : "text-white";
-  };
-
-  const openRoutineModal = (routine: Routine) => {
-    setSelectedRoutine(routine);
-    setModalVisible(true);
   };
 
   const closeModal = () => {
@@ -431,113 +524,7 @@ export default function ExploreScreen() {
   useEffect(() => {
     loadTheme();
   });
-  const themes = {
-    default: {
-      primary: {
-        main: "#7c3aed",
-        light: "#8b5cf6",
-        dark: "#6d28d9",
-        text: "#c4b5fd",
-        bg: "#1f2937",
-      },
-      bg: "#030712",
-      card: "#111827",
-      text: "#ffffff",
-      textMuted: "#9ca3af",
-      border: "#1f2937",
-      tab: "#151422",
-    },
-    ocean: {
-      primary: {
-        main: "#2563eb",
-        light: "#3b82f6",
-        dark: "#1d4ed8",
-        text: "#60a5fa",
-        bg: "#0c0a09",
-      },
-      bg: "#020617",
-      card: "#0f172a",
-      text: "#ffffff",
-      textMuted: "#94a3b8",
-      border: "#1e293b",
-      tab: "#1e293b",
-    },
-    forest: {
-      primary: {
-        main: "#059669",
-        light: "#10b981",
-        dark: "#047857",
-        text: "#34d399",
-        bg: "#022c22",
-      },
-      bg: "#022c22",
-      card: "#064e3b",
-      text: "#ffffff",
-      textMuted: "#34d399",
-      border: "#022c22",
-      tab: "#065f46",
-    },
-    sunset: {
-      primary: {
-        main: "#ea580c",
-        light: "#f97316",
-        dark: "#c2410c",
-        text: "#fb923c",
-        bg: "#431407",
-      },
-      bg: "#431407",
-      card: "#7c2d12",
-      text: "#ffffff",
-      textMuted: "#fb923c",
-      border: "#ea580c",
-      tab: "#9a3412",
-    },
-    berry: {
-      primary: {
-        main: "#c026d3",
-        light: "#d946ef",
-        dark: "#a21caf",
-        text: "#f0abfc",
-        bg: "#4a044e",
-      },
-      bg: "#4a044e",
-      card: "#86198f",
-      text: "#ffffff",
-      textMuted: "#f0abfc",
-      border: "#4a044e",
-      tab: "#701a75",
-    },
-    monochrome: {
-      primary: {
-        main: "#525252",
-        light: "#737373",
-        dark: "#404040",
-        text: "#A3A3A3",
-        bg: "#0A0A0A",
-      },
-      bg: "#0A0A0A",
-      card: "#171717",
-      text: "#FFFFFF",
-      textMuted: "#A3A3A3",
-      border: "#262626",
-      tab: "#262626",
-    },
-    white: {
-      primary: {
-        main: "#3b82f6", // blue-500
-        light: "#60a5fa", // blue-400
-        dark: "#1d4ed8", // blue-700
-        text: "#1d4ed8", // same as dark
-        bg: "#ffffff",
-      },
-      bg: "#ffffff",
-      card: "#f9fafb", // gray-50
-      text: "#111827", // gray-900
-      textMuted: "#6b7280", // gray-500
-      border: "#e5e7eb", // gray-200
-      tab: "#f3f4f6", // gray-100
-    },
-  };
+
   const currentTheme =
     themes[activeTheme as keyof typeof themes] || themes.default;
 
@@ -559,173 +546,182 @@ export default function ExploreScreen() {
   const textMutedColor = "text-[var(--text-muted-color)]";
   const borderColor = "border-[var(--border-color)]";
   const primaryBgColor = "bg-[var(--primary-color)]";
-  const secondaryBgColor = "bg-[var(--primary-color)]";
 
-  const iconColor = "--text-color";
-  const inputBgColor = "bg-[var(--tab-color)]";
+  const [visibleCount, setVisibleCount] = useState(5);
+
+  const handleLoadMore = () => {
+    setVisibleCount((prev) => prev + 5);
+  };
 
   return (
     <View className={`flex-1 ${bgColor}`} style={themeVars}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-6 mt-12 py-8 pb-6">
-          <Text className={`font-bold text-4xl ${textColor} mb-2`}>
-            Explore
-          </Text>
-          <Text
-            className={`font-medium text-base 
+      <FlatList
+        data={filteredRoutines.slice(0, visibleCount)}
+        renderItem={({ item, index }) => {
+          const isAdded = addedRoutineNames.includes(item.name);
+          return (
+            <RoutineCard
+              routine={item}
+              index={index}
+              isAdded={isAdded}
+              isDarkMode={isDarkMode}
+              isLoading={isLoading}
+              onAddRoutine={addPrebuildRoutine}
+              onOpenModal={handleOpenModal}
+            />
+          );
+        }}
+        keyExtractor={(item) => item.name}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListEmptyComponent={
+          <View className="items-center justify-center py-10">
+            <MaterialCommunityIcons
+              name="magnify-close"
+              size={50}
+              color={isDarkMode ? "#475569" : "#93c5fd"}
+            />
+            <Text
+              className={`mt-4 text-center ${
+                isDarkMode ? "text-gray-600" : "text-gray-500"
+              }`}
+            >
+              No routines found
+              {searchQuery && selectedCategory
+                ? ` for "${searchQuery}" in ${selectedCategory}`
+                : searchQuery
+                ? ` for "${searchQuery}"`
+                : selectedCategory
+                ? ` in ${selectedCategory}`
+                : ""}
+            </Text>
+          </View>
+        }
+        ListHeaderComponent={
+          <View>
+            <View className="px-6 mt-12 py-8 pb-6">
+              <Text className={`font-bold text-4xl ${textColor} mb-2`}>
+                Explore
+              </Text>
+              <Text
+                className={`font-medium text-base 
               ${textMutedColor}
             `}
-          >
-            Discover routines that transform your daily life
-          </Text>
+              >
+                Discover routines that transform your daily life
+              </Text>
 
-          <View
-            className={`flex-row items-center rounded-full mt-6 px-4 ${cardBgColor}  ${borderColor}`}
-          >
-            <MaterialCommunityIcons
-              name="magnify"
-              size={20}
-              color={isDarkMode ? "#94a3b8" : "#3b82f6"}
-              className="mr-2"
-            />
-            <TextInput
-              value={searchQuery}
-              className={`flex-1 py-3.5 ${
-                isDarkMode ? "text-white" : "text-gray-800"
-              }`}
-              onChangeText={handleSearch}
-              placeholder="Search for routines"
-              placeholderTextColor={isDarkMode ? "#94a3b8" : "#94a3b8"}
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={clearSearch}>
+              <View
+                className={`flex-row items-center rounded-full mt-6 px-4 ${cardBgColor}  ${borderColor}`}
+              >
                 <MaterialCommunityIcons
-                  name="close-circle"
+                  name="magnify"
                   size={20}
                   color={isDarkMode ? "#94a3b8" : "#3b82f6"}
+                  className="mr-2"
                 />
-              </TouchableOpacity>
-            ) : null}
-          </View>
-        </View>
-
-        <View className="mb-6">
-          <Text className={`px-6 font-bold text-lg mb-3 ${textColor}`}>
-            Categories
-          </Text>
-
-          <FlatList
-            data={categories}
-            renderItem={renderCategoryItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
-          />
-        </View>
-
-        <View className="pb-10 px-5">
-          {(selectedCategory || searchQuery) && (
-            <View className="flex-row items-center mb-4 flex-wrap">
-              <Text
-                className={`font-medium ${
-                  isDarkMode ? "text-white" : "text-gray-800"
-                }`}
-              >
-                Showing:
-              </Text>
-
-              {selectedCategory && (
-                <View className="flex-row items-center ml-2 mb-1">
-                  <View className={`px-3 py-1 rounded-full ${cardBgColor}`}>
-                    <Text
-                      className={`${
-                        isDarkMode ? "text-blue-400" : "text-blue-600"
-                      }`}
-                    >
-                      {selectedCategory}
-                    </Text>
-                  </View>
-                  <TouchableOpacity className="ml-2" onPress={clearCategory}>
+                <TextInput
+                  value={searchQuery}
+                  className={`flex-1 py-3.5 ${
+                    isDarkMode ? "text-white" : "text-gray-800"
+                  }`}
+                  onChangeText={handleSearch}
+                  placeholder="Search for routines"
+                  placeholderTextColor={isDarkMode ? "#94a3b8" : "#94a3b8"}
+                />
+                {searchQuery ? (
+                  <TouchableOpacity onPress={clearSearch}>
                     <MaterialCommunityIcons
                       name="close-circle"
-                      size={18}
+                      size={20}
                       color={isDarkMode ? "#94a3b8" : "#3b82f6"}
                     />
                   </TouchableOpacity>
-                </View>
-              )}
+                ) : null}
+              </View>
+            </View>
 
-              {searchQuery && (
-                <View className="flex-row items-center ml-2 mb-1">
-                  <View
-                    className={`px-3 py-1 rounded-full ${
-                      isDarkMode ? "bg-gray-900" : "bg-green-50"
+            <View className="mb-6">
+              <Text className={`px-6 font-bold text-lg mb-3 ${textColor}`}>
+                Categories
+              </Text>
+
+              <FlatList
+                data={categories}
+                renderItem={renderCategoryItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
+              />
+            </View>
+
+            <View className="pb-10 px-5">
+              {(selectedCategory || searchQuery) && (
+                <View className="flex-row items-center mb-4 flex-wrap">
+                  <Text
+                    className={`font-medium ${
+                      isDarkMode ? "text-white" : "text-gray-800"
                     }`}
                   >
-                    <Text
-                      className={`${
-                        isDarkMode ? "text-green-400" : "text-green-600"
-                      }`}
-                    >
-                      "{searchQuery}"
-                    </Text>
-                  </View>
-                  <TouchableOpacity className="ml-2" onPress={clearSearch}>
-                    <MaterialCommunityIcons
-                      name="close-circle"
-                      size={18}
-                      color={isDarkMode ? "#94a3b8" : "#3b82f6"}
-                    />
-                  </TouchableOpacity>
+                    Showing:
+                  </Text>
+
+                  {selectedCategory && (
+                    <View className="flex-row items-center ml-2 mb-1">
+                      <View className={`px-3 py-1 rounded-full ${cardBgColor}`}>
+                        <Text
+                          className={`${
+                            isDarkMode ? "text-blue-400" : "text-blue-600"
+                          }`}
+                        >
+                          {selectedCategory}
+                        </Text>
+                      </View>
+                      <TouchableOpacity
+                        className="ml-2"
+                        onPress={clearCategory}
+                      >
+                        <MaterialCommunityIcons
+                          name="close-circle"
+                          size={18}
+                          color={isDarkMode ? "#94a3b8" : "#3b82f6"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  {searchQuery && (
+                    <View className="flex-row items-center ml-2 mb-1">
+                      <View
+                        className={`px-3 py-1 rounded-full ${
+                          isDarkMode ? "bg-gray-900" : "bg-green-50"
+                        }`}
+                      >
+                        <Text
+                          className={`${
+                            isDarkMode ? "text-green-400" : "text-green-600"
+                          }`}
+                        >
+                          "{searchQuery}"
+                        </Text>
+                      </View>
+                      <TouchableOpacity className="ml-2" onPress={clearSearch}>
+                        <MaterialCommunityIcons
+                          name="close-circle"
+                          size={18}
+                          color={isDarkMode ? "#94a3b8" : "#3b82f6"}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
-          )}
-
-          {filteredRoutines.length === 0 ? (
-            <View className="items-center justify-center py-10">
-              <MaterialCommunityIcons
-                name="magnify-close"
-                size={50}
-                color={isDarkMode ? "#475569" : "#93c5fd"}
-              />
-              <Text
-                className={`mt-4 text-center ${
-                  isDarkMode ? "text-gray-600" : "text-gray-500"
-                }`}
-              >
-                No routines found
-                {searchQuery && selectedCategory
-                  ? ` for "${searchQuery}" in ${selectedCategory}`
-                  : searchQuery
-                  ? ` for "${searchQuery}"`
-                  : selectedCategory
-                  ? ` in ${selectedCategory}`
-                  : ""}
-              </Text>
-            </View>
-          ) : (
-            filteredRoutines.map((routine, index) => {
-              const isAdded = addedRoutineNames.includes(routine.name);
-
-              return (
-                <RoutineCard
-                  key={routine.name}
-                  routine={routine}
-                  index={index}
-                  isAdded={isAdded}
-                  isDarkMode={isDarkMode}
-                  isLoading={isLoading}
-                  onAddRoutine={addPrebuildRoutine}
-                  onOpenModal={handleOpenModal}
-                />
-              );
-            })
-          )}
-        </View>
-      </ScrollView>
-
+          </View>
+        }
+        contentContainerStyle={{ paddingBottom: 100 }}
+      />
       <Modal
         animationType="slide"
         transparent={true}

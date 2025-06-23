@@ -96,7 +96,6 @@ class HomeScreenwidget : AppWidgetProvider() {
         super.onDeleted(context, appWidgetIds)
     }
 }
-
 @SuppressLint("NewApi")
 internal fun updateAppWidget(
     context: Context,
@@ -104,72 +103,82 @@ internal fun updateAppWidget(
     appWidgetId: Int
 ) {
     val views = RemoteViews(context.packageName, R.layout.home_screenwidget_medium)
-    val clickIntent = Intent(context, HomeScreenwidget::class.java).apply {
-        action = HomeScreenwidget.ACTION_BUTTON_CLICK
-        putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-    }
-
-    val clickPendingIntent = PendingIntent.getBroadcast(
-        context,
-        appWidgetId,
-        clickIntent,
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-    )
-
-    views.setOnClickPendingIntent(R.id.round_button, clickPendingIntent)
     
-    val intent = Intent(context, DaysRemoteViewsService::class.java)
-    intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-    intent.data = Uri.parse("content://com.kreakxx.loop.widget/${appWidgetId}/${System.currentTimeMillis()}")
-
-    views.setRemoteAdapter(R.id.days_grid, intent)
-
     val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
     val habitName = prefs.getString("widget_${appWidgetId}_habit_name", "Habit") ?: "Habit"
     val habitColor = prefs.getString("widget_${appWidgetId}_habit_color", "#60A5FA") ?: "#60A5FA"
     
-    // Use the stored streak directly
-    val streak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
+    // Überprüfen ob das Habit gelöscht wurde
+    val isHabitDeleted = habitName == "Habit wurde gelöscht"
     
-    views.setTextViewText(R.id.appwidget_streak, "$streak 🔥")
-    views.setTextViewText(R.id.appwidget_text, habitName)
-    
-    // Check if today is in checkedDays using consistent date handling
-    val today = HomeScreenwidget.getTodayDateString()
-    val gson = Gson()
-    val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
-    val type = object : TypeToken<List<DaysRemoteViewsFactory.CheckedDay>>() {}.type
-    val checkedDays = try {
-        gson.fromJson<List<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: emptyList()
-    } catch (e: Exception) {
-        Log.e("WidgetDebug", "Error parsing checkedDays JSON: $json", e)
-        emptyList<DaysRemoteViewsFactory.CheckedDay>()
-    }
-
-    val isChecked = checkedDays.any { checkedDay ->
-        try {
-            // Extract date part consistently
-            val dateOnly = HomeScreenwidget.extractDatePart(checkedDay.date)
-            val result = dateOnly == today && checkedDay.status == true
-            Log.d("WidgetDebug", "Date comparison: '$dateOnly' == '$today' && ${checkedDay.status} = $result")
-            result
-        } catch (e: Exception) {
-            Log.e("WidgetDebug", "Date parsing error for: ${checkedDay.date}", e)
-            false
+    if (!isHabitDeleted) {
+        // Nur bei nicht gelöschten Habits den Button-Click-Handler setzen
+        val clickIntent = Intent(context, HomeScreenwidget::class.java).apply {
+            action = HomeScreenwidget.ACTION_BUTTON_CLICK
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         }
-    }
 
-    Log.d("WidgetDebug", "Today: $today")
-    Log.d("WidgetDebug", "CheckedDays JSON: $json")
-    Log.d("WidgetDebug", "IsChecked result: $isChecked")
-    checkedDays.forEach { day ->
-        Log.d("WidgetDebug", "CheckedDay: date='${day.date}', status=${day.status}")
+        val clickPendingIntent = PendingIntent.getBroadcast(
+            context,
+            appWidgetId,
+            clickIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
+
+        views.setOnClickPendingIntent(R.id.round_button, clickPendingIntent)
+        
+        // Grid-Adapter für die Tage setzen
+        val intent = Intent(context, DaysRemoteViewsService::class.java)
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        intent.data = Uri.parse("content://com.kreakxx.loop.widget/${appWidgetId}/${System.currentTimeMillis()}")
+        views.setRemoteAdapter(R.id.days_grid, intent)
+        
+        // Streak anzeigen
+        val streak = prefs.getString("widget_${appWidgetId}_habit_streak", "0")?.toIntOrNull() ?: 0
+        views.setTextViewText(R.id.appwidget_streak, "$streak 🔥")
+        
+        // Button-Status bestimmen und Button erstellen
+        val today = HomeScreenwidget.getTodayDateString()
+        val gson = Gson()
+        val json = prefs.getString("widget_${appWidgetId}_habit_checkedDays", "[]") ?: "[]"
+        val type = object : TypeToken<List<DaysRemoteViewsFactory.CheckedDay>>() {}.type
+        val checkedDays = try {
+            gson.fromJson<List<DaysRemoteViewsFactory.CheckedDay>>(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            Log.e("WidgetDebug", "Error parsing checkedDays JSON: $json", e)
+            emptyList<DaysRemoteViewsFactory.CheckedDay>()
+        }
+
+        val isChecked = checkedDays.any { checkedDay ->
+            try {
+                val dateOnly = HomeScreenwidget.extractDatePart(checkedDay.date)
+                val result = dateOnly == today && checkedDay.status == true
+                Log.d("WidgetDebug", "Date comparison: '$dateOnly' == '$today' && ${checkedDay.status} = $result")
+                result
+            } catch (e: Exception) {
+                Log.e("WidgetDebug", "Date parsing error for: ${checkedDay.date}", e)
+                false
+            }
+        }
+
+        // Button mit korrektem Status erstellen
+        val buttonBitmap = createButtonBitmap(isChecked, habitColor)
+        views.setImageViewBitmap(R.id.round_button, buttonBitmap)
+        views.setInt(R.id.round_button, "setBackgroundResource", 0)
+        
+        // Button sichtbar machen
+        views.setViewVisibility(R.id.round_button, android.view.View.VISIBLE)
+        
+    } else {
+        views.setViewVisibility(R.id.round_button, android.view.View.GONE)
+        views.setViewVisibility(R.id.appwidget_streak, android.view.View.GONE)
+        views.setViewVisibility(R.id.appwidget_text, android.view.View.GONE)
+        views.setViewVisibility(R.id.days_grid, android.view.View.GONE)
+        
+        Log.d("WidgetDebug", "Habit wurde gelöscht - Button versteckt")
     }
     
-    // Create button with correct state
-    val buttonBitmap = createButtonBitmap(isChecked, habitColor)
-    views.setImageViewBitmap(R.id.round_button, buttonBitmap)
-    views.setInt(R.id.round_button, "setBackgroundResource", 0)
+    views.setTextViewText(R.id.appwidget_text, habitName)
 
     appWidgetManager.updateAppWidget(appWidgetId, views)
 }

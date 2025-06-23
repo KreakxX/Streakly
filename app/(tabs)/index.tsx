@@ -301,6 +301,7 @@ export default function HomeScreen() {
   const currentTheme =
     themes[activeTheme as keyof typeof themes] || themes.default;
   const [isCategoriesLoaded, setIsCategoriesLoaded] = useState(false);
+  const [categoriesLoaded, setCategoriesLoaded] = useState(false);
 
   type StreakBadge = {
     days: number;
@@ -597,6 +598,40 @@ export default function HomeScreen() {
     saveData();
   }, [categories, originalCategories]);
 
+  const connectWithGithub = async () => {
+    const updatedCategories = [...categories];
+    const username = await AsyncStorage.getItem("github");
+    let github = false;
+    let CategoryIndex = 0;
+    const todayFormatted = new Date().toISOString().split("T")[0];
+    updatedCategories.forEach((category, index) => {
+      if (category.github == true) {
+        github = true;
+        CategoryIndex = index;
+      }
+    });
+    if (github) {
+      try {
+        const response = await axios.get(
+          `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
+          {
+            headers: {
+              Accept: "application/vnd.github.v3+json",
+            },
+          }
+        );
+        const count = response.data["total_count"];
+        console.log(count);
+        if (count) {
+          handleCheckIn(CategoryIndex, true);
+        }
+      } catch (error) {
+        console.log(error);
+        throw error;
+      }
+    }
+  };
+
   const updateWidgetWithCategory = async (category: Category) => {
     try {
       const widgetIds = await CategoryDatamodule.getAllWidgetIds();
@@ -875,6 +910,8 @@ export default function HomeScreen() {
       }
     } catch (e) {
       console.error("Error loading widget data:", e);
+    } finally {
+      await connectWithGithub();
     }
   };
 
@@ -1041,7 +1078,6 @@ export default function HomeScreen() {
             return {
               ...category,
               checkedToday: 0,
-              buttonColor: currentTheme.border,
             };
           }
           return category;
@@ -1204,7 +1240,7 @@ export default function HomeScreen() {
       setCategories(updatedCategories);
 
       await updateWidgetWithCategory({
-        ...category,
+        ...updatedCategories[index],
         streak: Math.max(0, category.streak),
       });
 
@@ -1284,48 +1320,6 @@ export default function HomeScreen() {
     };
     askForReview();
   }, []);
-
-  const connectWithGithub = async () => {
-    const updatedCategories = [...categories];
-    const username = await AsyncStorage.getItem("github");
-    let github = false;
-    let CategoryIndex = 0;
-    const todayFormatted = new Date().toISOString().split("T")[0];
-    updatedCategories.forEach((category, index) => {
-      if (category.github == true) {
-        github = true;
-        CategoryIndex = index;
-      }
-    });
-    if (github) {
-      try {
-        const response = await axios.get(
-          `https://api.github.com/search/commits?q=author:${username}+committer-date:>=${todayFormatted}&sort=committer-date&order=desc`,
-          {
-            headers: {
-              Accept: "application/vnd.github.v3+json",
-            },
-          }
-        );
-        const count = response.data["total_count"];
-        if (count) {
-          handleCheckIn(CategoryIndex, true);
-        }
-      } catch (error) {
-        console.log(error);
-        throw error;
-      }
-    }
-  };
-  useEffect(() => {
-    connectWithGithub();
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      connectWithGithub();
-    }, [])
-  );
 
   const availableColors2 = availableColors;
   const items2 = items;
@@ -1623,14 +1617,72 @@ export default function HomeScreen() {
     setRoutines(UpdatedRoutines);
   };
 
-  const removeHabbit = (reindex: number) => {
+  const removeHabbit = async (reindex: number) => {
+    const categoryToRemove = categories[reindex];
+
+    try {
+      console.log(`🗑️ Removing widget data for: ${categoryToRemove.name}`);
+
+      const widgetIds = await CategoryDatamodule.getAllWidgetIds();
+
+      // Durch alle Widget IDs iterieren und die passende finden
+      for (const widgetId of widgetIds) {
+        try {
+          const widgetData = await CategoryDatamodule.loadWidgetDataForId(
+            widgetId
+          );
+
+          // Prüfen ob dieses Widget zur gelöschten Category gehört
+          if (widgetData && widgetData.habitName === categoryToRemove.name) {
+            console.log(
+              `Found matching widget ID: ${widgetId} for ${categoryToRemove.name}`
+            );
+
+            // Widget-spezifische Daten clearen (mit der gleichen Struktur wie updateSingleWidget)
+            await CategoryDatamodule.saveToPrefs(
+              `widget_${widgetId}_habit_name`,
+              "Habit wurde gelöscht"
+            );
+            await CategoryDatamodule.saveToPrefs(
+              `widget_${widgetId}_habit_checkedDays`,
+              "[]"
+            );
+            await CategoryDatamodule.saveToPrefs(
+              `widget_${widgetId}_habit_startDate`,
+              ""
+            );
+            await CategoryDatamodule.saveToPrefs(
+              `widget_${widgetId}_habit_color`,
+              "#999999"
+            );
+            await CategoryDatamodule.saveToPrefs(
+              `widget_${widgetId}_habit_streak`,
+              "0"
+            );
+
+            console.log(`✅ Widget data cleared for ID: ${widgetId}`);
+          }
+        } catch (error) {
+          console.error(
+            `Failed to check widget ${widgetId} configuration:`,
+            error
+          );
+        }
+      }
+
+      // Einmal am Ende alle Widgets updaten
+      await CategoryDatamodule.updateWidget();
+    } catch (error) {
+      console.error("❌ Failed to clear widget data:", error);
+    }
+
+    // Category aus der App entfernen
     const updatedCategories = categories.filter(
       (category, index) => index !== reindex
     );
     setCategories(updatedCategories);
     setOriginalCategories(updatedCategories);
   };
-
   const removeRoutine = (reindex: number) => {
     Alert.alert(
       "Delete Routine",
@@ -1712,7 +1764,7 @@ export default function HomeScreen() {
     }
 
     if (finalStatus !== "granted") {
-      alert("Die Benachrichtigungen sind deaktiviert!");
+      alert("Notifications are disabled!");
       return false;
     }
 
@@ -1734,15 +1786,15 @@ export default function HomeScreen() {
       const settingspermissionGranted = await AsyncStorage.getItem(
         "notifications"
       );
-      const uncheckedHabbit = await GetRandomUncheckedHabbit();
-      let send: boolean;
-      if (settingspermissionGranted) {
-        send = JSON.parse(settingspermissionGranted);
-      } else {
-        send = false;
-      }
+      const send = settingspermissionGranted
+        ? JSON.parse(settingspermissionGranted)
+        : false;
+
       if (permissionGranted) {
         await Notifications.cancelAllScheduledNotificationsAsync();
+
+        const uncheckedHabbit = await GetRandomUncheckedHabbit();
+
         if (send && uncheckedHabbit !== null && uncheckedHabbit !== undefined) {
           const m = [
             `You haven’t done your ${uncheckedHabbit} yet. Time to get it done.`,
@@ -1765,12 +1817,28 @@ export default function HomeScreen() {
             },
           });
         }
+
+        const m2 = [
+          "Don't forget to check your habits 🔥",
+          "Once is nothing. Twice is a start.",
+          "Your routine is waiting. Get to it.",
+          "No motivation? Do it anyway.",
+          "5 minutes is better than 0.",
+          "You wanted change. Act like it.",
+          "Small step, big impact.",
+          "Discipline beats motivation.",
+          "Today matters. Tomorrow is an excuse.",
+          "Good habits don’t build themselves.",
+        ];
+
+        const rm2 = m2[Math.floor(Math.random() * m2.length)];
+
         const alldone = await GetRandomUncheckedHabbit();
         if (send && alldone !== null) {
           await Notifications.scheduleNotificationAsync({
             content: {
               title: "🎯 Daily Habit Check!",
-              body: `Don't forget to check your habits 🔥`,
+              body: rm2,
             },
             trigger: {
               type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
