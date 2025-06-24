@@ -721,7 +721,7 @@ export default function HomeScreen() {
       }
 
       let hasChanges = false;
-      const todayString = getLocalDateString(); // Get today in consistent format
+      const todayString = getLocalDateString();
 
       for (const widgetId of widgetIds) {
         try {
@@ -3555,192 +3555,214 @@ export default function HomeScreen() {
             ))}
           </View>
         )}
-        {expandRoutine ? (
+        <Modal visible={expandRoutine}>
           <View
-            style={{
-              backgroundColor: currentTheme.card,
-            }}
-            className="rounded-xl p-4 shadow-sm mt-4"
+            className="flex-1 justify-end"
+            style={{ backgroundColor: currentTheme.card }}
           >
-            <Text className="text-xl font-bold text-white mb-4">
-              Create a New Routine
-            </Text>
-            <TextInput
-              className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-              style={{ backgroundColor: currentTheme.border }}
-              placeholder="Enter name of Routine"
-              placeholderTextColor="#9CA3AF"
-              value={name}
-              onChangeText={setName}
-            />
-            <TextInput
-              className=" border-none rounded-lg px-4 py-3 text-white text-base mb-10"
-              style={{ backgroundColor: currentTheme.border }}
-              placeholder="Enter amount"
-              placeholderTextColor="#9CA3AF"
-              value={amount}
-              onChangeText={setAmount}
-            />
-
-            <ScrollView>
-              {routineItem.map((item, index) => (
-                <TextInput
-                  key={index}
-                  className="border-none rounded-lg px-4 py-3 text-white text-base mb-4"
-                  style={{ backgroundColor: currentTheme.border }}
-                  placeholder="Enter Routine Part"
-                  placeholderTextColor="#9CA3AF"
-                  value={item.name}
-                  onChangeText={(text) =>
-                    setRoutItem((prev) =>
-                      prev.map((el, i) =>
-                        i === index ? { ...el, name: text } : el
-                      )
-                    )
-                  }
-                />
-              ))}
-              <TouchableOpacity
-                className="h-10 w-10 rounded-full  mx-auto flex justify-center items-center"
-                style={{ backgroundColor: currentTheme.border }}
-                onPress={() =>
-                  setRoutItem((prev) => [
-                    ...prev,
-                    {
-                      name: "",
-                      lastCheckedDate: "",
-                      buttoncolor: "#71717a",
-                      edited: false,
-                    },
-                  ])
-                }
-              >
-                <Text className="font-bold text-white text-center text-2xl ">
-                  +
-                </Text>
-              </TouchableOpacity>
-            </ScrollView>
-            <View className="mb-6 mt-6">
-              <Text
-                className={` font-bold text-lg mb-3 
-                             text-white
-                          }`}
-              >
-                Select a Category
-              </Text>
-
-              <FlatList
-                data={GroupCategories}
-                renderItem={renderCategoryItem}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{}}
-              />
-            </View>
-            <Text className="text-white font-medium mb-5">Select Weekdays</Text>
-            <View className="flex-row flex-wrap gap-4 mb-5">
-              {weekdays.map((weekday, index) => {
-                const isSelected = selectedDays.includes(weekday.value);
-
-                return (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => {
-                      setSelectedDays((prev) => {
-                        if (prev.includes(weekday.value)) {
-                          return prev.filter((day) => day !== weekday.value);
-                        } else {
-                          return [...prev, weekday.value];
-                        }
-                      });
-                    }}
-                    className={`rounded-full h-12 w-12 items-center justify-center ${
-                      isSelected ? "bg-violet-600" : "bg-slate-800"
-                    }`}
-                    style={{
-                      backgroundColor: isSelected
-                        ? currentTheme.primary.main
-                        : currentTheme.border,
-                    }}
-                  >
-                    <Text className="text-gray-400 font-bold">
-                      {weekday.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
             <ScrollView
-              className="h-72 mb-4 mt-8"
               scrollEnabled={true}
               showsVerticalScrollIndicator={true}
               nestedScrollEnabled={true}
+              style={{ maxHeight: "100%" }}
+              className="mx-6  "
             >
-              <View className="flex-row flex-wrap justify-between">
-                {items.map((item, index) => (
-                  <TouchableOpacity
+              <TouchableOpacity
+                onPress={() => {
+                  setExpandRoutine(false);
+                }}
+                className="rounded-full items-center justify-center h-12 w-12 mb-10 mt-5"
+                style={{ backgroundColor: currentTheme.border }}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={23}
+                  color={"white"}
+                ></MaterialCommunityIcons>
+              </TouchableOpacity>
+
+              <Text className="text-3xl font-bold text-white mb-4 text-center">
+                Create new Routine
+              </Text>
+              <TextInput
+                className="  border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                style={{ backgroundColor: currentTheme.border }}
+                placeholder="Enter name of Routine"
+                placeholderTextColor="#9CA3AF"
+                value={name}
+                onChangeText={setName}
+              />
+              <TextInput
+                className=" border-none rounded-lg px-4 py-3 text-white text-base mb-10"
+                style={{ backgroundColor: currentTheme.border }}
+                placeholder="Enter amount"
+                placeholderTextColor="#9CA3AF"
+                value={amount}
+                onChangeText={setAmount}
+              />
+
+              <ScrollView>
+                {routineItem.map((item, index) => (
+                  <TextInput
                     key={index}
-                    className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
-                    style={{
-                      backgroundColor:
-                        selectedIcon === item.value
+                    className="border-none rounded-lg px-4 py-3 text-white text-base mb-4"
+                    style={{ backgroundColor: currentTheme.border }}
+                    placeholder="Enter Routine Part"
+                    placeholderTextColor="#9CA3AF"
+                    value={item.name}
+                    onChangeText={(text) =>
+                      setRoutItem((prev) =>
+                        prev.map((el, i) =>
+                          i === index ? { ...el, name: text } : el
+                        )
+                      )
+                    }
+                  />
+                ))}
+                <TouchableOpacity
+                  className="h-10 w-10 rounded-full  mx-auto flex justify-center items-center"
+                  style={{ backgroundColor: currentTheme.border }}
+                  onPress={() =>
+                    setRoutItem((prev) => [
+                      ...prev,
+                      {
+                        name: "",
+                        lastCheckedDate: "",
+                        buttoncolor: "#71717a",
+                        edited: false,
+                      },
+                    ])
+                  }
+                >
+                  <Text className="font-bold text-white text-center text-2xl ">
+                    +
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+              <View className="mb-6 mt-6">
+                <Text
+                  className={` font-bold text-lg mb-3 
+                             text-white
+                          }`}
+                >
+                  Select a Category
+                </Text>
+
+                <FlatList
+                  data={GroupCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{}}
+                />
+              </View>
+              <Text className="text-white font-medium mb-5">
+                Select Weekdays
+              </Text>
+              <View className="flex-row flex-wrap gap-4 mb-5">
+                {weekdays.map((weekday, index) => {
+                  const isSelected = selectedDays.includes(weekday.value);
+
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => {
+                        setSelectedDays((prev) => {
+                          if (prev.includes(weekday.value)) {
+                            return prev.filter((day) => day !== weekday.value);
+                          } else {
+                            return [...prev, weekday.value];
+                          }
+                        });
+                      }}
+                      className={`rounded-full h-12 w-12 items-center justify-center ${
+                        isSelected ? "bg-violet-600" : "bg-slate-800"
+                      }`}
+                      style={{
+                        backgroundColor: isSelected
                           ? currentTheme.primary.main
                           : currentTheme.border,
-                    }}
-                    onPress={() => setSelectedIcon(item.value)}
-                  >
-                    <MaterialCommunityIcons
-                      name={item.value as any}
-                      size={24}
-                      color={
-                        selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
-                      }
-                    />
-                    <Text
-                      className={`text-xs mt-1 text-center ${
-                        selectedIcon === item.value
-                          ? "text-white"
-                          : "text-gray-600"
-                      }`}
-                      numberOfLines={1}
+                      }}
                     >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                      <Text className="text-gray-400 font-bold">
+                        {weekday.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
-            </ScrollView>
+              <ScrollView
+                className="h-72 mb-4 mt-8"
+                scrollEnabled={true}
+                showsVerticalScrollIndicator={true}
+                nestedScrollEnabled={true}
+              >
+                <View className="flex-row flex-wrap justify-between">
+                  {items.map((item, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      className={`w-[31%] items-center p-3 rounded-lg mb-2 `}
+                      style={{
+                        backgroundColor:
+                          selectedIcon === item.value
+                            ? currentTheme.primary.main
+                            : currentTheme.border,
+                      }}
+                      onPress={() => setSelectedIcon(item.value)}
+                    >
+                      <MaterialCommunityIcons
+                        name={item.value as any}
+                        size={24}
+                        color={
+                          selectedIcon === item.value ? "#FFFFFF" : "#4B5563"
+                        }
+                      />
+                      <Text
+                        className={`text-xs mt-1 text-center ${
+                          selectedIcon === item.value
+                            ? "text-white"
+                            : "text-gray-600"
+                        }`}
+                        numberOfLines={1}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </ScrollView>
 
-            <TouchableOpacity
-              className={`rounded-lg py-3 items-center ${
-                !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
-              }`}
-              style={{
-                backgroundColor:
-                  !name || !selectedIcon
-                    ? currentTheme.border
-                    : currentTheme.primary.main,
-              }}
-              disabled={!name || !selectedIcon}
-              onPress={() => {
-                addNewRoutine(
-                  name,
-                  selectedIcon,
-                  Number.parseInt(amount),
-                  selectedDays
-                );
-                setName("");
-                setSelectedIcon("");
-                setRoutItem([]);
-              }}
-            >
-              <Text className="text-white font-bold text-base">
-                Add Routine
-              </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                className={`rounded-lg py-3 items-center mb-3 ${
+                  !name || !selectedIcon ? "bg-violet-800" : "bg-violet-600"
+                }`}
+                style={{
+                  backgroundColor:
+                    !name || !selectedIcon
+                      ? currentTheme.border
+                      : currentTheme.primary.main,
+                }}
+                disabled={!name || !selectedIcon}
+                onPress={() => {
+                  addNewRoutine(
+                    name,
+                    selectedIcon,
+                    Number.parseInt(amount),
+                    selectedDays
+                  );
+                  setName("");
+                  setSelectedIcon("");
+                  setRoutItem([]);
+                }}
+              >
+                <Text className="text-white font-bold text-base ">
+                  Add Routine
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </View>
-        ) : null}
+        </Modal>
         <Modal visible={expand}>
           <View
             className="flex-1 justify-end"
@@ -3950,7 +3972,7 @@ export default function HomeScreen() {
               setSelectedDays([]);
             }}
             className="rounded-full w-16 h-16 items-center justify-center shadow-lg"
-            style={{ backgroundColor: currentTheme.tab }}
+            style={{ backgroundColor: currentTheme.primary.main }}
           >
             <Text className="font-bold text-3xl text-white">+</Text>
           </TouchableOpacity>
@@ -3964,7 +3986,7 @@ export default function HomeScreen() {
               setSelectedDays([]);
             }}
             className="rounded-full w-16 h-16 items-center justify-center shadow-lg"
-            style={{ backgroundColor: currentTheme.card }}
+            style={{ backgroundColor: currentTheme.primary.main }}
           >
             <Text className="font-bold text-3xl text-white">+</Text>
           </TouchableOpacity>
