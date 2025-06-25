@@ -1,4 +1,3 @@
-import PaywallModal from "@/components/ui/paywall";
 import { FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Picker } from "@react-native-picker/picker";
@@ -467,13 +466,7 @@ export default function Tab() {
             Manage your app preferences
           </Text>
         </View>
-        {paywallvisible ? (
-          <PaywallModal
-            theme={currentTheme}
-            visible={paywallvisible}
-            onClose={() => setPaywallvisible(false)}
-          />
-        ) : null}
+
         <View className={`${cardBgColor} rounded-2xl p-5 shadow-md mb-6`}>
           <View className="mb-6">
             <Text
