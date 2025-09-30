@@ -2,7 +2,6 @@
 
 import availableColors from "@/components/ui/availableColors";
 import BadgeAnimation from "@/components/ui/BadgeAnimation";
-import dailyQuests from "@/components/ui/dailyQuest";
 import FlameAnimation from "@/components/ui/FlameAnimation";
 import items from "@/components/ui/items";
 import Streak from "@/components/ui/streak";
@@ -1053,7 +1052,7 @@ export default function HomeScreen() {
               date: new Date(day.date),
             })),
           };
-
+          // error is laying down here
           if (
             processedCategory.lastCheckDate != yesterdayFormatted &&
             processedCategory.lastCheckDate != todayFormatted &&
@@ -1320,9 +1319,6 @@ export default function HomeScreen() {
     };
     askForReview();
   }, []);
-
-  const availableColors2 = availableColors;
-  const items2 = items;
 
   useEffect(() => {
     if (categories.length === 0) return;
@@ -1931,35 +1927,6 @@ export default function HomeScreen() {
     newCategories[toIndex] = temp;
     setCategories(newCategories);
   };
-  const CheckQuest = async () => {
-    const today = new Date().toLocaleDateString("de-DE");
-    const questId = DayQuestNumber();
-
-    if (QuestDateDone === today) {
-      setQuestDateDone("X");
-      setQuestsDone(QuestsDone - 1);
-      await AsyncStorage.setItem("QuestsDone", JSON.stringify(QuestsDone - 1));
-    } else {
-      setQuestDateDone(today);
-      setQuestsDone(QuestsDone + 1);
-      await AsyncStorage.setItem("QuestsDone", JSON.stringify(QuestsDone + 1));
-    }
-
-    await AsyncStorage.setItem(
-      "QuestDate",
-      JSON.stringify(QuestDateDone === today ? "X" : today)
-    );
-  };
-
-  const DayQuestNumber = () => {
-    const today = new Date();
-    const dateString = today.toISOString().split("T")[0];
-    let hash = 0;
-    for (let i = 0; i < dateString.length; i++) {
-      hash += dateString.charCodeAt(i);
-    }
-    return hash % dailyQuests.length;
-  };
 
   const swapRoutines = (fromIndex: number, toIndex: number) => {
     if (
@@ -2224,58 +2191,9 @@ export default function HomeScreen() {
         className="flex-1"
         contentContainerClassName="px-4 py-8 pb-20"
       >
-        <View className="flex-row justify-between w-full">
-          <View className="flex-col">
-            <TouchableOpacity
-              onPress={() => setQuestView(!questview)}
-              className=" h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              style={{
-                backgroundColor: currentTheme.card,
-                borderColor: currentTheme.textMuted,
-              }}
-            >
-              <MaterialCommunityIcons
-                name="script-text"
-                size={20}
-                color={"white"}
-              ></MaterialCommunityIcons>
-            </TouchableOpacity>
-          </View>
-          <View className="flex-col ">
-            <TouchableOpacity
-              onPress={() => setQuickView(!quickView)}
-              className="h-10 w-10 border rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              style={{
-                backgroundColor: currentTheme.card,
-                borderColor: currentTheme.textMuted,
-              }}
-            >
-              <MaterialCommunityIcons
-                size={20}
-                name="view-grid-plus"
-                color="white"
-              ></MaterialCommunityIcons>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setThemeModal(!themeModal);
-              }}
-              className="h-10 border w-10 rounded-full items-center justify-center shadow-lg relative top-12 mt-3 "
-              style={{
-                backgroundColor: currentTheme.card,
-                borderColor: currentTheme.textMuted,
-              }}
-            >
-              <MaterialCommunityIcons
-                size={20}
-                name="palette"
-                color="white"
-              ></MaterialCommunityIcons>
-            </TouchableOpacity>
-          </View>
-        </View>
+        <View className="flex-col justify-between w-full"></View>
 
-        <View className="items-center mb-8 mt-12">
+        <View className="items-center mb-8 mt-20">
           <View className="flex-row justify-between gap-3">
             <Text
               style={{ color: currentTheme.text }}
@@ -2352,81 +2270,7 @@ export default function HomeScreen() {
               visible={badgeAnimationVisible}
             />
           )}
-          <Modal animationType="slide" visible={questview} transparent={true}>
-            <View className="flex-1 justify-end ">
-              <View
-                className={`rounded-t-3xl  px-6 `}
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: -2 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
-                  elevation: 5,
-                  maxHeight: "90%",
-                  backgroundColor: currentTheme.bg,
-                }}
-              >
-                <View className="py-10">
-                  <TouchableOpacity
-                    onPress={() => setQuestView(false)}
-                    className="p-2 h-11 w-11 rounded-full  items-center justify-center mb-6"
-                    style={{ backgroundColor: currentTheme.card }}
-                  >
-                    <MaterialCommunityIcons
-                      name="close"
-                      size={24}
-                      color={"#94a3b8"}
-                    />
-                  </TouchableOpacity>
 
-                  <View className="flex justify-center items-center mb-10">
-                    <View className="bg-white/20 h-12 w-20 px-3 py-2 rounded-full justify-center items-center ">
-                      <FlameAnimation flames={QuestsDone} color="white" />
-                    </View>
-                  </View>
-
-                  <Text className="font-bold text-white text-2xl mb-5 text-center">
-                    Daily Quest:
-                  </Text>
-                  <Text className="text-white text-xl mb-8 text-center">
-                    {dailyQuests[DayQuestNumber()]}
-                  </Text>
-                  <View
-                    className="w-full h-3 rounded-full mx-auto mb-5 overflow-hidden"
-                    style={{ backgroundColor: currentTheme.card }}
-                  >
-                    <View
-                      className="h-3 rounded-full"
-                      style={{
-                        width:
-                          QuestDateDone ===
-                          new Date().toLocaleDateString("de-DE")
-                            ? "100%"
-                            : "0%",
-                        backgroundColor:
-                          QuestDateDone ===
-                          new Date().toLocaleDateString("de-DE")
-                            ? "#22c55e"
-                            : "#334155",
-                      }}
-                    />
-                  </View>
-                  <TouchableOpacity
-                    onPress={CheckQuest}
-                    className="h-12 w-12 rounded-full items-center justify-center mx-auto"
-                    style={{
-                      backgroundColor:
-                        QuestDateDone === new Date().toLocaleDateString("de-DE")
-                          ? "#22c55e"
-                          : currentTheme.card,
-                    }}
-                  >
-                    <Text className="text-white font-bold text-xl">✓</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
           <Modal animationType="slide" visible={themeModal} transparent={true}>
             <View className="flex-1 justify-end ">
               <View
@@ -2477,120 +2321,6 @@ export default function HomeScreen() {
                     );
                   })}
                 </View>
-              </View>
-            </View>
-          </Modal>
-          <Modal animationType="slide" visible={quickView} transparent={true}>
-            <View className="flex-1 justify-end ">
-              <View
-                className={`rounded-t-3xl  px-6 `}
-                style={{
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: -2 },
-                  shadowOpacity: 0.25,
-                  shadowRadius: 3.84,
-                  elevation: 5,
-                  maxHeight: "100%",
-                  backgroundColor: currentTheme.card,
-                }}
-              >
-                {activeTab === "habits" ? (
-                  <View>
-                    <View className="flex-row mb-10   ">
-                      <TouchableOpacity
-                        onPress={() => {
-                          setQuickView(false);
-                        }}
-                        className="p-2 h-11 w-11 rounded-full  items-center justify-center mt-3 ml-3 "
-                        style={{ backgroundColor: currentTheme.card }}
-                      >
-                        <MaterialCommunityIcons
-                          name="close"
-                          size={24}
-                          color={"#94a3b8"}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <View className="flex justify-center items-center">
-                      <Text className="font-bold text-white text-2xl mb-5">
-                        Active Habits: {categories.length}
-                      </Text>
-                    </View>
-                    <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                      {categories.map((category, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          className="rounded-full h-10  bg-slate-800 items-center justify-center mb-3"
-                          style={{
-                            minWidth: 80,
-                            backgroundColor: category.archivated
-                              ? "#4b5563"
-                              : category.color,
-                          }}
-                        >
-                          <View className="flex-row gap-5 items-center">
-                            <Text className="font-bold text-lg px-3 text-white">
-                              {category.name}
-                            </Text>
-                            <View className="bg-white/20 px-3 py-2 rounded-full ">
-                              <FlameAnimation
-                                flames={category.streak}
-                                color="white"
-                              />
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                ) : (
-                  <View>
-                    <View className="flex-row  mb-6">
-                      <TouchableOpacity
-                        onPress={() => {
-                          setQuickView(false);
-                        }}
-                        className="p-2 h-11 w-11 rounded-full  items-center justify-center mt-3 ml-3 "
-                        style={{ backgroundColor: currentTheme.card }}
-                      >
-                        <MaterialCommunityIcons
-                          name="close"
-                          size={24}
-                          color={"#94a3b8"}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                    <View className="flex justify-center items-center">
-                      <Text className="font-bold text-white text-2xl mb-5">
-                        Active Routines: {routines.length}
-                      </Text>
-                    </View>
-                    <View className="flex-row flex-wrap  gap-3 justify-center items-center mb-10">
-                      {routines.map((routines, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          className="rounded-full h-10   items-center justify-center mb-3"
-                          style={{
-                            minWidth: 80,
-                            backgroundColor: routines.color,
-                          }}
-                        >
-                          <View className="flex-row gap-5 items-center">
-                            <Text className="font-bold text-lg px-3 text-white">
-                              {routines.name}
-                            </Text>
-                            <View className="bg-white/20 px-3 py-2 rounded-full ">
-                              <FlameAnimation
-                                flames={routines.streak}
-                                color="white"
-                              />
-                            </View>
-                          </View>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                )}
               </View>
             </View>
           </Modal>
